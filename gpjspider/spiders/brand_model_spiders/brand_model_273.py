@@ -33,6 +33,8 @@ class BrandModel273Spider(scrapy.Spider):
                 item = BrandModelItem()
                 item['domain'] = "273.cn"
                 item['parent'] = brand.xpath(brand_rule).extract()[0].strip()
+                if u'品牌' in item['parent']:
+                    continue
                 item['url'] = brand.xpath(url_rule).extract()[0].strip()
                 if not item['parent'] or not item['url']:
                     self.log(u'无法获取品牌或者 url', level=log.ERROR)
@@ -72,3 +74,8 @@ class BrandModel273Spider(scrapy.Spider):
             else:
                 self.log(u'获取 slug 错误：{0}'.format(model_url), level=log.ERROR)
                 yield None
+        # 保存品牌
+        item['name'] = item['parent']
+        item['parent'] = None
+        item['slug'] = item['url'].strip().strip('/').split('/')[-1]
+        yield item

@@ -26,13 +26,15 @@ class BrandModel51autoSpider(scrapy.Spider):
             if not brand or not url:
                 continue
             brand = brand[0]
+            if u'品牌' in brand:
+                continue
             url = url[0]
             item = BrandModelItem()
             item['domain'] = "51auto.com"
             item['parent'] = brand.strip()
             item['url'] = url.strip()
             request = Request(item['url'], callback=self.parse_model)
-            request.meta['item'] = item
+            request.meta['item'] = copy(item)
             yield request
 
     def parse_model(self, response):
@@ -55,3 +57,9 @@ class BrandModel51autoSpider(scrapy.Spider):
                 item['name'] = name
                 item['slug'] = url.strip().strip('/').split('/')[-1]
                 yield item
+        # 保存品牌
+        brand_item = copy(response.meta['item'])
+        brand_item['name'] = brand_item['parent']
+        brand_item['parent'] = None
+        brand_item['slug'] = brand_item['url'].strip().strip('/').split('/')[-1]
+        yield brand_item
