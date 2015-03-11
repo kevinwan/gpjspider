@@ -6,3 +6,4 @@
 local_settings.py
 static/
 docs/.build/*
+sftp-config.json
