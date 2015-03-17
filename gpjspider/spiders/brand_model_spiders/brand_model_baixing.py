@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import urllib
 from copy import deepcopy
 import scrapy
 from scrapy import log
@@ -14,7 +15,8 @@ class BrandModelBaixingSpider(scrapy.Spider):
     )
 
     def parse(self, response):
-        rule = '//div[@class="items all-items"]/a'
+        # rule = '//div[@class="fieldset "]/div[@class="items"][last()]/a'
+        rule = u'//div[@class="fieldset "]/h4[contains(text(), "品牌")]/following-sibling::div/a'
         bs = response.xpath(rule)
         if not bs:
             self.log(u'品牌规则失效：{0}'.format(rule), level=log.ERROR)
@@ -34,7 +36,7 @@ class BrandModelBaixingSpider(scrapy.Spider):
                 item['parent'] = brand
                 item['domain'] = 'baixing.com'
                 item['url'] = 'http://china.baixing.com' + slug
-                item['slug'] = slug.strip('/')
+                item['slug'] = slug.strip('/').split('/')[-1]
                 item['name'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
@@ -42,6 +44,7 @@ class BrandModelBaixingSpider(scrapy.Spider):
 
     def parse_model(self, response):
         rule = '//div[@class="items all-items"]/a'
+        rule = u'//h4[contains(text(), "车系列")]/following-sibling::div/a'
         ms = response.xpath(rule)
         if not ms:
             msg = u'型号规则失效：{0}：{1}'.format(rule, response.url)
@@ -51,8 +54,12 @@ class BrandModelBaixingSpider(scrapy.Spider):
             try:
                 model_name = m.xpath('text()').extract()[0].strip()
                 slug = m.xpath('@href').extract()[0].strip()
+                slug = str(slug)
+                slug = urllib.url2pathname(slug).decode('utf-8')
             except:
-                self.log(u'小规则失效:{0}'.format(response.url), level=log.ERROR)
+                import traceback
+                s = traceback.format_exc()
+                self.log(u'小规则失效:{0}'.format(response.url + s), level=log.ERROR)
                 continue
             else:
                 if u'不限' in model_name or u'更多' in model_name:
@@ -60,7 +67,9 @@ class BrandModelBaixingSpider(scrapy.Spider):
                 item = deepcopy(response.meta['item'])
                 item['name'] = model_name
                 item['url'] = 'http://china.baixing.com' + slug
-                item['slug'] = slug.strip('/')
+                item['slug'] = slug.strip('/').split('/')[-1]
+                if '_' in item['slug']:
+                    item['slug'] = item['slug'].split('_')[-1]
                 yield item
         response.meta['item']['name'] = response.meta['item']['parent']
         response.meta['item']['parent'] = None

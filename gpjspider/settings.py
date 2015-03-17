@@ -23,7 +23,7 @@ ITEM_PIPELINES = {
 }
 
 DOWNLOADER_MIDDLEWARES = {
-    # 'gpjspider.downloaders.ProxyMiddleware': 100,
+    'gpjspider.downloaders.ProxyMiddleware': 100,
     'gpjspider.downloaders.SeleniumDownloader': 110,
 }
 
