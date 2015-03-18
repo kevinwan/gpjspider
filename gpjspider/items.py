@@ -21,3 +21,18 @@ class BrandModelItem(Item):
     domain = Field()
     url = Field()
     slug = Field()
+
+
+class FourSShopItem(Item):
+    """
+    """
+    shop_name = Field()
+    city = Field()
+    phone = Field()
+    address = Field()
+    # 多个品牌用 ###分隔
+    brands = Field()
+    domain = Field()
+    longitude = Field()
+    latitude = Field()
+    url = Field()
