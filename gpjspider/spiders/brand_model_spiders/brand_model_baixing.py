@@ -33,6 +33,7 @@ class BrandModelBaixingSpider(scrapy.Spider):
                 if u'不限' in brand or u'更多' in brand:
                     continue
                 item = BrandModelItem()
+                item['mum'] = None
                 item['parent'] = brand
                 item['domain'] = 'baixing.com'
                 item['url'] = 'http://china.baixing.com' + slug
@@ -62,7 +63,7 @@ class BrandModelBaixingSpider(scrapy.Spider):
                 self.log(u'小规则失效:{0}'.format(response.url + s), level=log.ERROR)
                 continue
             else:
-                if u'不限' in model_name or u'更多' in model_name:
+                if u'不限' in model_name or u'更多' in model_name or u'其他' in model_name:
                     continue
                 item = deepcopy(response.meta['item'])
                 item['name'] = model_name

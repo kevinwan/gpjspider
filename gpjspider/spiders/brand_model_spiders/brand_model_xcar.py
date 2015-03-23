@@ -39,6 +39,7 @@ class BrandModelXcarSpider(scrapy.Spider):
                 item['slug'] = s[6]
                 item['url'] = 'http://used.xcar.com.cn' + url
                 item['name'] = None
+                item['mum'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
                 yield request
@@ -46,25 +47,32 @@ class BrandModelXcarSpider(scrapy.Spider):
     def parse_model(self, response):
         """
         """
-        rule = '//div[@id="pserids"]/p/span/a'
-        models = response.xpath(rule)
-        if not models:
+        rule = '//div[@id="pserids"]/p'
+        ms = response.xpath(rule)
+        if not ms:
             msg = u'型号规则失效:{0}:{1}'.format(rule, response.url)
             self.log(msg, level=log.ERROR)
             yield None
-        for model in models:
-            model_name = model.xpath('text()').extract()[0].strip()
-            url = model.xpath('@href').extract()[0].strip()
-            item = deepcopy(response.meta['item'])
-            item['name'] = model_name
-            item['slug'] = url.strip('/').split('/')[-1]
-            s = item['slug'].split('-')
-            if not(len(s) == 17 and '0' < s[6] < '999999999'):
-                self.log(u'品牌slug小规则失效', level=log.ERROR)
-                yield
-            item['slug'] = s[6]
-            item['url'] = 'http://used.xcar.com.cn' + url
-            yield item
+        for m in ms:
+            mum = m.xpath('b/text()').extract()
+            if not mum:
+                continue
+            else:
+                mum = mum[0].strip(' ').strip(':')
+            for model in m.xpath('span/a'):
+                model_name = model.xpath('text()').extract()[0].strip()
+                url = model.xpath('@href').extract()[0].strip()
+                item = deepcopy(response.meta['item'])
+                item['mum'] = mum
+                item['name'] = model_name
+                item['slug'] = url.strip('/').split('/')[-1]
+                s = item['slug'].split('-')
+                if not(len(s) == 17 and '0' < s[6] < '999999999'):
+                    self.log(u'品牌slug小规则失效', level=log.ERROR)
+                    yield
+                item['slug'] = s[6]
+                item['url'] = 'http://used.xcar.com.cn' + url
+                yield item
         response.meta['item']['name'] = response.meta['item']['parent']
         response.meta['item']['parent'] = None
         yield response.meta['item']

@@ -31,6 +31,7 @@ class BrandModelGanjiSpider(scrapy.Spider):
                     item['url'] = "http://www.ganji.com/" + slug + '/'
                     item['domain'] = 'ganji.com'
                     item['name'] = None
+                    item['mum'] = None
                     request = Request(item['url'], callback=self.parse_model)
                     request.meta['item'] = item
                     yield request

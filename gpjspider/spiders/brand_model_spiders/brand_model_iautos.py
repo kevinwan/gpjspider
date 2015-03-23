@@ -33,6 +33,7 @@ class BrandModelIautosSpider(scrapy.Spider):
                 item['domain'] = 'iautos.cn'
                 item['slug'] = brand_url.strip().strip('/').split('/')[-1]
                 item['name'] = None
+                item['mum'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
                 yield request

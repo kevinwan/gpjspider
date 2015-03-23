@@ -25,6 +25,7 @@ class BrandModelChe168Spider(scrapy.Spider):
         else:
             for j in js:
                 item = BrandModelItem()
+                item['mum'] = None
                 item['domain'] = "che168.com"
                 item['parent'] = j['name']
                 item['slug'] = j['url'].strip().strip('/').split('/')[-1]

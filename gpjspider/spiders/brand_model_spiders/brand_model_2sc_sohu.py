@@ -46,8 +46,10 @@ class BrandModel2scSohuSpider(scrapy.Spider):
                 item['url'] = 'http://2sc.sohu.com/auto-{0}/'.format(item['slug'])
                 item['name'] = None
                 for ii in j['s']:
+                    mum = ii['n']
                     for mm in ii['b']:
                         model_item = deepcopy(item)
+                        model_item['mum'] = mum
                         model_item['name'] = mm['n']
                         model_item['slug'] = mm['e']
                         model_item['url'] = 'http://2sc.sohu.com/auto1-{0}/'.format(mm['e'])

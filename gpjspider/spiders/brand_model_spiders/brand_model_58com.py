@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import traceback
 from copy import deepcopy
 import scrapy
 from scrapy import log
@@ -14,10 +13,6 @@ class BrandModel58comSpider(scrapy.Spider):
     start_urls = (
         'http://quanguo.58.com/ershouche/',
     )
-    # 车系 URL 模板
-    model_url_template = (
-        "http://api.58.com/comm/cmcs/all/all/cityid-5/cateid-29/?api_marktar"
-        "get=false&api_listname={brand}&api_retparameterid=5867&api_type=json")
 
     def parse(self, response):
         base_rule = '//input[@id="data1"]/@value'
@@ -34,41 +29,44 @@ class BrandModel58comSpider(scrapy.Spider):
             else:
                 for j in js:
                     item = BrandModelItem()
+                    item['mum'] = None
                     item['parent'] = j['text'].strip()
                     if u'不限' in item['parent']:
                         continue
+                    if (u'装载机' in item['parent'] or u'其他客车' in item['parent']
+                    or u'推土机' in item['parent']):
+                        continue
+
                     item['url'] = j['url'].strip()
                     item['domain'] = '58.com'
                     item['slug'] = item['url'].strip().strip('/').split('/')[-1]
-
-                    model_url = self.model_url_template.format(brand=item['slug'])
-                    request = Request(model_url, self.parse_model)
+                    request = Request(item['url'], self.parse_model)
                     request.meta['item'] = item
                     yield request
 
     def parse_model(self, response):
         """
         """
-        json_str = response.body_as_unicode()
-        try:
-            j = json.loads(json_str)
-            ms = j['comms_getcmcsinfo'][0]['allpropertys']
-            ms = ms['allproperty'][0]['propertyvalues']
-        except:
-            s = traceback.format_exc()
-            self.log(u'json 异常：\n{0}'.format(s), level=log.ERROR)
-        else:
-            for m in ms:
-                try:
-                    model_name = m['text'].strip()
-                    slug = m['listname'].strip()
-                except:
-                    continue
-                item = deepcopy(response.meta['item'])
-                item['name'] = model_name
-                item['url'] = 'http://quanguo.58.com/' + slug
-                item['slug'] = slug
-                yield item
+        base_rule = u'//dt[@class="secitem_brand" and contains(text(), "车系")]/following-sibling::dd/a'
+        model_nodes = response.xpath(base_rule)
+        if not model_nodes:
+            self.log(u'规则失效:{0}:{1}'.format(base_rule, response.url))
+            yield None
+
+        for model_node in model_nodes:
+            try:
+                model_name = model_node.xpath('text()').extract()[0]
+                url = model_node.xpath('@href').extract()[0]
+            except:
+                continue
+            if model_name == u'不限':
+                continue
+            item = deepcopy(response.meta['item'])
+            item['name'] = model_name
+            item['url'] = url
+            item['slug'] = url.strip().strip('/').split('/')[-1]
+            yield item
+
         item = response.meta['item']
         item['name'] = item['parent']
         item['parent'] = None

@@ -13,7 +13,8 @@ class BrandModelCn2cheSpider(scrapy.Spider):
     )
 
     def parse(self, response):
-        rule = '//div[@class="brandlist"]//div[@class="msglist11"]/dl'
+        # rule = '//div[@class="brandlist"]//div[@class="msglist11"]/dl'
+        rule = '//div[@class="brandlist"]//div[@class="msglist09"]'
         bs = response.xpath(rule)
         if not bs:
             self.log(u'品牌规则失效：{0}'.format(rule), level=log.ERROR)
@@ -21,10 +22,11 @@ class BrandModelCn2cheSpider(scrapy.Spider):
 
         for b in bs:
             try:
-                brand = b.xpath('dt/a/text()').extract()[0]
-                slug = b.xpath('dt/a/@href').extract()[0]
+                brand = b.xpath('div[@class="msglist10"]/a/text()').extract()[0]
+                slug = b.xpath('div[@class="msglist10"]/a/@href').extract()[0]
+                car_mums = b.xpath('div[@class="msglist11"]/dl')
             except:
-                self.log(u'', level=log.ERROR)
+                self.log(u'aaaaaaaaa', level=log.ERROR)
             else:
                 p_item = BrandModelItem()
                 p_item['parent'] = brand.strip()
@@ -32,13 +34,17 @@ class BrandModelCn2cheSpider(scrapy.Spider):
                 p_item['url'] = 'http://www.cn2che.com' + slug.strip()
                 p_item['slug'] = slug.strip().strip('/').split('/')[-1]
                 p_item['name'] = None
-                for m in b.xpath('dd/a[1]'):
-                    item = deepcopy(p_item)
-                    item['name'] = m.xpath('span/text()').extract()[0].strip()
-                    slug = m.xpath('@href').extract()[0].strip()
-                    item['slug'] = slug.strip().strip('/').split('/')[-1]
-                    item['url'] = 'http://www.cn2che.com' + slug.strip()
-                    yield item
+                p_item['mum'] = None
+                for a in car_mums:
+                    mum = a.xpath('dt/a/text()').extract()[0]
+                    for car_model in a.xpath('dd/a/span/..'):
+                        item = deepcopy(p_item)
+                        item['name'] = car_model.xpath('span/text()').extract()[0].strip()
+                        slug = car_model.xpath('@href').extract()[0].strip()
+                        item['slug'] = slug.strip().strip('/').split('/')[-1]
+                        item['url'] = 'http://www.cn2che.com' + slug.strip()
+                        item['mum'] = mum
+                        yield item
                 p_item['name'] = p_item['parent']
                 p_item['parent'] = None
                 yield p_item

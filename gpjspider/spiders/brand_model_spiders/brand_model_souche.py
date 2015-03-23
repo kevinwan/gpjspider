@@ -31,8 +31,10 @@ class BrandModelSoucheSpider(scrapy.Spider):
                 item['domain'] = 'souche.com'
                 item['parent'] = brand_name
                 item['slug'] = slug.strip('/').split('/')[-2]
-                item['url'] = u'http://www.souche.com/beijing/{0}/list-mx2015'.format(item['slug'])
+                m = u'http://www.souche.com/beijing/{0}/list-mx2015'
+                item['url'] = m.format(item['slug'])
                 item['name'] = None
+                item['mum'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
                 yield request
@@ -40,20 +42,23 @@ class BrandModelSoucheSpider(scrapy.Spider):
     def parse_model(self, response):
         """
         """
-        rule = '//div[@id="brand_option"]/div/ul/li/a'
-        models = response.xpath(rule)
-        if not models:
+        rule = '//div[@id="brand_option"]/div/ul'
+        ms = response.xpath(rule)
+        if not ms:
             msg = u'型号规则失效:{0}:{1}'.format(rule, response.url)
             self.log(msg, level=log.ERROR)
             yield None
-        for model in models:
-            model_name = model.xpath('text()').extract()[0].strip()
-            url = model.xpath('@href').extract()[0].strip()
-            item = deepcopy(response.meta['item'])
-            item['name'] = model_name
-            item['slug'] = url.strip('/').split('/')[-2]
-            item['url'] = 'http://www.souche.com' + url
-            yield item
+        for m in ms:
+            mum = m.xpath('div/text()').extract()[0]
+            for model in m.xpath('/li/a'):
+                model_name = model.xpath('text()').extract()[0].strip()
+                url = model.xpath('@href').extract()[0].strip()
+                item = deepcopy(response.meta['item'])
+                item['mum'] = mum
+                item['name'] = model_name
+                item['slug'] = url.strip('/').split('/')[-2]
+                item['url'] = 'http://www.souche.com' + url
+                yield item
         response.meta['item']['name'] = response.meta['item']['parent']
         response.meta['item']['parent'] = None
         yield response.meta['item']

@@ -31,6 +31,7 @@ class BrandModel273Spider(scrapy.Spider):
                 yield None
             for brand in brands:
                 item = BrandModelItem()
+                item['mum'] = None
                 item['domain'] = "273.cn"
                 item['parent'] = brand.xpath(brand_rule).extract()[0].strip()
                 if u'品牌' in item['parent']:

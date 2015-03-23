@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = 'gpjspider.spiders'
 
 
 ITEM_PIPELINES = {
-    # 'gpjspider.pipelines.GpjspiderPipeline': 1,
+    'gpjspider.pipelines.GpjspiderPipeline': 1,
 
     'gpjspider.pipelines.SaveToMySQLPipeline': 999,
 }
@@ -29,7 +29,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 2.5
+DOWNLOAD_DELAY = 3.3
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

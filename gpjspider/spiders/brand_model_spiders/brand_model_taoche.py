@@ -38,6 +38,7 @@ class BrandModelTaocheSpider(scrapy.Spider):
                 item['slug'] = brand_slug.strip('/').split('/')[-1]
                 item['url'] = 'http://www.taoche.com' + brand_slug
                 item['name'] = None
+                item['mum'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
                 yield request

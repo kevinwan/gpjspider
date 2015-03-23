@@ -47,6 +47,7 @@ class BrandModelHx2carSpider(scrapy.Spider):
                         p_item['slug'] = brand_slug.strip().strip('/').split('/')[-1]
                         p_item['url'] = brand_slug.strip()
                         p_item['name'] = None
+                        p_item['mum'] = None
                         yield p_item
                 elif brand_model.extract().startswith('<a'):
                     try:

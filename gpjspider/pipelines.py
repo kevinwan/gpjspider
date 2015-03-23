@@ -10,7 +10,10 @@ class GpjspiderPipeline(object):
     """
     def process_item(self, item, spider):
         for k, v in item.items():
-            print u"{0}  ->  {1}".format(k, v)
+            if v:
+                print "{0}  ->  {1}".format(k, v.encode('utf-8'))
+            else:
+                print "{0}  ->  {1}".format(k, v)
         return item
 
 
@@ -20,10 +23,13 @@ class SaveToMySQLPipeline(object):
     """
     def process_item(self, item, spider):
         if isinstance(item, BrandModelItem):
-            o = BrandModel.objects.filter(parent=item['parent'])
-            o = o.filter(name=item['name']).filter(domain=item['domain'])
-            o = o.filter(slug=item['slug'])
-            o = o.filter(url=item['url'])
+            if not item['parent']:
+                o = BrandModel.objects.filter(name=item['name'])
+            else:
+                o = BrandModel.objects.filter(parent=item['parent'])
+                o = o.filter(name=item['name'])
+                o = o.filter(mum=item['mum'])
+            o = o.filter(domain=item['domain'])
             if not o.all():
                 o = BrandModel()
                 o.parent = item['parent']
@@ -31,8 +37,18 @@ class SaveToMySQLPipeline(object):
                 o.url = item['url']
                 o.domain = item['domain']
                 o.slug = item['slug']
+                o.mum = item.get('mum')
                 o.save()
+                spider.log(u'新增 {0} '.format(item['url']))
             else:
+                a_o = o.all()[0]
+                a_o.parent = item['parent']
+                a_o.name = item['name']
+                a_o.url = item['url']
+                a_o.domain = item['domain']
+                a_o.slug = item['slug']
+                a_o.mum = item.get('mum')
+                a_o.save()
                 spider.log(u'{0}对应车型已经存在'.format(item['url']))
 
         if isinstance(item, FourSShopItem):

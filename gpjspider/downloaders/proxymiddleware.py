@@ -18,9 +18,9 @@ class ProxyMiddleware(object):
     """
     # 需要使用代理的 domain
     domains = (
-        '58.com',  'baixing.com', 'ganji.com', '273.cn', 'iautos.cn', 'che168.com',
-        'youche.com', 'autohome.com', 'pahaoche.com', 'hx2car.com', 'zg2sc.cn',
-        'souche.com'
+        '58.com',  'baixing.com', 'ganji.com', '273.cn', 'iautos.cn',
+        'che168.com', 'youche.com', 'autohome.com', 'pahaoche.com',
+        'hx2car.com', 'zg2sc.cn'
     )
 
     def process_request(self, request, spider):

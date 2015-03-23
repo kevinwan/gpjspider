@@ -33,6 +33,7 @@ class BrandModelRenrencheSpider(scrapy.Spider):
                 item['slug'] = url.strip('/').split('/')[-1]
                 item['url'] = 'http://www.renrenche.com' + url
                 item['name'] = None
+                item['mum'] = None
                 request = Request(item['url'], callback=self.parse_model)
                 request.meta['item'] = item
                 yield request

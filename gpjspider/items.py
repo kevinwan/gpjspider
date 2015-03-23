@@ -21,6 +21,7 @@ class BrandModelItem(Item):
     domain = Field()
     url = Field()
     slug = Field()
+    mum = Field()
 
 
 class FourSShopItem(Item):
