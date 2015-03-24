@@ -33,7 +33,7 @@ class FourSShopAutohome(scrapy.Spider):
             city = shop.xpath('h3/a[not(@class)]/@js-darea').extract()
             # phone = shop.xpath('dl/dd/div/span/span/text()').extract()
             address = shop.xpath(u'dl/dd/div[contains(text(), "地址")]/@title').extract()
-            bran_rule = u'dl/dd/div[@title and contains(text(), "品牌")]/@title'
+            bran_rule = u'dl/dd/div[@title and contains(text(), "品牌：")]/@title'
             brands = shop.xpath(bran_rule).extract()
             url = shop.xpath('h3/a/@href').extract()
             item = FourSShopItem()
