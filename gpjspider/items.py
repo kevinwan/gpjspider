@@ -4,6 +4,8 @@
 
 import scrapy
 from scrapy import Item, Field
+from scrapy.contrib.djangoitem import DjangoItem
+from gpjspider.models import UsedCar
 
 
 class GpjspiderItem(scrapy.Item):
@@ -37,3 +39,10 @@ class FourSShopItem(Item):
     longitude = Field()
     latitude = Field()
     url = Field()
+
+
+class UsedCarItem(DjangoItem):
+    """
+    优质二手车
+    """
+    django_model = UsedCar

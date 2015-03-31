@@ -2,8 +2,8 @@
 from django.db import models
 from django.db.models import Max
 
-from ..choices import CONTROL_MODE_CHOICES, SOURCE_TYPE_CHOICES
-from .. import constants
+from utils.choices import CONTROL_MODE_CHOICES, SOURCE_TYPE_CHOICES
+from utils import constants
 
 
 class BrandModel(models.Model):
@@ -84,7 +84,7 @@ class UsedCar(models.Model):
     month = models.IntegerField(u'购置月份', blank=True, default=6)
     url = models.URLField()
     time = models.DateTimeField(u'发布时间', blank=True, null=True)
-    #爬虫中均已万为单位
+    # 爬虫中均已万为单位
     mile = models.DecimalField(
         u'行驶里程', max_digits=5, decimal_places=2, blank=True, null=True
     )
@@ -122,7 +122,7 @@ class UsedCar(models.Model):
     # 缩略图下载之后保存到服务器文件夹IMAGES_STORE = '/home/static/img'
     thumbnail = models.CharField(max_length=200, null=True, blank=True)
     # imgurls用来保存多对应于一部车在源网站多个图片的URL地址，用空格号分开
-    imgurls = models.CharField(max_length=3072, null=True, blank=True)
+    imgurls = models.CharField(max_length=4000, null=True, blank=True)
     # image_urls 暂时用于调试(crapy.contrib.pipeline.images.ImagesPipeline)，
     # 没有用在生产环境中
     image_urls = models.CharField(max_length=1024, null=True, blank=True)
@@ -184,9 +184,8 @@ class UsedCar(models.Model):
         u'创建时间', auto_now_add=True, blank=True, null=True
     )
     domain = models.CharField(max_length=32, blank=True, null=True)
-    detail_model = models.ForeignKey(
-        'Model_detail', blank=True, null=True, on_delete=models.SET_NULL,
-        verbose_name=u'匹配的款型'
+    detail_model = models.PositiveIntegerField(
+        db_column="detail_model_id", default=None
     )
     # 仅仅为了兼容
     checker_runtime = models.PositiveIntegerField(
@@ -203,6 +202,8 @@ class UsedCar(models.Model):
     quality_service = models.CharField(
         u'质保服务', max_length=256, blank=True, null=True
     )
+    # 没用的字段，just 兼容
+    source = models.PositiveIntegerField(db_column="source_id", default=1)
 
     class Meta:
         db_table = 'open_product_source'
@@ -231,3 +232,60 @@ class UsedCar(models.Model):
             * company_url 为空
         """
         return not self.company_name and not self.company_url
+
+
+# class DetailModel(models.Model):
+#     """
+#     款型
+#     """
+#     STATUS_CHOICE = (
+#         ('A', u'ADD 刚添加的款型'),
+#         ('Y', u'YES 确定可投入使用的款型'),
+#         ('D', u'DELETE 标记为需要删除的款型'),
+#     )
+#     HAS_PARAMS = (
+#         ('Y', u'YES 有配置参数信息'),
+#         ('N', u'NO 无配置参数信息'),
+#     )
+#     source = models.PositiveIntegerField('source_id', default=0)
+#     # 仅仅为了兼容
+#     checker_runtime = models.PositiveIntegerField(
+#         db_column="checker_runtime_id", default=1
+#     )
+#     detail_model = models.CharField(
+#         max_length=50, blank=True, null=True, db_index=True
+#     )
+#     detail_model = models.PositiveIntegerField('detail_model_id', default=None)
+#     detail_model_slug = models.CharField(
+#         max_length=50, blank=True, null=True, unique=True
+#     )
+#     price_bn = models.DecimalField(
+#         max_digits=10, decimal_places=2, blank=True, null=True
+#     )
+#     url = models.URLField(default='', blank=True, null=True, db_index=True)
+#     year = models.IntegerField(blank=True, default=0, verbose_name=u'年款')
+#     volume = models.DecimalField(
+#         u'排量', max_digits=5, decimal_places=1, blank=True, null=True
+#     )
+#     global_slug = models.PositiveIntegerField("global_slug_id", default=1)
+#     domain = models.CharField(max_length=32, blank=True, null=True)
+#     status = models.CharField(
+#         max_length=1, blank=True, null=True, default='A', choices=STATUS_CHOICE
+#     )
+#     has_param = models.CharField(
+#         max_length=1, blank=True, null=True, default='N', choices=HAS_PARAMS
+#     )
+#     listed_year = models.IntegerField(u'上市年份', blank=True, default=0)
+#     delisted_year = models.IntegerField(u'退市年份', blank=True, default=0)
+#     control = models.CharField(
+#         u'变速箱', max_length=32, blank=True, null=True, db_index=True
+#     )
+#     emission_standard = models.CharField(
+#         u'排放标准', max_length=20, blank=True, null=True, db_index=True
+#     )
+
+#     def __unicode__(self):
+#         return self.detail_model_slug
+
+#     class Meta:
+#         db_table = 'open_model_detail'

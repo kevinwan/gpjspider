@@ -3,8 +3,8 @@ from . import constants
 
 # 变速器 choices
 CONTROL_MODE_CHOICES = (
-    (constants.CONTROL_MODE_MANUAL, u'手动')
-    (constants.CONTROL_MODE_AUTOMATIC, u'自动')
+    (constants.CONTROL_MODE_MANUAL, u'手动'),
+    (constants.CONTROL_MODE_AUTOMATIC, u'自动'),
     (constants.CONTROL_MODE_MANUAL_AUTOMATIC, u'手自一体')
 )
 
