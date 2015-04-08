@@ -4,7 +4,7 @@
 
 """
 import inspect
-from prettyprint import pp
+from rediscluster import RedisCluster
 import scrapy
 from scrapy import log
 from scrapy.http import Request
@@ -26,15 +26,31 @@ class GPJBaseSpider(scrapy.Spider):
         super(GPJBaseSpider, self).__init__(*args, **kwargs)
         self.__rule_path = rule_path
         self.website_rule = {}
-        self._domain = None
+        self.domain = None
         self.checker_manager = CheckerManager()
+
+    def set_crawler(self, crawler):
+        super(GPJBaseSpider, self).set_crawler(crawler)
+        self.redis_config = crawler.settings.getlist('REDIS_CONFIG')
+        self.proxy_ips = self.get_proxy_ips()
 
     def log(self, msg, level=log.DEBUG, **kw):
         """
         因为是通用爬虫，message 带上域名，以便识别
         """
-        msg = u"On {0}, Msg:{1}".format(self._domain, msg)
+        msg = u"{0}: {1}".format(self.domain, msg)
         super(GPJBaseSpider, self).log(msg.encode('utf-8'), level=level, **kw)
+
+    def get_proxy_ips(self):
+        """
+        """
+        redis = RedisCluster(startup_nodes=self.redis_config)
+        s = redis.smembers('valid_proxy_ips')
+        self.log(u'代理是 {0}'.format(s))
+        if s:
+            return list(s)
+        else:
+            return []
 
     def start_requests(self):
         """
@@ -89,22 +105,18 @@ class GPJBaseSpider(scrapy.Spider):
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
             urls = self.get_urls(step_rule['url'], response)
-            _format = step_rule['url'].get('format')
             step_function = self.get_next_step(step_rule, 'url')
+            urls = self.format_urls(step_rule['url'], urls)
             for url in urls:
-                if _format:
-                    url = _format.format(url)
                 self.log(u'start --request {0}'.format(url), level=log.DEBUG)
                 yield Request(url, callback=step_function)
         if 'next_page_url' in step_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
             urls = self.get_urls(step_rule['next_page_url'], response)
-            _format = step_rule['next_page_url'].get('format')
             step_function = self.get_next_step(step_rule, 'next_page_url')
+            urls = self.format_urls(step_rule['next_page_url'], urls)
             for url in urls:
-                if _format:
-                    url = _format.format(url)
                 self.log(u'start request next page {0}'.format(url))
                 yield Request(url, callback=step_function)
 
@@ -128,12 +140,18 @@ class GPJBaseSpider(scrapy.Spider):
 
     def get_urls(self, url_rule, response):
         """
-        支持 xpath css
+        支持 xpath re css  json
+        excluded中的将会被排除
         """
         urls = set()
         if 'xpath' in url_rule:
             for rule in url_rule['xpath']:
                 _urls = response.xpath(rule).extract()
+                for _url in _urls:
+                    urls.add(_url)
+        if 're' in url_rule:
+            for rule in url_rule['re']:
+                _urls = response.re(rule)
                 for _url in _urls:
                     urls.add(_url)
         if 'css' in url_rule:
@@ -161,6 +179,7 @@ class GPJBaseSpider(scrapy.Spider):
         """
         item = item_class()
         item['url'] = response.url
+        item['domain'] = self.domain
         for field_name, field in item_rule['fields'].iteritems():
             values = None
             if 'xpath' in field:
@@ -262,6 +281,9 @@ class GPJBaseSpider(scrapy.Spider):
         processors += base_processors
         for processor in processors:
             processor_func = import_processor(processor)
+            if not processor_func:
+                self.log(u'无此处理器:{0}'.format(processor))
+                return item
             item[field_name] = processor_func(item[field_name])
         return item
 
@@ -312,10 +334,11 @@ class GPJBaseSpider(scrapy.Spider):
         javascript:window.open('http://bj.haoche51.com/details/20003.html')
         这种情况下，只能去自定义函数去处理了
         """
+        self.log(u'原始 URL:{0}'.format(urls))
         if 'format' not in url_rule:
             return urls
         format_rule = url_rule['format']
-        new_urls = set()
+        new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
             for url in urls:
                 new_urls.add(format_rule.format(url))
@@ -324,10 +347,10 @@ class GPJBaseSpider(scrapy.Spider):
                 _url = format_rule(url)
                 if _url:
                     new_urls.add(_url)
-                # todo
-                # else:
-                #     print 
-            
-
-
-
+                else:
+                    del_urls.add(url)
+        if del_urls:
+            self.log(u'以下 url 被删除:{0}'.format(del_urls))
+        else:
+            self.log(u'没有 url 被格式化删除')
+        return new_urls

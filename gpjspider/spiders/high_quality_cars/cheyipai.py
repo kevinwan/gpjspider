@@ -25,4 +25,4 @@ class HighQualityCarSpider(GPJBaseSpider):
         pp(self.website_rule)
         if not self.website_rule:
             raise ValueError('TODO')
-        self._domain = self.website_rule['domain']
+        self.domain = self.website_rule['domain']

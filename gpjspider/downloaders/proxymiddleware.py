@@ -2,14 +2,13 @@
 """
 
 """
+import random
 import urlparse
 import requests
-import redis
+from rediscluster import RedisCluster
 from scrapy import log
 from scrapy.http import HtmlResponse
-
-
-redis_conn = redis.StrictRedis()
+from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
 
 
 class ProxyMiddleware(object):
@@ -20,35 +19,59 @@ class ProxyMiddleware(object):
     domains = (
         '58.com',  'baixing.com', 'ganji.com', '273.cn',
         'che168.com', 'youche.com', 'autohome.com', 'pahaoche.com',
-        'hx2car.com', 'zg2sc.cn'
+        'hx2car.com', 'zg2sc.cn', 'souche.com'
     )
+
+    def __init__(self, settings):
+        self.REDIS_CONFIG = settings.getlist('REDIS_CONFIG')
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler.settings)
 
     def process_request(self, request, spider):
         for domain in self.domains:
+            ip = None
             if domain in request.url:
-                ip = redis_conn.srandmember('valid_proxy_ips')
+                if isinstance(spider, GPJBaseSpider):
+                    if not spider.proxy_ips:
+                        spider.proxy_ips = spider.get_proxy_ips()
+                    if spider.proxy_ips:
+                        ip = random.choice(spider.proxy_ips)
+                    else:
+                        redis = RedisCluster(startup_nodes=self.REDIS_CONFIG)
+                        ip = redis.srandmember('valid_proxy_ips')
+                else:
+                    redis = redis.StrictRedis()
+                    ip = redis.srandmember('valid_proxy_ips')
                 if ip:
                     proxy = 'http://' + ip
                     request.meta['proxy'] = proxy
-                    spider.log(u'{0}应用了代理{1}'.format(request.url, proxy), log.INFO)
+                    spider.log(
+                        u'{0}应用了代理{1}'.format(request.url, proxy), log.INFO)
+                else:
+                    spider.log(u'{0}找不到代理，放弃'.format(request.url), log.INFO)
+                    return None
             else:
                 if 'proxy' in request.meta:
                     del request.meta['proxy']
 
-        error_urls = ('click.ganji.com', 'jing.58.com', 'jump.zhineng.58.com')
-        for error_url in error_urls:
-            if error_url in request.url:
-                try:
-                    ip = redis_conn.srandmember('valid_proxy_ips')
-                    if ip:
-                        response = requests.get(request.url, proxies={"http": 'http://' + ip})
+            error_urls = (
+                'click.ganji.com', 'jing.58.com', 'jump.zhineng.58.com'
+            )
+            for error_url in error_urls:
+                if error_url in request.url:
+                    try:
+                        if ip:
+                            proxies = {"http": 'http://' + ip}
+                        else:
+                            proxies = None
+                        response = requests.get(request.url, proxies=proxies)
+                    except:
+                        pass
                     else:
-                        response = requests.get(request.url)
-                except:
-                    pass
-                else:
-                    spider.log(u'重定向到{0}'.format(response.url), log.INFO)
-                    u = urlparse.urlparse(response.url)
-                    url = u.scheme + '://' + u.netloc + u.path
-                    request.meta['item']['url'] = url
-                    return HtmlResponse(url, body=response.text, encoding='utf-8')
+                        spider.log(u'重定向到{0}'.format(response.url), log.INFO)
+                        u = urlparse.urlparse(response.url)
+                        url = u.scheme + '://' + u.netloc + u.path
+                        request.meta['item']['url'] = url
+                        return HtmlResponse(url, body=response.text)
