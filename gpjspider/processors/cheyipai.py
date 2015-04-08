@@ -18,6 +18,3 @@ def month(value):
     2007-1
     """
     return value.split('-')[1]
-
-
-

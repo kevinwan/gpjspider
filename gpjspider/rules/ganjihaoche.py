@@ -4,6 +4,9 @@
 
 规则包含非 ascii 字符，必须使用 unicode 编码
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -21,7 +24,7 @@ rule = {
     'parse': {
         "url": {
             "xpath": ('//div[@class="c2city"]/ul/li/a/@href',),
-            "format": "http://haoche.ganji.com{0}buy",
+            "format": "http://haoche.ganji.com{0}buy/",
             # 新 url 对应的解析函数
             "step": 'parse_list',
         }
@@ -32,7 +35,7 @@ rule = {
     'parse_list': {
         "url": {
             "xpath": (
-                ('//ul[@class="list-bigimg clearfix"]/li/div/a/@href'),
+                '//ul[@class="list-bigimg clearfix"]/li/div/a/@href',
             ),
             "format": "http://haoche.ganji.com{0}",
             "step": 'parse_detail',
@@ -71,7 +74,7 @@ rule = {
                 },
                 'month': {
                     'xpath': ('//li[@class="one"]/b/text()',),
-                    'processors': ['first', 'strip'],
+                    'processors': ['first', 'strip', 'month'],
                 },
                 'mile': {
                     'xpath': (u'//li[contains(text(), "里程")]/b/text()',),
@@ -81,13 +84,6 @@ rule = {
                     'xpath': (u'//li[contains(text(), "排量")]/b/text()',),
                     'processors': ['first', 'strip'],
                 },
-
-                # 'color': {
-                #     'xpath': (
-                #         u'//th[contains(text(), "颜色")]/../td[not(@class)]/text()',
-                #     ),
-                #     'processors': ['first', 'strip'],
-                # },
                 'control': {
                     'xpath': (u'//li[contains(text(), "变速箱")]/b/text()',),
                     'processors': ['first', 'strip'],
@@ -102,17 +98,23 @@ rule = {
                 # },
                 'brand_slug': {
                     'xpath': (u'//span[contains(text(), "检测车型")]/text()',),
-                    'processors': ['first', 'strip', 'brand_slug'],
+                    'processors': ['first', 'strip', 'ganjihaoche.brand_slug'],
                 },
                 'model_slug': {
                     'xpath': (u'//span[contains(text(), "检测车型")]/text()',),
-                    'processors': ['first', 'strip', 'model_slug'],
+                    'processors': ['first', 'strip', 'ganjihaoche.model_slug'],
                 },
                 'city': {
                     'xpath': (
                         '//a[@class="choose-city"]/span/text()',
                     ),
                     'processors': ['first', 'strip'],
+                },
+                'city_slug': {
+                    'xpath': (
+                        '//a[@class="toindex"]/@href',
+                    ),
+                    'processors': ['first', 'strip', 'ganjihaoche.city_slug'],
                 },
                 'description': {
                     'xpath': ('//p[@class="f-type03"]/text()',),
@@ -132,8 +134,17 @@ rule = {
                 },
                 'transfer_owner': {
                     'xpath': ('//li[@class="guohu"]/text()',),
-                    'processors': ['gpjint'],
+                    'processors': ['first', 'gpjint'],
                     'default': 0,
+                },
+                'quality_service': {
+                    'xpath': (
+                        '//ul[@class="indem-ul"]/li/p[@class]/text()',
+                    ),
+                    'processors': ['join', 'strip'],
+                },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
                 },
             },
         },

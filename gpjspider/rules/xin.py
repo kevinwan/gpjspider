@@ -2,6 +2,9 @@
 """
 优信二手车
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -41,82 +44,104 @@ rule = {
             "fields": {
                 'title': {
                     'xpath': ('//div[@class="tit"]/h1/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
-                    'required': True,   # 默认为 False
+                    'processors': ['first', 'strip'],
+                    'required': True,
                 },
                 'meta': {
                     'xpath': ('//meta[@name="description"]/@content',),
-                    'processors': ['strip', 'join'],  # 处理器
+                    'processors': ['strip', 'join'],
                     'required': True,
                 },
                 'year': {
                     'xpath': (u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',),
-                    'processors': ['first', 'strip', 'year'],  # 处理器
+                    'processors': ['first', 'strip', 'year'],
                 },
                 'month': {
                     'xpath': (u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',),
-                    'processors': ['first', 'strip', 'month'],  # 处理器
+                    'processors': ['first', 'strip', 'month'],
                 },
                 'mile': {
                     'xpath': (u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',),
-                    'processors': ['first', 'strip', 'mile', 'float'],  # 处理器
+                    'processors': ['first', 'strip', 'mile', 'gpjfloat'],
                 },
                 'volume': {
                     'xpath': (u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
 
                 'color': {
                     'xpath': (u'//td[contains(text(), "颜色")]/following-sibling::td/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'control': {
                     'xpath': (u'//td[contains(text(), "变速箱")]/following-sibling::td/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
+                },
+                'region': {
+                    'xpath': (
+                        '//div[@class="company"]/p[2]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
                 },
                 'price': {
                     'xpath': (u'//div[@class="wan_1"]/em/text()',),
-                    'processors': ['first', 'price', 'decimal'],  # 处理器
+                    'processors': ['first', 'price', 'decimal'],
                 },
                 'price_bn': {
                     'xpath': (u'//div[@class="wan_2"]/span/del/text()',),
-                    'processors': ['first', 'strip', 'decimal'],  # 处理器
+                    'processors': ['first', 'strip', 'decimal'],
                 },
                 'brand_slug': {
                     'xpath': ('//div[@class="tit"]/h1/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip', 'brand_slug'],
                 },
                 'model_slug': {
                     'xpath': ('//div[@class="tit"]/h1/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip', 'model_slug'],
                 },
                 'city': {
                     'xpath': (u'//li/span[contains(text(), "销售城市")]/../em/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'description': {
                     'xpath': (u'//div[@class="test-report"]/div[@class="test-txt"]/ul/li/text()',),
-                    'processors': ['join', 'strip'],  # 处理器
+                    'processors': ['join', 'strip'],
                 },
                 'imgurls': {
                     'xpath': ('//div[@class="carimg"]/div/img/@src',),
-                    'processors': ['join', 'strip'],  # 处理器
+                    'processors': ['join', 'strip'],
                 },
                 'mandatory_insurance': {
                     'xpath': (u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
-                'business_insurance': {
-                    'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
-                    'processors': ['strip'],  # 处理器
+                'company_name': {
+                    'xpath': ('//div[@class="newcompany"]/p/text()',),
+                    'processors': ['first', 'strip'],
+                },
+                'company_url': {
+                    'xpath': ('//div[@class="newcompany"]/a/@href',),
+                    'processors': ['first', 'strip', 'xin.company_url'],
                 },
                 'examine_insurance': {
-                    'xpath': (u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'xpath': (
+                        u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
+                    ),
+                    'processors': ['first', 'strip'],
                 },
                 'transfer_owner': {
-                    'xpath': (u'//td[contains(text(), "过户次数")]/following-sibling::td/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'xpath': (
+                        u'//td[contains(text(), "过户次数")]/following-sibling::td/text()',
+                    ),
+                    'processors': ['first', 'strip', 'xin.transfer_owner'],
+                },
+                'quality_service': {
+                    'xpath': ('//div[@class="day-pic"]/img/@src',),
+                    'default': u'无',
+                    'processors': ['first', 'xin.quality_service']
+                },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
                 },
             },
         },

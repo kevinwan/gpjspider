@@ -2,6 +2,9 @@
 """
 99好车 优质二手车 规则
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -36,47 +39,47 @@ rule = {
                     'xpath': (
                         '//div[@class="car-particular-right clearfix"]/h2/text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
-                    'required': True,   # 默认为 False
+                    'processors': ['first', 'strip'],
+                    'required': True,
                 },
                 'meta': {
                     'xpath': ('//meta[@name="description"]/@content',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'year': {
                     'xpath': (
                         u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'year'],  # 处理器
+                    'processors': ['first', 'strip', 'year'],
                 },
                 'month': {
                     'xpath': (
                         u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'month'],  # 处理器
+                    'processors': ['first', 'strip', 'month'],
                 },
                 'mile': {
                     'xpath': (
                         u'//li/span[contains(text(), "行驶里程")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'mile'],  # 处理器
+                    'processors': ['first', 'strip', 'mile'],
                 },
                 'volume': {
                     'xpath': (
                         '//div[@class="car-particular-right clearfix"]/h2/text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip', '99haoche.volume'],
                 },
 
                 'color': {
                     'xpath': (u'//li/span[contains(text(), "车身颜色")]/../text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'control': {
                     'xpath': (
                         u'//li/span[contains(text(), "变速方式")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'price': {
                     'xpath': (
@@ -104,40 +107,99 @@ rule = {
                 },
                 'city': {
                     'xpath': (u'//h2[@name="location"]/a[2]/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip', 'city'],
+                },
+                'region': {
+                    'xpath': (
+                        u'//span[contains(text(), "看车地址")]/following-sibling::span/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'phone': {
+                    'xpath': (
+                        '//a[@name="showPhone2"]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'company_name': {
+                    'xpath': (
+                        u'//span[contains(text(), "所属商家")]/following-sibling::a/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'company_url': {
+                    'xpath': (
+                        u'//span[contains(text(), "所属商家")]/following-sibling::a/@href',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'driving_license': {
+                    'xpath': (
+                        u'//li/span[contains(text(), "行驶证")]/../text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'invoice': {
+                    'xpath': (
+                        u'//li/span[contains(text(), "购车发票")]/../text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'maintenance_record': {
+                    'xpath': (
+                        u'//li/span[contains(text(), "保养记录")]/../text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'quality_service': {
+                    'xpath': (
+                        u'//div[@class="diverse-serve"]/p/a/text()',
+                    ),
+                    'processors': ['join', 'strip'],
+                },
+                'is_certifield_car': {
+                    'default': 1,
                 },
                 'description': {
                     'xpath': ('//div[@class="postscript"]/p[1]/text()',),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'imgurls': {
                     'xpath': ('//ul[@id="img_R_L_List"]/li/a/img/@src',),
-                    'processors': ['join', 'strip'],  # 处理器
+                    'processors': ['join', 'strip'],
                 },
                 'mandatory_insurance': {
                     'xpath': (
                         u'//li/span[contains(text(), "交强险到期时间")]/../text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'business_insurance': {
                     'xpath': (
                         u'//li/span[contains(text(), "商业险到期时间")]/../text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'examine_insurance': {
                     'xpath': (
                         u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
                 'transfer_owner': {
                     'xpath': (
                         u'//td[contains(text(), "过户次数")]/following-sibling::td/text()',
                     ),
-                    'processors': ['first', 'strip'],  # 处理器
+                    'processors': ['first', 'strip'],
                 },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
+                },
+                # contact
+                # condition_level
+                # condition_detail
+                # car_application
+                # maintenance_desc
             },
         },
     },

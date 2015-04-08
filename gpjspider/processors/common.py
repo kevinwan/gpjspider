@@ -12,6 +12,8 @@ def strip(value):
     """
     if not isinstance(value, basestring):
         return value
+    value = value.replace(u'\xa0', u'')
+    value = value.replace(u'\xb7', u'')
     return value.strip(' \r\n\t')
 
 
@@ -37,6 +39,7 @@ def join(value):
     """
     todo:  暂时用空格 join
     """
+    value = [v.strip() for v in value]
     if isinstance(value, (list, tuple)):
         return u' '.join(value)
     else:
@@ -124,7 +127,6 @@ def month(value):
     1. 2007-1
     2. 2014年09月
     """
-    return value.split('-')[1]
     if '-' in value:
         return value.split('-')[1]
     elif u'年' in value:
@@ -144,9 +146,12 @@ def brand_slug(value):
 
     1. 奔驰  唯雅诺
     2. 起亚 >
+    3. 菲亚特-菲翔2012款
 
     """
     a = reg_blank_split.split(value)
+    if '-' in a[0]:
+        a = a[0].split('-')
     return a[0]
 
 
@@ -156,10 +161,41 @@ def model_slug(value):
 
     1. 奔驰  唯雅诺
     2. 兰德酷路泽 >
+    3. 菲亚特-菲翔2012款
     """
     value = value.strip('>')
     if ' ' in value:
         a = reg_blank_split.split(value)
         return a[1]
+    elif '-' in value:
+        a = value.split('-')
+        return a[1]
     else:
         return value
+
+
+def city(value):
+    """
+    """
+    return value.strip(u'二手车城')
+
+
+def strip_url(url_with_query):
+    """
+    去除 URL 里的 querystring
+    """
+    if '?' in url_with_query:
+        return url_with_query.split('?')[0]
+    else:
+        return url_with_query
+
+
+def strip_imgurls(urls_with_query):
+    """
+    专门用于strip 掉 imgurl 的 url 中包含的 querystring
+    """
+    urls_with_query = urls_with_query.split()
+    new_urls = []
+    for url in urls_with_query:
+        new_urls.append(strip_url(url))
+    return ' '.join(new_urls)

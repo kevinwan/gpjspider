@@ -4,6 +4,9 @@
 
 规则包含非 ascii 字符，必须使用 unicode 编码
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -63,7 +66,10 @@ rule = {
                     'required': True,
                 },
                 'meta': {
-                    'xpath': ('//meta[@name="description"]/@content',),
+                    'xpath': (
+                        '//meta[@name="description"]/@content',
+                        '//meta[@name="Description"]/@content',
+                    ),
                     'processors': ['first', 'strip'],
                 },
                 'year': {
@@ -72,7 +78,7 @@ rule = {
                 },
                 'month': {
                     'xpath': ('//li[@class="span7"][1]/p/strong/text()',),
-                    'processors': ['first', 'strip'],
+                    'processors': ['first', 'strip', 'month'],
                 },
                 'mile': {
                     'xpath': ('//li[@class="span7"][2]/p/strong/text()',),
@@ -119,9 +125,21 @@ rule = {
                     ),
                     'processors': ['first', 'strip'],
                 },
+                'city_slug': {
+                    'xpath': (
+                        '//*[@id="div_city"]/a/@href',
+                    ),
+                    'processors': ['first', 'strip', 'renrenche.city_slug'],
+                },
+                'region': {
+                    'xpath': (
+                        '//div[@class="text-block bottom-right"]/h3/text()',
+                    ),
+                    'processors': ['first', 'strip', 'renrenche.region'],
+                },
                 'description': {
                     'xpath': (
-                        '//div[@class="text-block bottom-left"]/p/text()',
+                        '//div[@class="main"]/div/p/text()',
                     ),
                     'processors': ['join', 'strip'],
                 },
@@ -129,14 +147,14 @@ rule = {
                     'xpath': (
                         '//div[@class="detail-box-bg"]/img/@src',
                     ),
-                    'processors': ['first', 'strip'],
+                    'processors': ['first', 'strip', 'strip_url'],
                 },
                 'imgurls': {
                     'xpath': (
                         '//div[@class="container detail-gallery"]/div//img/@src',
                         '//div[@class="detail-box-bg"]/img/@src',
                     ),
-                    'processors': ['join', 'strip'],
+                    'processors': ['join', 'strip', 'strip_imgurls'],
                 },
                 'mandatory_insurance': {
                     'xpath': (
@@ -163,6 +181,48 @@ rule = {
                     ),
                     'processors': ['join', 'strip'],
                     'default': 0,
+                },
+                'phone': {
+                    'xpath': (
+                        '//span[@class="tel span4"]/img/@alt',
+                    ),
+                    'processors': ['join', 'strip'],
+                },
+                'contact': {
+                    'default': u'人人车客服',
+                },
+                'condition_detail': {
+                    'xpath': (
+                        '//span[@class="desc"]/text()',
+                    ),
+                    'processors': ['join', 'strip'],
+                },
+                'condition_level': {
+                    'xpath': (
+                        '//span[@class="desc"]/text()',
+                    ),
+                    'processors': ['first', 'strip', 'renrenche.cond_level'],
+                },
+                'invoice': {
+                    'xpath': (
+                        u'//td[contains(text(), "购车发票")]/following-sibling::td[1]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'maintenance_record': {
+                    'xpath': (
+                        u'//td[contains(text(), "4S店保养")]/following-sibling::td[1]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'dmodel': {
+                    'xpath': (
+                        '//h1[@class="span19"]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
                 },
             },
         },

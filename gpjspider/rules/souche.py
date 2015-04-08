@@ -5,6 +5,9 @@
 
 规则包含非 ascii 字符，必须使用 unicode 编码
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -132,13 +135,13 @@ rule = {
                     'xpath': (
                         '//div[@class="sub_title"]/text()',
                     ),
-                    'processors': ['join', 'strip'],
+                    'processors': ['join', 'strip', 'souche.description'],
                 },
                 'imgurls': {
                     'xpath': (
                         '//ul[@class="photosSmall"]/li/img/@data-original',
                     ),
-                    'processors': ['join', 'strip'],
+                    'processors': ['join', 'strip', 'souch.imgurls'],
                 },
                 # 'mandatory_insurance': {
                 #     'xpath': (
@@ -158,6 +161,9 @@ rule = {
                     ),
                     'processors': ['souche.transfer_owner'],
                     'default': 0,
+                },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
                 },
             },
         },

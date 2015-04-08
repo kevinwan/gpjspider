@@ -2,13 +2,27 @@
 """
 优车诚品二手车
 """
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
-def excluded_func(url_str):
+def format_rule(url_str):
     """
-    返回True表示 可用，否则表示不可用
+    返回转换之后的 url
+
+    "cityJump(92,3)"
     """
-    return True
+    return url_str
+
+
+# def set_cookie(response):
+#     """
+#     保存 cookie 供后面的请求使用
+
+#     "cityJump(92,3)"
+#     """
+#     r = '//div[@class="box"]/ul/div/div[@class="f_r"]/li/a/@onclick'
+#     os = response.xpath(r).extract()
+#     for o in os:
 
 
 rule = {
@@ -16,7 +30,7 @@ rule = {
     #  基本配置
     #==========================================================================
     'name': u'优质二手车-优车诚品-规则',
-    'domain': 'xin.com',
+    'domain': 'youche.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
     #  start_url_function 必须返回一个生成器
@@ -28,14 +42,39 @@ rule = {
     'parse': {
         "url": {
             "xpath": (
-                '//div[@class="box"]/ul[@class="ulCon"]/li/a[contains(@href, "javascript")]/@href',
-                '//div[@class="box"]/ul[@class="ulCon"]/div/div/li/a[contains(@href, "javascript")]/@onclick'
+                '//div[@class="box"]/ul/div/div[@class="f_r"]/li/a/@onclick',
+                # '//div[@class="box"]/ul[@class="ulCon"]/li/a[contains(@href, "javascript")]/@href',
+                # '//div[@class="box"]/ul[@class="ulCon"]/div/div/li/a[contains(@href, "javascript")]/@onclick'
             ),
-            "excluded": excluded_func,
-            "format": "http://www.xin.com{0}",
+            "format": format_rule,
             # 新 url 对应的解析函数
             "step": 'parse_detail',
+        },
+        # 获取原始 cookie
+        "cookie": {
+            "function": "",
         }
+    },
+    #==========================================================================
+    #  列表页步骤  parse_list
+    #==========================================================================
+    'parse_list': {
+        "url": {
+            "xpath": (
+                '//div[@class="container search-list-wrapper"]/ul/li/a/@href',
+            ),
+            "format": "http://www.renrenche.com{0}",
+            "step": 'parse_detail',
+        },
+        "next_page_url": {
+            "xpath": (
+                '//a[text()=">"]/@href',
+            ),
+            "excluded": ('javascript'),
+            "format": "http://www.renrenche.com{0}",
+            # 新 url 对应的解析函数
+            "step": 'parse_list',
+        },
     },
     #==========================================================================
     #  详情页步骤  parse_detail
@@ -138,6 +177,9 @@ rule = {
                 #         u'安全交易服务',
                 #     ])
                 # },
+                'source_type': {
+                    'default': SOURCE_TYPE_SELLER,
+                },
             },
         },
     },
