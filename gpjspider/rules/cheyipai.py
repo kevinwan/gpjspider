@@ -15,6 +15,7 @@ def start_function(start_url_template, spider):
         yield url
         pageno += 1
 
+
 rule = {
     #==========================================================================
     #  基本配置
@@ -51,8 +52,14 @@ rule = {
     #==========================================================================
     'parse_detail': {
         "item": {
+            'real_url': "http://c.cheyipai.com/car_detail.jsp?goodsid={0}",
             "class": "UsedCarItem",
             "fields": {
+                'url': {
+                    'function': {
+                        'name': 'cheyipai_url',
+                    },
+                },
                 'title': {
                     'json': '-data$#$-goodsName',
                     'processors': ['strip'],
@@ -151,6 +158,28 @@ rule = {
                 'source_type': {
                     'default': SOURCE_TYPE_SELLER,
                 },
+                'meta': {
+                    'default': (
+                        u'车易拍是中国领先二手车在线交易平台，采用国家认证的268V标准化二手'
+                        u'车评估系统，保证车源真实可靠，交易安全省心。买车卖车就在车易拍。'
+                    )
+                },
+                'contact': {
+                    'default': u'车易拍客服'
+                },
+                'phone': {
+                    'default': u'4000690555'
+                },
+                'company_name': {
+                    'default': u'车易拍'
+                },
+                'company_url': {
+                    'default': u'http://c.cheyipai.com/'
+                },
+                'is_certifield_car': {
+                    'default': True
+                },
+
             },
         },
     },

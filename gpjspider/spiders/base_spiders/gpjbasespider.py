@@ -178,6 +178,7 @@ class GPJBaseSpider(scrapy.Spider):
         优先级: xpath > json > css > str > function > default
         """
         item = item_class()
+        # 默认使用请求的 url 作为 item 的 url，如果不是这样，可以在 field 中设置 url 的规则
         item['url'] = response.url
         item['domain'] = self.domain
         for field_name, field in item_rule['fields'].iteritems():
