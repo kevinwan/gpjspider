@@ -29,3 +29,4 @@ requests==2.6.0
 pymongo==2.8
 Pillow==2.7.0
 qiniu==7.0.3
+redis-py-cluster==0.2.0

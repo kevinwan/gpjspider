@@ -44,24 +44,25 @@ class GPJRouter(object):
             return {'exchange': 'spiders', 'routing_key': 'spiders'}
         elif task.startswith('clean'):
             return {'exchange': 'clean', 'routing_key': 'clean'}
-        elif task.startswith('qiniu'):
-            return {'exchange': 'qiniu', 'routing_key': 'qiniu'}
+        elif task.startswith('incr'):
+            return {'exchange': 'incr', 'routing_key': 'incr'}
         else:
             return {'exchange': 'default', 'routing_key': 'default'}
 
 CELERY_QUEUES = (
     Queue('spiders', Exchange('spiders'), routing_key='spiders'),
     Queue('clean', Exchange('clean'), routing_key='clean'),
-    Queue('qiniu', Exchange('qiniu'), routing_key='qiniu'),
+    Queue('incr', Exchange('incr'), routing_key='incr'),
     Queue('default', Exchange('default'), routing_key='default')
 )
+
 CELERY_TASK_RESULT_EXPIRES = 10
 CELERY_TIMEZONE = "Asia/Shanghai"
 CELERY_ENABLE_UTC = True
 UTC_ENABLE = True
 CELERY_ACCEPT_CONTENT = ['pickle', 'json', 'msgpack', 'yaml']
 CELERY_TASK_SERIALIZER = 'pickle'
-CELERYD_CONCURRENCY = 40  # 多个进程并行处理
+# CELERYD_CONCURRENCY = 1  # 多个进程并行处理
 CELERYD_MAX_TASKS_PER_CHILD = 200
 CELERY_IMPORTS = (
     "gpjspider.tasks.spiders",
