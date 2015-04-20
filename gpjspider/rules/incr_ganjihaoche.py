@@ -1,17 +1,29 @@
 # -*- coding: utf-8 -*-
 """
-赶集好车优质二手车 规则
+赶集好车优质二手车 增量爬取规则
 
 规则包含非 ascii 字符，必须使用 unicode 编码
 """
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
+def pagenum_function(url):
+    """
+    返回页号整数
+    """
+    if 'http://haoche.ganji.com/nj/buy/o' not in url:
+        return 1
+    else:
+        url = url.strip('/')
+        length = len('http://haoche.ganji.com/nj/buy/o')
+        return int(url[length:])
+
+
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': '优质二手车-赶集好车-规则',
+    'name': '优质二手车-赶集好车-增量爬取规则',
     'domain': 'haoche.ganji.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
@@ -40,12 +52,12 @@ rule = {
             "format": "http://haoche.ganji.com{0}",
             "step": 'parse_detail',
         },
-        "next_page_url": {
-            "xpath": (
-                '//a[@class="next"]/@href',
-            ),
-            "format": "http://haoche.ganji.com{0}",
-            # 新 url 对应的解析函数
+
+        "incr_page_url": {
+            "xpath": ('//a[@class="next"]/@href', ),
+            'format': "http://haoche.ganji.com{0}",
+            'pagenum_function': pagenum_function,
+            'max_pagenum': 2,  # 增量爬取最大页号
             "step": 'parse_list',
         },
     },

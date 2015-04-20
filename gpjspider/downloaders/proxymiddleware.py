@@ -18,12 +18,13 @@ class ProxyMiddleware(object):
     # 需要使用代理的 domain
     domains = (
         '58.com',  'baixing.com', 'ganji.com', '273.cn',
-        'che168.com', 'youche.com', 'autohome.com', 'pahaoche.com',
+        'che168.com', 'autohome.com', 'pahaoche.com',
         'hx2car.com', 'zg2sc.cn', 'souche.com'
     )
 
     def __init__(self, settings):
         self.REDIS_CONFIG = settings.getlist('REDIS_CONFIG')
+        self.good_proxies = settings.getlist('PROXIES')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -57,15 +58,15 @@ class ProxyMiddleware(object):
                     del request.meta['proxy']
 
             error_urls = (
-                'click.ganji.com', 'jing.58.com', 'jump.zhineng.58.com'
+                'souche.com', 'ganji.com', 'click.ganji.com', 'jing.58.com',
+                'jump.zhineng.58.com'
             )
             for error_url in error_urls:
                 if error_url in request.url:
                     try:
-                        if ip:
-                            proxies = {"http": 'http://' + ip}
-                        else:
-                            proxies = None
+                        proxies = {
+                            'http': random.choice(self.good_proxies)
+                        }
                         response = requests.get(request.url, proxies=proxies)
                     except:
                         pass
@@ -73,5 +74,5 @@ class ProxyMiddleware(object):
                         spider.log(u'重定向到{0}'.format(response.url), log.INFO)
                         u = urlparse.urlparse(response.url)
                         url = u.scheme + '://' + u.netloc + u.path
-                        request.meta['item']['url'] = url
-                        return HtmlResponse(url, body=response.text)
+                        return HtmlResponse(
+                            url, body=response.text, encoding='utf-8')

@@ -4,6 +4,7 @@
 
 """
 import inspect
+from prettyprint import pp, pp_str
 from rediscluster import RedisCluster
 import scrapy
 from scrapy import log
@@ -12,6 +13,7 @@ from scrapy.exceptions import DropItem
 from gpjspider.utils.path import import_rule_function, import_item
 from gpjspider.utils.path import import_processor
 from gpjspider.checkers import CheckerManager
+from gpjspider.checkers.constants import HIGH_QUALITY_RULE_CHECKER_NAME
 
 
 class GPJBaseSpider(scrapy.Spider):
@@ -19,7 +21,7 @@ class GPJBaseSpider(scrapy.Spider):
     公平价基本爬虫
     """
 
-    def __init__(self, rule_path, *args, **kwargs):
+    def __init__(self, rule_path, checker_name=None, *args, **kwargs):
         """
         继承的子类必须在__init__里面调用self.checker.check()
         """
@@ -28,6 +30,17 @@ class GPJBaseSpider(scrapy.Spider):
         self.website_rule = {}
         self.domain = None
         self.checker_manager = CheckerManager()
+        if not checker_name:
+            checker_name = HIGH_QUALITY_RULE_CHECKER_NAME
+
+        self.__checker_name = checker_name
+        self.checker_class = self.checker_manager.get_checker(checker_name)
+        self.checker = self.checker_class(rule_path)
+        self.website_rule = self.checker.check()
+        pp(self.website_rule)
+        if not self.website_rule:
+            raise ValueError('TODO')
+        self.domain = self.website_rule['domain']
 
     def set_crawler(self, crawler):
         super(GPJBaseSpider, self).set_crawler(crawler)
@@ -35,10 +48,6 @@ class GPJBaseSpider(scrapy.Spider):
         self.proxy_ips = self.get_proxy_ips()
 
     def log(self, msg, level=log.DEBUG, **kw):
-        """
-        因为是通用爬虫，message 带上域名，以便识别
-        """
-        msg = u"{0}: {1}".format(self.domain, msg)
         super(GPJBaseSpider, self).log(msg.encode('utf-8'), level=level, **kw)
 
     def get_proxy_ips(self):
@@ -46,15 +55,13 @@ class GPJBaseSpider(scrapy.Spider):
         """
         redis = RedisCluster(startup_nodes=self.redis_config)
         s = redis.smembers('valid_proxy_ips')
-        self.log(u'代理是 {0}'.format(s))
+        self.log(u'all proxies: {0}'.format(s))
         if s:
             return list(s)
         else:
             return []
 
     def start_requests(self):
-        """
-        """
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
         elif 'start_url_function' in self.website_rule:
@@ -74,21 +81,26 @@ class GPJBaseSpider(scrapy.Spider):
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
-            urls = self.get_urls(step_rule['url'], response)
-            step_function = self.get_next_step(step_rule, 'url')
-            urls = self.format_urls(step_rule['url'], urls)
-            for url in urls:
-                self.log(u'start --request {0}'.format(url), level=log.DEBUG)
-                yield Request(url, callback=step_function)
+            requests = self.get_requests(step_rule['url'], response)
+            for request in requests:
+                self.log(u'start --request {0}'.format(request.url))
+                yield request
         if 'next_page_url' in step_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
-            urls = self.get_urls(step_rule['next_page_url'], response)
-            step_function = self.get_next_step(step_rule, 'next_page_url')
-            urls = self.format_urls(step_rule['next_page_url'], urls)
-            for url in urls:
-                self.log(u'start request next page: {0}.'.format(url))
-                yield Request(url, callback=step_function)
+            requests = self.get_requests(step_rule['next_page_url'], response)
+            for request in requests:
+                self.log(
+                    u'start request next page: {0}.'.format(request.url))
+                yield request
+        if 'incr_page_url' in step_rule:
+            msg = u'try to get incr page url from {0}'.format(response.url)
+            self.log(msg, level=log.DEBUG)
+            requests = self.get_requests(step_rule['incr_page_url'], response)
+            for request in requests:
+                self.log(
+                    u'start request next page: {0}.'.format(request.url))
+                yield request
 
         if 'item' in step_rule:
             item_rule = step_rule['item']
@@ -104,21 +116,27 @@ class GPJBaseSpider(scrapy.Spider):
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
-            urls = self.get_urls(step_rule['url'], response)
-            step_function = self.get_next_step(step_rule, 'url')
-            urls = self.format_urls(step_rule['url'], urls)
-            for url in urls:
-                self.log(u'start --request {0}'.format(url), level=log.DEBUG)
-                yield Request(url, callback=step_function)
+            requests = self.get_requests(step_rule['url'], response)
+            for request in requests:
+                self.log(u'start --request {0}'.format(request.url))
+                yield request
         if 'next_page_url' in step_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
-            urls = self.get_urls(step_rule['next_page_url'], response)
-            step_function = self.get_next_step(step_rule, 'next_page_url')
-            urls = self.format_urls(step_rule['next_page_url'], urls)
-            for url in urls:
-                self.log(u'start request next page {0}'.format(url))
-                yield Request(url, callback=step_function)
+            requests = self.get_requests(step_rule['next_page_url'], response)
+            for request in requests:
+                self.log(
+                    u'start request next page: {0}.'.format(request.url))
+                yield request
+
+        if 'incr_page_url' in step_rule:
+            msg = u'try to get incr page url from {0}'.format(response.url)
+            self.log(msg, level=log.DEBUG)
+            requests = self.get_requests(step_rule['incr_page_url'], response)
+            for request in requests:
+                self.log(
+                    u'start request next page: {0}.'.format(request.url))
+                yield request
 
         if 'item' in step_rule:
             item_rule = step_rule['item']
@@ -138,15 +156,17 @@ class GPJBaseSpider(scrapy.Spider):
             item = self.get_item(item_class, item_rule, response)
             yield item
 
-    def get_urls(self, url_rule, response):
+    def get_requests(self, url_rule, response):
         """
-        支持 xpath re css  json
+        支持 xpath  re  css  json  function
         excluded中的将会被排除
         """
         urls = set()
+        step_function = self.get_next_step(url_rule)
         if 'xpath' in url_rule:
             for rule in url_rule['xpath']:
                 _urls = response.xpath(rule).extract()
+                self.log(u'rule: {0}, urls: {1}'.format(rule, _urls))
                 for _url in _urls:
                     urls.add(_url)
         if 're' in url_rule:
@@ -169,8 +189,52 @@ class GPJBaseSpider(scrapy.Spider):
                     if ex_url in url:
                         tmp_urls.add(url)
                         break
+            self.log(u'要删除的 URL:{0}'.format(tmp_urls), log.INFO)
             urls = urls - tmp_urls
-        return urls
+        urls = self.format_urls(url_rule, urls)
+        # for incr spider, 到达最大页号就停止
+        if 'pagenum_function' in url_rule:
+            pagenum_function = url_rule['pagenum_function']
+            max_pagenum = url_rule.get('max_pagenum', 5)
+            cur_page_num = pagenum_function(response.url)
+            if cur_page_num >= max_pagenum:
+                self.log(u'增量爬取到此结束')
+                return []
+        # 设置dont_filter比使用默认值优先级要高
+        # 默认值是：如果 step 规则中有 item，则False；如果 step 规则中没有 item，则 True
+        if 'dont_filter' in url_rule:
+            dont_filter = url_rule['dont_filter']
+        else:
+            if 'item' in self.website_rule[step_function.__name__]:
+                dont_filter = False
+            else:
+                dont_filter = True
+        ret_requests = []
+        if 'function' in url_rule:
+            # url function 和 rule function 声明形式一样，但只能写在 rule 文件中
+            # url function只能返回生成器
+            # 比 rule function 多一个 url_rule参数，
+            # 每次 yield 是一个 url dict,可以包含Request支持的参数
+            func = url_rule.get('function')
+            func_name = func.__class__.__name__
+            self.log(u'try to get url from function {0}'.format(func_name))
+            url_dicts = func(response, url_rule, self)
+            for url_dict in url_dicts:
+                cookies = url_dict.get('cookies')
+                self.log(u'cookies is {0}'.format(pp_str(cookies)))
+                request = Request(
+                    url_dict['url'], callback=step_function, cookies=cookies,
+                    priority=1, dont_filter=dont_filter
+                )
+                ret_requests.append(request)
+        else:
+            if urls:
+                for url in urls:
+                    request = Request(
+                        url, callback=step_function, dont_filter=dont_filter
+                    )
+                    ret_requests.append(request)
+        return ret_requests
 
     def get_item(self, item_class, item_rule, response):
         """
@@ -225,15 +289,10 @@ class GPJBaseSpider(scrapy.Spider):
         return item
 
     def get_xpath(self, xpath_rules, response):
-        """
-        """
-        try:
-            for xpath_rule in xpath_rules:
-                values = response.xpath(xpath_rule).extract()
-                if values:
-                    return values
-        except:
-            self.log('test_____:{0}'.format(xpath_rules), level=log.ERROR)
+        for xpath_rule in xpath_rules:
+            values = response.xpath(xpath_rule).extract()
+            if values:
+                return values
         return []
 
     def get_json(self, json_unicode, json_path):
@@ -319,12 +378,17 @@ class GPJBaseSpider(scrapy.Spider):
                         jsobject = jsobject[index]
         return jsobject
 
-    def get_next_step(self, current_step_rule, url_name):
-        """
-        仅当step_rule有 url 或者 next_page_url 规则时可用
-        """
-        step_name = current_step_rule[url_name]['step']
-        step = getattr(self, step_name)
+    def get_next_step(self, url_rule):
+        if not hasattr(self, url_rule['step']):
+            s = pp_str(url_rule['step'])
+            self.log(u'no url step configure：{0}'.format(s), level=log.ERROR)
+            return None
+        step = getattr(self, url_rule['step'])
+        if not inspect.ismethod(step):
+            n, cn = step.__name__, step.__class__.__name__
+            self.log(
+                u'object {0} is instance of {1}'.format(n, cn), level=log.ERROR)
+            return None
         return step
 
     def format_urls(self, url_rule, urls):

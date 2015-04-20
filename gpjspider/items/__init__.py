@@ -7,6 +7,7 @@ from scrapy import Item, Field
 class GpjspiderItem(Item):
     """
     """
+    id = Field()
     url = Field()
     domain = Field()
 
@@ -78,3 +79,5 @@ class UsedCarItem(GpjspiderItem):
     maintenance_desc = Field()
     quality_service = Field()
     source_type = Field()
+    detail_model = Field()
+    created_on = Field()

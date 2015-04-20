@@ -4,7 +4,8 @@
 """
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text
-from sqlalchemy import Boolean, DateTime, Float, Enum
+from sqlalchemy import Boolean, DateTime, Enum, DECIMAL
+from gpjspider.utils.constants import SOURCE_TYPE_OLD_SPIDER
 
 from . import Base
 
@@ -14,6 +15,12 @@ class UsedCar(Base):
     UsedCar模型默认过滤掉status为N和T的记录，默认排序为status字段逆序，
             详情见ProductManager,注意查询时无需再过滤status，
             如果需要对多个字段排序，在查询中指定order_by可以覆盖默认排序规则。
+
+                   ('odealer', u'一般商家车源'),
+        ('dealer', u'商家优质车源'),
+        ('cpo', u'厂商认证车源'),
+        ('personal', u'一般个人车源'),
+
     """
     PRODUCT_STATUS_CHOICE = (
         ('M', u'(M)新加入的产品或在后台被修改过'),
@@ -42,14 +49,14 @@ class UsedCar(Base):
     url = Column(String(500), default='', nullable=True)
     time = Column(DateTime, nullable=True, doc=u'发布时间')
     # 爬虫中均已万为单位
-    mile = Column(Float, doc=u'行驶里程')
-    volume = Column(Float, doc=u'排量')
+    mile = Column(DECIMAL(precision=5, scale=2), doc=u'行驶里程')
+    volume = Column(DECIMAL(precision=5, scale=2), doc=u'排量')
     color = Column(String(32), default='', nullable=True, doc=u'颜色')
     # choices=CONTROL_MODE_CHOICES  变速箱
     control = Column(String(32), default='', nullable=True, doc=u'变速箱')
-    price = Column(Float, doc=u'预售价格')
+    price = Column(DECIMAL(precision=10, scale=2), doc=u'预售价格')
     # prince_bn : the brand_new price when it was bought
-    price_bn = Column(Float, doc=u'新车购买价格')
+    price_bn = Column(DECIMAL(precision=10, scale=2), doc=u'新车购买价格')
     brand_slug = Column('brand_slug', String(32), index=True, doc=u'品牌')
     model_slug = Column('model_slug', String(32), index=True, doc=u'型号')
     city = Column(String(50), doc=u'城市')
@@ -69,9 +76,12 @@ class UsedCar(Base):
     company_url = Column(String(500), index=True, nullable=True)
     status = Column(
         Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
-    mandatory_insurance = Column(DateTime, nullable=True, doc=u'交强险到期时间')
-    business_insurance = Column(DateTime, nullable=True, doc=u'商业险到期时间')
-    examine_insurance = Column(DateTime, nullable=True, doc=u'年审到期时间')
+    mandatory_insurance = Column(
+        DateTime,  default=None, nullable=True, doc=u'交强险到期时间')
+    business_insurance = Column(
+        DateTime, default=None, nullable=True, doc=u'商业险到期时间')
+    examine_insurance = Column(
+        DateTime,  default=None, nullable=True, doc=u'年审到期时间')
     is_certifield_car = Column(Boolean, default=True, doc=u'是否为认证二手车')
     # u'0表示买的新车，1以上表示买的二手车'
     transfer_owner = Column(Integer, default=0, doc=u'过户次数')
@@ -90,7 +100,8 @@ class UsedCar(Base):
     domain = Column(String(32), nullable=True, doc=u'来源网站')
     maintenance_desc = Column(String(256), doc=u'保养信息')
     # 对于从老爬虫来的车源，默认值是constants.SOURCE_TYPE_OLD_SPIDER
-    source_type = Column(String(256), default=1, doc=u'车源类型')
+    source_type = Column(
+        String(256), default=SOURCE_TYPE_OLD_SPIDER, doc=u'车源类型')
     quality_service = Column(String(256), default='', doc=u'质保服务')
     # 没用的字段，just 兼容
     source = Column("source_id", Integer, default=1)

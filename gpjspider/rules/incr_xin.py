@@ -5,16 +5,28 @@
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
+def pagenum_function(url):
+    """
+    http://www.xin.com/quanguo/s/o2a2i1784v1/
+    """
+    idx = url.find('o2a2i')
+    if idx < 0:
+        return 9999
+    else:
+        e_idx = url.find('v1', idx)
+        return int(url[idx:e_idx])
+
+
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-优信-规则',
+    'name': u'优质二手车-优信-增量更新规则',
     'domain': 'xin.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
     #  start_url_function 必须返回一个生成器
-    'start_urls': ['http://www.xin.com/quanguo/s/o2a2i1784v1/'],
+    'start_urls': ['http://www.xin.com/quanguo/s/o2a2i1v1/'],
 
     #==========================================================================
     #  默认步骤  parse
@@ -26,12 +38,11 @@ rule = {
             # 新 url 对应的解析函数
             "step": 'parse_detail',
         },
-        "next_page_url": {
-            "xpath": (
-                u'//a[contains(text(), "下一页")]/@data-page',
-            ),
+        "incr_page_url": {
+            "xpath": (u'//a[contains(text(), "下一页")]/@data-page',),
             "format": 'http://www.xin.com/quanguo/s/o2a2i{0}v1/',
-            # 新 url 对应的解析函数
+            'pagenum_function': pagenum_function,
+            'max_pagenum': 2,  # 增量爬取最大页号
             "step": 'parse',
         },
     },

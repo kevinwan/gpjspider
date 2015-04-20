@@ -29,3 +29,7 @@ def imgurls(value):
     return ' '.join(c)
 
 
+def company_url(value):
+    """
+    """
+    return 'http://www.souche.com' + value

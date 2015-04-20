@@ -13,9 +13,17 @@ CONTROL_MODE_MANUAL_AUTOMATIC = u'手自一体'
 #=============================================================================
 # 老爬虫车源
 SOURCE_TYPE_OLD_SPIDER = 1
-# 商家优质车
+# 商家优质车  dealer
 SOURCE_TYPE_SELLER = 2
-# 厂商认证车
+# 厂商认证车  cpo
 SOURCE_TYPE_MANUFACTURER = 3
-# 个人来源
+# 个人来源  personal
 SOURCE_TYPE_GONGPINGJIA = 4
+# 一般商家车源    odealer
+SOURCE_TYPE_ODEALER = 5
+
+
+#=============================================================================
+# 七牛文件上传 bucket 定义
+#=============================================================================
+QINIU_IMG_BUCKET = 'gongpingjia'

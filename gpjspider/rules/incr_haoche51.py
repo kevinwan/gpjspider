@@ -22,11 +22,27 @@ def format_func(url_str):
         return url_str[s:-2]
 
 
+def pagenum_function(url):
+    """
+    增量爬取获取页号
+    http://bj.haoche51.com/vehicle_list/p2.html
+    """
+    if 'vehicle_list/p' not in url:
+        return 1
+    else:
+        url = url.rstrip('.html')
+        idx = url.find('vehicle_list/p')
+        if idx < 0:
+            return 99999999
+        else:
+            return int(url[idx+len('vehicle_list/p'):])
+
+
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': '优质二手车-好车无忧-规则',
+    'name': '优质二手车-好车无忧-增量爬取规则',
     'domain': 'haoche51.com',
     'start_urls': ['http://bj.haoche51.com/vehicle_list.html'],
 
@@ -50,13 +66,10 @@ rule = {
             "format": format_func,
             "step": 'parse_detail',
         },
-        "next_page_url": {
-            "xpath": (
-                u'//a[contains(text(), "下一页")]/@href',
-            ),
-            "excluded": ("javascript:void()",),
-            # "format": "http://haoche.ganji.com{0}",
-            # 新 url 对应的解析函数
+        "incr_page_url": {
+            "xpath": (u'//a[contains(text(), "下一页")]/@href',),
+            'pagenum_function': pagenum_function,
+            'max_pagenum': 2,  # 增量爬取最大页号
             "step": 'parse_list',
         },
     },

@@ -18,3 +18,11 @@ def month(value):
     2007-1
     """
     return value.split('-')[1]
+
+
+def imgurls(value):
+    """
+    """
+    imgurls = value.split(';')
+    imgurls = ['http://i.268v.com/c/{0}'.format(url) for url in imgurls]
+    return ' '.join(imgurls)

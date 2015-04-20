@@ -3,6 +3,7 @@ from decimal import Decimal
 import re
 
 reg_blank_split = re.compile(r'\s+')
+reg_volumn = re.compile(r'(\d\.\d)')
 
 
 def strip(value):
@@ -14,7 +15,10 @@ def strip(value):
         return value
     value = value.replace(u'\xa0', u'')
     value = value.replace(u'\xb7', u'')
-    return value.strip(' \r\n\t')
+    value = value.replace(u'\r', u'')
+    value = value.replace(u'\n', u'')
+    value = value.replace(u'\t', u'')
+    return value.strip(' ')
 
 
 def first(value):
@@ -35,11 +39,11 @@ def last(value):
         return value
 
 
-def join(value):
+def join(values):
     """
     todo:  暂时用空格 join
     """
-    value = [v.strip() for v in value]
+    value = [v.strip().strip('\t\r\n\b').strip() for v in values]
     if isinstance(value, (list, tuple)):
         return u' '.join(value)
     else:
@@ -85,7 +89,7 @@ def price(value):
     ￥128.00万
     """
     v = value.strip().strip(u'￥万')
-    return v
+    return decimal(v)
 
 
 def price_bn(value):
@@ -97,7 +101,7 @@ def price_bn(value):
     v = value.split('+')[0]
     v = v.strip().strip(u'新车价：')
     v = v.strip().strip(u'万')
-    return v
+    return decimal(v)
 
 
 def decimal(value, default=Decimal(0)):
@@ -140,6 +144,18 @@ def mile(value):
     return value.strip().strip(u'万公里')
 
 
+def volume(value):
+    """
+    例子：
+    1. 大众途观 1.8T 手自一体 豪华
+    """
+    a = reg_volumn.findall(value)
+    if a:
+        return int(a[0])
+    else:
+        return None
+
+
 def brand_slug(value):
     """
     支持这样的：
@@ -149,10 +165,11 @@ def brand_slug(value):
     3. 菲亚特-菲翔2012款
 
     """
-    a = reg_blank_split.split(value)
+    a = value.strip('>').strip()
+    a = reg_blank_split.split(a)
     if '-' in a[0]:
         a = a[0].split('-')
-    return a[0]
+    return a[0].strip()
 
 
 def model_slug(value):
@@ -163,7 +180,7 @@ def model_slug(value):
     2. 兰德酷路泽 >
     3. 菲亚特-菲翔2012款
     """
-    value = value.strip('>')
+    value = value.strip('>').strip()
     if ' ' in value:
         a = reg_blank_split.split(value)
         return a[1]
@@ -177,7 +194,7 @@ def model_slug(value):
 def city(value):
     """
     """
-    return value.strip(u'二手车城')
+    return value.strip(u'市').strip(u'二手车城').strip(u'二手').strip('>')
 
 
 def strip_url(url_with_query):

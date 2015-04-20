@@ -2,6 +2,7 @@
 """
 专属赶集好车的 processor
 """
+from decimal import Decimal
 
 
 def brand_slug(value):
@@ -30,3 +31,12 @@ def city_slug(value):
     1. /cd/
     """
     return value.strip('/')
+
+
+def price_bn(value):
+    v = value.strip().strip(u'万')
+    try:
+        return Decimal(v)
+    except:
+        return 0
+

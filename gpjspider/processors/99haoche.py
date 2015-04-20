@@ -11,3 +11,14 @@ def volume(value):
     """
     a = value.strip().split(' ')
     return a[1]
+
+
+def transfer_owner(value):
+    if u'否' in value:
+        return 1
+    else:
+        return 0
+
+
+def color(value):
+    return value.split(u'，')[0]

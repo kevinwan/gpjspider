@@ -5,6 +5,18 @@
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
+def pagenum_function(url):
+    """
+    http://www.youche.com/ershouche/p2
+    """
+    s = 'ershouche/p'
+    if s not in url:
+        return 1
+    else:
+        idx = url.strip(' /').find(s)
+        return int(url[idx+len(s)])
+
+
 def new_requests(response, url_rule, spider):
     """
     function cityJump(cityid,std){
@@ -38,7 +50,7 @@ rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-优车诚品-规则',
+    'name': u'优质二手车-优车诚品-增量更新规则',
     'domain': 'youche.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
@@ -67,14 +79,13 @@ rule = {
             'dont_filter': False,   # 默认值就是 False
             "step": 'parse_detail',
         },
-        "next_page_url": {
-            "xpath": (
-                u'//a[text()="下一页"]/@href',
-            ),
-            "excluded": ('javascript',),
+        "incr_page_url": {
+            "xpath": (u'//a[text()="下一页"]/@href',),
+            "excluded": ('javascript'),
             "format": "http://www.youche.com{0}",
             'dont_filter': True,
-            # 新 url 对应的解析函数
+            'pagenum_function': pagenum_function,
+            'max_pagenum': 2,  # 增量爬取最大页号
             "step": 'parse_list',
         },
     },
@@ -99,11 +110,11 @@ rule = {
                 },
                 'year': {
                     'xpath': ('//div[@class="carTextList"]/span[1]/text()',),
-                    'processors': ['first', 'strip', 'year'],
+                    'processors': ['first', 'strip'],
                 },
                 'month': {
                     'xpath': ('//div[@class="carTextList"]/span[1]/text()',),
-                    'processors': ['first', 'strip', 'month'],
+                    'processors': ['first', 'strip'],
                 },
                 'mile': {
                     'xpath': ('//div[@class="carTextList"]/span[2]/text()',),
@@ -171,9 +182,7 @@ rule = {
                     'xpath': (
                         u'//li/span[contains(text(), "年检")]/../span[@class="fr cup"]/text()',
                     ),
-                    'processors': [
-                        'first', 'strip', 'youche.examine_insurance'
-                    ],
+                    'processors': ['first', 'strip'],  # 处理器
                 },
                 # 'business_insurance': {
                 #     'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
@@ -183,7 +192,7 @@ rule = {
                     'xpath': (
                         u'//li/span[contains(text(), "交强")]/../span[@class="fr"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'youche.examine_insurance'],  # 处理器
+                    'processors': ['first', 'strip'],  # 处理器
                 },
                 'transfer_owner': {
                     'xpath': (

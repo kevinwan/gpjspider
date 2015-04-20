@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-大搜车优质二手车 规则
+大搜车优质二手车 增量爬取规则
 
 
 规则包含非 ascii 字符，必须使用 unicode 编码
@@ -8,11 +8,25 @@
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
+def pagenum_function(url):
+    """
+    http://www.souche.com/nanjing/list-pg2
+    """
+    if '/list-pg' not in url:
+        return 1
+    else:
+        idx = url.find('/list-pg')
+        if idx < 0:
+            return 999999
+        else:
+            return int(url[idx+len('/list-pg')])
+
+
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': '优质二手车-大搜车-规则',
+    'name': '优质二手车-大搜车-增量爬取规则',
     'domain': 'souche.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
@@ -42,12 +56,11 @@ rule = {
             "format": "http://www.souche.com{0}",
             "step": 'parse_detail',
         },
-        "next_page_url": {
-            "xpath": (
-                '//a[@class="next"]/@href',
-            ),
-            "format": "http://www.souche.com{0}",
-            # 新 url 对应的解析函数
+        "incr_page_url": {
+            "xpath": ('//a[@id="pagenow"]/following-sibling::a[1]/@href', ),
+            'format': 'http://www.99haoche.com{0}',
+            'pagenum_function': pagenum_function,
+            'max_pagenum': 3,  # 增量爬取最大页号
             "step": 'parse_list',
         },
     },

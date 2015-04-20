@@ -27,3 +27,5 @@ prettyprint==0.1.5
 SQLAlchemy==0.9.9
 requests==2.6.0
 pymongo==2.8
+Pillow==2.7.0
+qiniu==7.0.3

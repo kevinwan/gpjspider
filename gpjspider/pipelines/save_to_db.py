@@ -10,9 +10,6 @@ import datetime
 
 from prettyprint import pp
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.engine.url import URL
 from sqlalchemy.exc import IntegrityError
 
 from pymongo import errors
@@ -26,8 +23,10 @@ from scrapy.contrib.exporter import BaseItemExporter
 
 from gpjspider.models.usedcars import UsedCar
 from gpjspider.items import UsedCarItem, GpjspiderItem
+from gpjspider.utils import get_mysql_connect
 
-__ALL__ = ('SaveToMySQLBySqlalchemy', 'DebugPipeline', 'MongoDBPipeline')
+__ALL__ = (
+    'SaveToMySQLBySqlalchemyPipeline', 'DebugPipeline', 'MongoDBPipeline')
 
 
 def not_set(string):
@@ -58,10 +57,12 @@ class SaveToMySQLBySqlalchemyPipeline(object):
     def open_spider(self, spider):
         """
         """
-        self.engine = create_engine(URL(**self.connection_dict))
-        self.Session = sessionmaker(bind=self.engine)
+        self.Session = get_mysql_connect()
 
     def process_item(self, item, spider):
+        """
+        所有数据库类都要有 url 和 domain
+        """
         klass = None
         #  调试的数据 URL 加上 DEBUG
         DEBUG = spider.settings.getbool('DEBUG')
@@ -78,9 +79,17 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         try:
             session.commit()
         except IntegrityError:
+            session.rollback()
+            q = session.query(klass).filter(klass.url == item['url'])
+            q.update(dict(item), synchronize_session=False)
+            q = session.query(klass).filter(klass.url == item['url'])
+            item['id'] = q.first().id
             spider.log(u'成功保存:重复:{0}'.format(item['url']))
         else:
+            item['id'] = o.id
             spider.log(u'成功保存:{0}'.format(item['url']))
+        for field_name in item.fields.keys():
+            item[field_name] = getattr(o, field_name)
         return item
 
 
@@ -106,10 +115,6 @@ class MongoDBPipeline(BaseItemExporter):
 
     # Duplicate key occurence count
     duplicate_key_count = 0
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(crawler)
 
     def __init__(self, crawler):
         """ Constructor """
@@ -170,22 +175,24 @@ class MongoDBPipeline(BaseItemExporter):
         else:
             self.stop_on_duplicate = 0
 
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
     def configure(self):
         """ Configure the MongoDB connection """
         # Handle deprecated configuration
         if not not_set(self.settings['MONGODB_HOST']):
-            log.msg(
-                u'DeprecationWarning: MONGODB_HOST is deprecated',
-                level=log.WARNING)
+            msg = u'DeprecationWarning: MONGODB_HOST is deprecated'
+            log.msg(msg, level=log.WARNING)
             mongodb_host = self.settings['MONGODB_HOST']
 
             if not not_set(self.settings['MONGODB_PORT']):
-                log.msg(
-                    u'DeprecationWarning: MONGODB_PORT is deprecated',
-                    level=log.WARNING)
-                self.config['uri'] = 'mongodb://{0}:{1:i}'.format(
-                    mongodb_host,
-                    self.settings['MONGODB_PORT'])
+                msg = u'DeprecationWarning: MONGODB_PORT is deprecated'
+                log.msg(msg, level=log.WARNING)
+                uri = 'mongodb://{0}:{1:i}'.format(
+                    mongodb_host, self.settings['MONGODB_PORT'])
+                self.config['uri'] = uri
             else:
                 self.config['uri'] = 'mongodb://{0}:27017'.format(mongodb_host)
 
@@ -233,14 +240,6 @@ class MongoDBPipeline(BaseItemExporter):
                 ))
 
     def process_item(self, item, spider):
-        """ Process the item and add it to MongoDB
-
-        :type item: Item object
-        :param item: The item to put into MongoDB
-        :type spider: BaseSpider object
-        :param spider: The spider running the queries
-        :returns: Item object
-        """
         item = dict(self._get_serialized_fields(item))
 
         if self.config['buffer']:
@@ -261,24 +260,10 @@ class MongoDBPipeline(BaseItemExporter):
         return self.insert_item(item, spider)
 
     def close_spider(self, spider):
-        """ Method called when the spider is closed
-
-        :type spider: BaseSpider object
-        :param spider: The spider running the queries
-        :returns: None
-        """
         if self.item_buffer:
             self.insert_item(self.item_buffer, spider)
 
     def insert_item(self, item, spider):
-        """ Process the item and add it to MongoDB
-
-        :type item: (Item object) or [(Item object)]
-        :param item: The item(s) to put into MongoDB
-        :type spider: BaseSpider object
-        :param spider: The spider running the queries
-        :returns: Item object
-        """
         if not isinstance(item, list):
             item = dict(item)
 

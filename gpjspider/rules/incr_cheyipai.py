@@ -7,7 +7,7 @@ def start_function(start_url_template, spider):
     """
     pagesize = 50
     pageno = 1
-    while pageno < 100:
+    while pageno < 2:
         url = start_url_template.format(pageno=pageno, pagesize=pagesize)
         spider.log(u'start request:pageno:{0}, pagesize={1}'.format(
             pageno, pagesize)
@@ -20,7 +20,7 @@ rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-车易拍-规则',
+    'name': u'优质二手车-车易拍-增量爬取规则',
     'domain': 'c.cheyipai.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用

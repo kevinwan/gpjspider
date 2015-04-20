@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
+# from __future__ import absolute_import
 import os
 from celery import Celery
 from celery.task import Task
@@ -27,5 +27,6 @@ class GPJSpiderTask(GPJTask):
         """
         os.environ['SCRAPY_SETTINGS_MODULE'] = self.app.conf.SCRAPY_SETTINGS
         self.project_dir = self.app.conf.PROJECT_DIR
+        os.chdir(self.project_dir)
         self.log_dir = self.app.conf.LOG_DIR
         self.log_level = self.app.conf.LOG_LEVEL
