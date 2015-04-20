@@ -11,6 +11,7 @@ from rediscluster import RedisCluster
 
 
 from .upload_img_to_qiniu import upload_to_qiniu
+from .upload_img_to_qiniu import batch_upload_to_qiniu
 
 
 @app.task(name="check_proxy_ip", bind=GPJSpiderTask)

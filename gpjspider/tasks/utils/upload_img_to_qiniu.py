@@ -13,8 +13,38 @@ from gpjspider import GPJSpiderTask
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
 
 
-@app.task(
-    name="upload_to_qiniu", bind=True, base=GPJSpiderTask, ignore_result=False)
+@app.task(name="batch_upload_to_qiniu", bind=True, base=GPJSpiderTask)
+def batch_upload_to_qiniu(self, file_urls, qiniu_bucket=None):
+    """
+    """
+    logger = get_task_logger('batch_upload_to_qiniu')
+    logger.info(u'批量上传{0}到七牛'.format(file_urls))
+    qiniu_bucket = qiniu_bucket if qiniu_bucket else self.app.conf.QINIU_BUCKET
+    qiniu_store = QiniuStorageService(
+        self.app.conf.QINIU_ACCESS_KEY,
+        self.app.conf.QINIU_SECRET_KEY,
+        qiniu_bucket
+    )
+    ret = []
+    for file_url in file_urls:
+        tmp_file = download_file(file_url)
+        if not tmp_file:
+            logger.error(u'下载文件失败:{0}'.format(file_url))
+            continue
+        logger.info(u'下载文件成功:{0}'.format(tmp_file))
+
+        if QINIU_IMG_BUCKET == qiniu_bucket:
+            r = __upload_img_file(qiniu_store, tmp_file, file_url, logger)
+        else:
+            r = __upload_file(qiniu_store, tmp_file, file_url, logger)
+        if r:
+            ret.append(r)
+        else:
+            logger.error(u'上传{0}失败'.format(file_url))
+    return ret
+
+
+@app.task(name="upload_to_qiniu", bind=True, base=GPJSpiderTask)
 def upload_to_qiniu(self, file_url, qiniu_bucket=None):
     """
     """

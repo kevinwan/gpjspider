@@ -16,7 +16,7 @@ from gpjspider.services.cars import get_gpj_detail_model
 # from gpjspider.services.city import get_gongpingjia_city
 
 
-from gpjspider.tasks.utils import upload_to_qiniu
+from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
 from gpjspider.utils import get_mysql_connect
 
@@ -36,6 +36,7 @@ def clean_usedcar(self, items, *args, **kwargs):
         if not isinstance(item, UsedCarItem):
             logger.error(u'item 不是 UsedCar:{0}'.format(pp_str(item)))
             continue
+
         # 预处理
         item = preprocess_item(item, session, logger)
         # 业务判断
@@ -49,6 +50,8 @@ def clean_usedcar(self, items, *args, **kwargs):
             logger.error(u'上传失败：{0}'.format(item['url']))
             qiniu_url = item['imgurls'].split(' ')[0]
         item['thumbnail'] = qiniu_url
+        # 上传全部图片
+        item['imgurls'] = upload_imgs(item, logger)
         # 确保 time 正确
         if not item.get('time'):
             item['time'] = item['created_on']
@@ -369,6 +372,7 @@ def insert_to_carimage(item, car_source, session, logger):
 
 def upload_img(item, logger):
     """
+    上传全部图片
     """
     thumbnail = item.get('thumbnail')
     if not thumbnail:
@@ -385,3 +389,19 @@ def upload_img(item, logger):
     else:
         logger.error(u'没有 thumbnail，原始 URL：{0}'.format(item['url']))
         return None
+
+
+def upload_imgs(item, logger):
+    """
+    批量上传全部图片
+    """
+    imgurls = item.get('imgurls')
+    imgurls = imgurls.split(' ')
+    if not imgurls:
+        return None
+    urls = batch_upload_to_qiniu(imgurls, QINIU_IMG_BUCKET)
+    _urls = []
+    for url in urls:
+        a_url = 'http://gongpingjia.qiniudn.com/' + url
+        _urls.append(a_url)
+    return ' '.join(_urls)
