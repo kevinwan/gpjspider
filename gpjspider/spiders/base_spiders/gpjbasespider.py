@@ -5,11 +5,11 @@
 """
 import inspect
 from prettyprint import pp, pp_str
-from rediscluster import RedisCluster
 import scrapy
 from scrapy import log
 from scrapy.http import Request
 from scrapy.exceptions import DropItem
+from gpjspider.utils import get_redis_cluster
 from gpjspider.utils.path import import_rule_function, import_item
 from gpjspider.utils.path import import_processor
 from gpjspider.checkers import CheckerManager
@@ -44,7 +44,6 @@ class GPJBaseSpider(scrapy.Spider):
 
     def set_crawler(self, crawler):
         super(GPJBaseSpider, self).set_crawler(crawler)
-        self.redis_config = crawler.settings.getlist('REDIS_CONFIG')
         self.proxy_ips = self.get_proxy_ips()
 
     def log(self, msg, level=log.DEBUG, **kw):
@@ -53,7 +52,7 @@ class GPJBaseSpider(scrapy.Spider):
     def get_proxy_ips(self):
         """
         """
-        redis = RedisCluster(startup_nodes=self.redis_config)
+        redis = get_redis_cluster()
         s = redis.smembers('valid_proxy_ips')
         self.log(u'all proxies: {0}'.format(s))
         if s:

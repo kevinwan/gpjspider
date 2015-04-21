@@ -2,16 +2,7 @@
 """
 增量爬取爬虫
 """
-import inspect
-from prettyprint import pp, pp_str
-from rediscluster import RedisCluster
-import scrapy
-from scrapy import log
-from scrapy.http import Request
-from scrapy.exceptions import DropItem
-from gpjspider.utils.path import import_rule_function, import_item
-from gpjspider.utils.path import import_processor
-from gpjspider.checkers import CheckerManager
+from prettyprint import pp
 from gpjspider.checkers.constants import HIGH_QUALITY_RULE_CHECKER_NAME
 
 from .gpjbasespider import GPJBaseSpider
@@ -32,5 +23,3 @@ class IncrSpider(GPJBaseSpider):
         if not self.website_rule:
             raise ValueError('TODO')
         self.domain = self.website_rule['domain']
-
-    

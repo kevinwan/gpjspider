@@ -7,7 +7,7 @@ import requests
 from celery.utils.log import get_task_logger
 from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
-from rediscluster import RedisCluster
+from gpjspider.utils import get_redis_cluster
 
 
 from .upload_img_to_qiniu import upload_to_qiniu
@@ -22,7 +22,7 @@ def check_proxy_ip(self):
     logger.debug(u'开始检查可用代理IP,超过5秒为不可用代理')
     valid_key = 'valid_proxy_ips'
     invalid_key = 'invalid_proxy_ips'
-    redis_conn = RedisCluster(startup_nodes=self.app.conf.REDIS_CLUSTERS)
+    redis_conn = get_redis_cluster()
     ips = redis_conn.smembers(valid_key)
     ips2 = redis_conn.smembers(invalid_key)
     ips.update(ips2)

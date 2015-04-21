@@ -52,5 +52,3 @@ def run_spider(self, spider_name, rule_name):
     del crawler
     del crawler_process
     logger.info(u'爬虫{0},规则{1} 结束'.format(spider_class.name, rule_name))
-    
-

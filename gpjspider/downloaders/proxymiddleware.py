@@ -5,10 +5,10 @@
 import random
 import urlparse
 import requests
-from rediscluster import RedisCluster
 from scrapy import log
 from scrapy.http import HtmlResponse
 from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
+from gpjspider.utils import get_redis_cluster
 
 
 class ProxyMiddleware(object):
@@ -23,7 +23,7 @@ class ProxyMiddleware(object):
     )
 
     def __init__(self, settings):
-        self.REDIS_CONFIG = settings.getlist('REDIS_CONFIG')
+        self.redis = get_redis_cluster()
         self.good_proxies = settings.getlist('PROXIES')
 
     @classmethod
@@ -40,11 +40,9 @@ class ProxyMiddleware(object):
                     if spider.proxy_ips:
                         ip = random.choice(spider.proxy_ips)
                     else:
-                        redis = RedisCluster(startup_nodes=self.REDIS_CONFIG)
-                        ip = redis.srandmember('valid_proxy_ips')
+                        ip = self.redis.srandmember('valid_proxy_ips')
                 else:
-                    redis = redis.StrictRedis()
-                    ip = redis.srandmember('valid_proxy_ips')
+                    ip = self.redis.srandmember('valid_proxy_ips')
                 if ip:
                     proxy = 'http://' + ip
                     request.meta['proxy'] = proxy
