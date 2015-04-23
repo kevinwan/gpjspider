@@ -88,7 +88,7 @@ def price(value):
     示例：
     ￥128.00万
     """
-    v = value.strip().strip(u'￥万')
+    v = value.strip().strip(u'￥万\xa5').strip()
     return decimal(v)
 
 
@@ -151,7 +151,7 @@ def volume(value):
     """
     a = reg_volumn.findall(value)
     if a:
-        return int(a[0])
+        return decimal(a[0])
     else:
         return None
 
@@ -216,3 +216,44 @@ def strip_imgurls(urls_with_query):
     for url in urls_with_query:
         new_urls.append(strip_url(url))
     return ' '.join(new_urls)
+
+
+g_y_m = re.compile(ur'(\d{4}).*(\d{2})')
+
+
+def mandatory_insurance(value):
+    """
+    """
+    a = g_y_m.findall(value)
+    if a:
+        return u'-'.join(a[0]) + u'-01'
+    else:
+        return u''
+
+
+def business_insurance(value):
+    """
+    """
+    a = g_y_m.findall(value)
+    if a:
+        return u'-'.join(a[0]) + u'-01'
+    else:
+        return u''
+
+
+def examine_insurance(value):
+    """
+    """
+    a = g_y_m.findall(value)
+    if a:
+        return u'-'.join(a[0]) + u'-01'
+    else:
+        return u''
+
+
+def status(value):
+    if value == '1':
+        return True
+    elif value == '0':
+        return False
+    return bool(value)

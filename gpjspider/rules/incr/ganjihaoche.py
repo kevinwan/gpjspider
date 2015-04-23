@@ -51,6 +51,8 @@ rule = {
             ),
             "format": "http://haoche.ganji.com{0}",
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
 
         "incr_page_url": {

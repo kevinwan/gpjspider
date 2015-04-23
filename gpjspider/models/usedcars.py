@@ -16,7 +16,7 @@ class UsedCar(Base):
             详情见ProductManager,注意查询时无需再过滤status，
             如果需要对多个字段排序，在查询中指定order_by可以覆盖默认排序规则。
 
-                   ('odealer', u'一般商家车源'),
+        ('odealer', u'一般商家车源'),
         ('dealer', u'商家优质车源'),
         ('cpo', u'厂商认证车源'),
         ('personal', u'一般个人车源'),

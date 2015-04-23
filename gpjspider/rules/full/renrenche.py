@@ -1,30 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-人人车优质二手车 增量爬取规则
+人人车优质二手车 规则
 
 规则包含非 ascii 字符，必须使用 unicode 编码
 """
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
-def pagenum_function(url):
-    """
-    http://www.renrenche.com/nj/ershouche/p2
-    """
-    if 'ershouche/p' not in url:
-        return 1
-    else:
-        idx = url.find('ershouche/p')
-        if idx < 0:
-            return 999999
-        else:
-            return int(url[idx+len('ershouche/p'):])
-
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': '优质二手车-人人车-增量爬取规则',
+    'name': '优质二手车-人人车-规则',
     'domain': 'renrenche.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
@@ -52,19 +39,15 @@ rule = {
             ),
             "format": "http://www.renrenche.com{0}",
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "next_page_url": {
             "xpath": (
                 '//a[text()=">"]/@href',
             ),
-        },
-
-        "incr_page_url": {
-            "xpath": ('//a[text()=">"]/@href',),
             "excluded": ('javascript', ),
             "format": "http://www.renrenche.com{0}",
-            'pagenum_function': pagenum_function,
-            'max_pagenum': 2,  # 增量爬取最大页号
             # 新 url 对应的解析函数
             "step": 'parse_list',
         },

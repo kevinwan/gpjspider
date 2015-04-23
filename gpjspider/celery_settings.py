@@ -40,19 +40,25 @@ REDIS_CLUSTERS = [
 class GPJRouter(object):
 
     def route_for_task(self, task, args=None, kwargs=None):
-        if task.startswith('run_'):
-            return {'exchange': 'spiders', 'routing_key': 'spiders'}
+        if task.startswith('run_spider'):
+            return {'exchange': 'spider', 'routing_key': 'spider'}
+        elif task.startswith('run_full_spider'):
+            return {'exchange': 'full', 'routing_key': 'full'}
+        elif task.startswith('run_update_spider'):
+            return {'exchange': 'update', 'routing_key': 'update'}
+        elif task.startswith('run_incr_spider'):
+            return {'exchange': 'incr', 'routing_key': 'incr'}
         elif task.startswith('clean'):
             return {'exchange': 'clean', 'routing_key': 'clean'}
-        elif task.startswith('incr'):
-            return {'exchange': 'incr', 'routing_key': 'incr'}
         else:
             return {'exchange': 'default', 'routing_key': 'default'}
 
 CELERY_QUEUES = (
-    Queue('spiders', Exchange('spiders'), routing_key='spiders'),
-    Queue('clean', Exchange('clean'), routing_key='clean'),
+    Queue('spider', Exchange('spider'), routing_key='spider'),
+    Queue('full', Exchange('full'), routing_key='full'),
+    Queue('update', Exchange('update'), routing_key='update'),
     Queue('incr', Exchange('incr'), routing_key='incr'),
+    Queue('clean', Exchange('clean'), routing_key='clean'),
     Queue('default', Exchange('default'), routing_key='default')
 )
 
@@ -87,97 +93,157 @@ CELERYBEAT_SCHEDULE = {
     # 优质二手车爬取新车源
     #==========================================================================
     "renrenche_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='46'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='22', minute='56'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='20', minute='13'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='33'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='22', minute='28'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='20', minute='16'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_hg_car": {
-        'task': 'run_spider',
+        'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='32'),
         'args': ("high_quality_car",),
         'kwargs': {"rule_name": "youche"},
+    },
+    # 认证车商二手车
+    "mcc_58_car": {
+        'task': 'run_full_spider',
+        'schedule': crontab(hour='21', minute='32'),
+        'args': ("high_quality_car",),
+        'kwargs': {"rule_name": "manufacturer_certificated_cars.58"},
     },
     #==========================================================================
     # 优质二手车增量爬取新车源
     #==========================================================================
     "renrenche_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='16', minute=58),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_renrenche"},
+        'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/6'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_99haoche"},
+        'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/7'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_ganjihaoche"},
+        'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/8'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_cheyipai"},
+        'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/6'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_xin"},
+        'kwargs': {"rule_name": "xin"},
     },
     "souche_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/5'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_souche"},
+        'kwargs': {"rule_name": "souche"},
     },
     "youche_incr_car": {
-        'task': 'run_spider',
+        'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/5'),
         'args': ("incr_car",),
-        'kwargs': {"rule_name": "incr_youche"},
+        'kwargs': {"rule_name": "youche"},
+    },
+    "58_incr_car": {
+        'task': 'run_incr_spider',
+        'schedule': crontab(hour='5-22', minute='*/5'),
+        'args': ("incr_car",),
+        'kwargs': {"rule_name": "58"},
     },
 
     #==========================================================================
     # 优质二手车更新旧车源
     #==========================================================================
-
+    "renrenche_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='16', minute=58),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "renrenche"},
+    },
+    "99haoche_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/6'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "99haoche"},
+    },
+    "ganjihaoche_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/7'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "ganjihaoche"},
+    },
+    "cheyipai_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/8'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "cheyipai"},
+    },
+    "xin_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/6'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "xin"},
+    },
+    "souche_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/5'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "souche"},
+    },
+    "youche_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/5'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "youche"},
+    },
+    "58_update_car": {
+        'task': 'run_update_spider',
+        'schedule': crontab(hour='5-22', minute='*/5'),
+        'args': ("update_car",),
+        'kwargs': {"rule_name": "58"},
+    },
     #==========================================================================
     # 辅助任务
     #==========================================================================

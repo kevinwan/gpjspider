@@ -1,47 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-99好车 优质二手车 增量爬取规则
+99好车 优质二手车 规则
 """
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
-
-
-def pagenum_function(url):
-    """
-    返回页面号
-    http://www.99haoche.com/quanguo/all/?p=v1y3
-    """
-    idx = url.find('y')
-    if idx < 0:
-        return 99999999
-    else:
-        idx += 1
-        return int(url[idx:])
 
 
 rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-99好车-增量爬取规则',
+    'name': u'优质二手车-99好车-规则',
     'domain': '99haoche.com',
-    # 按时间倒序
-    'start_urls': ['http://www.99haoche.com/quanguo/all/?p=v1y1'],
+    'start_urls': ['http://www.99haoche.com/quanguo/all/?p=v1'],
 
     #==========================================================================
     #  默认步骤  parse
     #==========================================================================
     'parse': {
         "url": {
-            "xpath": ('//ul[@class="bigpic clearfix"]/li/div/a/@href',),
-            "excluded": ('99haoche.iautos.cn/s', 's'),
+            "re": (r'http://www\.99haoche\.com/car/\d+\.html',),
             # 新 url 对应的解析函数
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
-        "incr_page_url": {
+        "next_page_url": {
             "xpath": ('//a[@id="pagenow"]/following-sibling::a[1]/@href', ),
             'format': 'http://www.99haoche.com{0}',
-            'pagenum_function': pagenum_function,
-            'max_pagenum': 3,  # 增量爬取最大页号
             "step": 'parse',
         },
     },
@@ -60,37 +45,40 @@ rule = {
                     'required': True,
                 },
                 'meta': {
-                    'xpath': ('//meta[@name="description"]/@content',),
+                    'xpath': (
+                        '//meta[@name="description"]/@content',
+                        '//meta[@name="Description"]/@content',
+                    ),
                     'processors': ['first', 'strip'],
                 },
                 'year': {
                     'xpath': (
                         u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'year'],
+                    'processors': ['first', 'strip', 'year', 'gpjint'],
                 },
                 'month': {
                     'xpath': (
                         u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'month'],
+                    'processors': ['first', 'strip', 'month', 'gpjint'],
                 },
                 'mile': {
                     'xpath': (
                         u'//li/span[contains(text(), "行驶里程")]/../span[@class="righ"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'mile'],
+                    'processors': ['first', 'strip', 'mile', 'decimal'],
                 },
                 'volume': {
                     'xpath': (
                         '//div[@class="car-particular-right clearfix"]/h2/text()',
                     ),
-                    'processors': ['first', 'strip', '99haoche.volume'],
+                    'processors': ['first', 'strip', 'volume'],
                 },
 
                 'color': {
                     'xpath': (u'//li/span[contains(text(), "车身颜色")]/../text()',),
-                    'processors': ['first', 'strip'],
+                    'processors': ['first', 'strip', '99haoche.color'],
                 },
                 'control': {
                     'xpath': (
@@ -102,13 +90,13 @@ rule = {
                     'xpath': (
                         '//p[@class="market-price"]/span[@class="str"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'gpjfloat'],
+                    'processors': ['first', 'strip', 'price'],
                 },
                 'price_bn': {
                     'xpath': (
                         '//p[@class="market-price"]/del/text()',
                     ),
-                    'processors': ['first', 'strip', 'price', 'gpjfloat'],
+                    'processors': ['first', 'strip', 'price_bn'],
                 },
                 'brand_slug': {
                     'xpath': (
@@ -168,12 +156,12 @@ rule = {
                     ),
                     'processors': ['first', 'strip'],
                 },
-                'quality_service': {
-                    'xpath': (
-                        u'//div[@class="diverse-serve"]/p/a/text()',
-                    ),
-                    'processors': ['join', 'strip'],
-                },
+                # 'quality_service': {
+                #     'xpath': (
+                #         u'//div[@class="diverse-serve"]/p/a/text()',
+                #     ),
+                #     'processors': ['join', 'strip'],
+                # },
                 'is_certifield_car': {
                     'default': 1,
                 },
@@ -205,17 +193,23 @@ rule = {
                 },
                 'transfer_owner': {
                     'xpath': (
-                        u'//td[contains(text(), "过户次数")]/following-sibling::td/text()',
+                        u'//li/span[contains(text(), "是否一手车")]/../text()',
                     ),
-                    'processors': ['first', 'strip'],
+                    'processors': ['first', 'strip', '99haoche.transfer_owner'],
                 },
                 'source_type': {
                     'default': SOURCE_TYPE_SELLER,
                 },
+                'car_application': {
+                    'xpath': (
+                        u'//li/span[contains(text(), "使用性质")]/../text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
                 # contact
                 # condition_level
                 # condition_detail
-                # car_application
+                # 
                 # maintenance_desc
             },
         },

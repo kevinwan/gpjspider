@@ -55,6 +55,8 @@ rule = {
             ),
             "format": "http://www.souche.com{0}",
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "incr_page_url": {
             "xpath": ('//a[@id="pagenow"]/following-sibling::a[1]/@href', ),

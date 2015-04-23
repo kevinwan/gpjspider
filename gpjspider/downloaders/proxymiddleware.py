@@ -17,7 +17,7 @@ class ProxyMiddleware(object):
     """
     # 需要使用代理的 domain
     domains = (
-        '58.com',  'baixing.com', 'ganji.com', '273.cn',
+        'baixing.com', 'ganji.com', '273.cn',
         'che168.com', 'autohome.com', 'pahaoche.com',
         'hx2car.com', 'zg2sc.cn', 'souche.com'
     )
@@ -56,6 +56,7 @@ class ProxyMiddleware(object):
                     del request.meta['proxy']
 
             error_urls = (
+                '58.com',
                 'souche.com', 'ganji.com', 'click.ganji.com', 'jing.58.com',
                 'jump.zhineng.58.com'
             )

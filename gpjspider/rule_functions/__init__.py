@@ -33,3 +33,9 @@ def cheyipai_url(response, spider, *args, **kwargs):
     e_idx = response.url.find('%22%7D', s_idx)
     id = response.url[s_idx:e_idx]
     return 'http://c.cheyipai.com/car_detail.jsp?goodsid={0}'.format(id)
+
+
+def status_58_car(response, spider, *args, **kwargs):
+    if response.status != 200:
+        return 'review'
+    return 'sale'

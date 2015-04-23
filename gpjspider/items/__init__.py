@@ -81,3 +81,8 @@ class UsedCarItem(GpjspiderItem):
     source_type = Field()
     detail_model = Field()
     created_on = Field()
+
+
+class CarSourceItem(GpjspiderItem):
+    price = Field()
+    status = Field()

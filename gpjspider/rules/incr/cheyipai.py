@@ -45,6 +45,8 @@ rule = {
             "format": ("http://c.cheyipai.com/api/goods/goodsDetail?bparam"
                        "=%7B%22id%22%3A%22{0}%22%7D"),
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         }
     },
     #==========================================================================

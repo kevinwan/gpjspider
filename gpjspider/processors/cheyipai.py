@@ -26,3 +26,9 @@ def imgurls(value):
     imgurls = value.split(';')
     imgurls = ['http://i.268v.com/c/{0}'.format(url) for url in imgurls]
     return ' '.join(imgurls)
+
+
+def status(value):
+    """
+    """
+    return value == 0

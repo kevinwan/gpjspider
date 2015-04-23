@@ -3,13 +3,16 @@
 提取 url 规则：
 
 """
+import pickle
 import inspect
 from prettyprint import pp, pp_str
+from sqlalchemy.exc import IntegrityError
 import scrapy
 from scrapy import log
 from scrapy.http import Request
 from scrapy.exceptions import DropItem
-from gpjspider.utils import get_redis_cluster
+from gpjspider.utils import get_redis_cluster, get_mysql_connect
+from gpjspider.models.requests import RequestModel
 from gpjspider.utils.path import import_rule_function, import_item
 from gpjspider.utils.path import import_processor
 from gpjspider.checkers import CheckerManager
@@ -170,7 +173,7 @@ class GPJBaseSpider(scrapy.Spider):
                     urls.add(_url)
         if 're' in url_rule:
             for rule in url_rule['re']:
-                _urls = response.re(rule)
+                _urls = response.selector.re(rule)
                 for _url in _urls:
                     urls.add(_url)
         if 'css' in url_rule:
@@ -233,6 +236,12 @@ class GPJBaseSpider(scrapy.Spider):
                         url, callback=step_function, dont_filter=dont_filter
                     )
                     ret_requests.append(request)
+        if 'update' in url_rule and 'category' in url_rule:
+            if url_rule['update']:
+                try:
+                    self.save_request(ret_requests, url_rule['category'])
+                except:
+                    self.log(u'保存请求{0}时失败', level=log.ERROR)
         return ret_requests
 
     def get_item(self, item_class, item_rule, response):
@@ -418,3 +427,28 @@ class GPJBaseSpider(scrapy.Spider):
         else:
             self.log(u'没有 url 被格式化删除')
         return new_urls
+
+    def save_request(self, requests, url_category):
+        Session = get_mysql_connect()
+        session = Session()
+        for request in requests:
+            request_model = RequestModel()
+            request_model.url = request.url
+            request_model.domain = self.domain
+            request_model.category = url_category
+            request_model.method = request.method
+            request_model.headers = pickle.dumps(request.headers)
+            request_model.body = pickle.dumps(request.body)
+            request_model.cookies = pickle.dumps(request.cookies)
+            request_model.meta = pickle.dumps(request.meta)
+            request_model.encoding = request.encoding
+            session.add(request_model)
+        try:
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+        except Exception as e:
+            self.log(u'未知异常：{0}'.format(e), log.ERROR)
+            session.rollback()
+        else:
+            self.log(u'成功保存请求{0}'.format(request_model.url), log.INFO)

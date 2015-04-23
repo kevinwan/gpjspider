@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-DEBUG = False
+DEBUG = True
 
-BOT_NAME = 'testspider'
+BOT_NAME = 'gpjspider'
 
 SPIDER_MODULES = ['gpjspider.spiders']
 NEWSPIDER_MODULE = 'gpjspider.spiders'
@@ -13,7 +13,7 @@ ITEM_PIPELINES = {
     # 优质二手车的第一个 pipeline
     # 'gpjspider.pipelines.ProcessUsedCarPipeline': 500,
     # 打印
-    # 'gpjspider.pipelines.save_to_db.DebugPipeline': 998,
+    'gpjspider.pipelines.save_to_db.DebugPipeline': 998,
     # 保存到数据库
     'gpjspider.pipelines.save_to_db.SaveToMySQLBySqlalchemyPipeline': 899,
     'gpjspider.pipelines.CachedCarsPipeline': 900,

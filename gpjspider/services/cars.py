@@ -2,12 +2,25 @@
 import re
 from gpjspider.models.product import CategoryDict
 from gpjspider.models.product import NormalModelDetail
+from gpjspider.models.product import ByYearVolume
 from gpjspider.utils import get_mysql_connect
 
 __ALL__ = (
     'get_gpj_category', 'get_gpj_detail_model', 'process_detail_model_string'
 )
 Session = get_mysql_connect()
+
+
+def get_average_price(brand, model, year, volume):
+    """
+    获取平均价格
+    """
+    session = Session()
+    q = session.query(ByYearVolume).filter(ByYearVolume.brand_slug == brand)
+    q = q.filter(ByYearVolume.model_slug == model)
+    q = q.filter(ByYearVolume.year == year)
+    q = q.filter(ByYearVolume.volume == volume)
+    return q.first()
 
 
 def get_gpj_category(brand, model, domain):
@@ -106,3 +119,9 @@ def __process_youche(detail_model_string):
 
 def __process_99haoche(detail_model_string):
     return detail_model_string
+
+
+def get_price():
+    """
+    """
+    pass

@@ -11,9 +11,13 @@ from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
 from gpjspider.items import UsedCarItem
 from gpjspider.models.product import CarSource, CarDetailInfo, CarImage
+from gpjspider.models.requests import RequestModel
 from gpjspider.services.cars import get_gpj_category
 from gpjspider.services.cars import get_gpj_detail_model
+from gpjspider.services.cars import get_average_price
 # from gpjspider.services.city import get_gongpingjia_city
+from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
+from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 
 
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
@@ -75,6 +79,7 @@ def clean_usedcar(self, items, *args, **kwargs):
             msg = u'插入CarSource时失败:source.id:{0}'.format(item['id'])
             logger.error(msg)
             continue
+
         insert_to_cardetailInfo(item, car_source, session, logger)
         insert_to_carimage(item, car_source, session, logger)
         logger.error(u'清理source.id={0}成功'.format(item['id']))
@@ -87,6 +92,11 @@ def preprocess_item(item, session, logger):
     """
     # todo: 将 city 进行匹配
     item['city'] = item['city'].strip(u' 市')
+
+    if '58.com' in item['domain']:
+        if item['source_type'] in (SOURCE_TYPE_MANUFACTURER, SOURCE_TYPE_ODEALER):
+            item['is_certifield_car'] = True
+
     if item['source_type'] == 2:
         item['source_type'] = 'dealer'
     elif item['source_type'] == 3:
@@ -95,6 +105,7 @@ def preprocess_item(item, session, logger):
         item['source_type'] = 'personal'
     elif item['source_type'] == 5:
         item['source_type'] = 'odealer'
+
 
     # 默认item['price_bn']是省下的价格
     if 'che.ganji.com' in item['domain'] and item['price'] and item['price_bn']:
@@ -192,7 +203,7 @@ def time(item, logger):
 
 def mile(item, logger):
     """
-    1. mile < 5
+    1. mile > 30
     """
     m = item['mile']
     if isinstance(m, basestring):
@@ -220,11 +231,29 @@ def control(item, logger):
 
 
 def price(item, logger):
-    """
-    价格至少1000吧:)
-    """
     price = item.get('price')
-    return price > 0.0
+    price = Decimal(price)
+    if price <= 0 or price > 1000:
+        return False
+    average_price = get_average_price(
+        item['brand_slug'], item['model_slug'], item['year'], item['volume'])
+    if average_price:
+        year = datetime.now().year
+        # a = 2*(v_avg_price*v_count+v_price)/(v_count+1)
+        # b = v_avg_price*v_count+v_price)/(v_count+1)/2
+        a = average_price.avg_price * average_price.units + price
+        a = a / (average_price.units + 1)
+        a = 2 * a
+        b = a / 2
+        if year - average_price.year == 0:
+            return price <= average_price.avg_price_bn * Decimal('1.2')
+        elif year - average_price.year == 1:
+            return price <= average_price.avg_price_bn * Decimal('1.1')
+        elif year - average_price.year > 1:
+            return price < average_price.avg_price_bn
+        else:
+            return b <= price <= a
+    return True
 
 
 def brand_slug(item, logger):
@@ -310,6 +339,9 @@ def insert_to_carsource(item, session, logger):
         logger.error(u'未知异常:{0}\n{1}'.format(car_source.url, unicode(e)))
     else:
         logger.info(u'成功保存:{0}'.format(car_source.url))
+        q = session.query(RequestModel)
+        q = q.filter(RequestModel.url == car_source.url)
+        q.update({'status': 'need_update'})
     return car_source
 
 

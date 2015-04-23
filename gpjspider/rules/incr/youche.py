@@ -78,6 +78,8 @@ rule = {
             ),
             'dont_filter': False,   # 默认值就是 False
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "incr_page_url": {
             "xpath": (u'//a[text()="下一页"]/@href',),

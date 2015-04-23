@@ -37,6 +37,8 @@ rule = {
             "format": "http://www.xin.com{0}",
             # 新 url 对应的解析函数
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "incr_page_url": {
             "xpath": (u'//a[contains(text(), "下一页")]/@data-page',),

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# 杀死 celery 进程
+ps -ef|grep celery|grep -v grep|cut -c 9-15|xargs kill -9
+
+
+redis-cli -h 192.168.190.122 -p 6000

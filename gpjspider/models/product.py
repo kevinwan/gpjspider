@@ -147,7 +147,7 @@ class Category(Base):
         """
         获取款型
         """
-
+        pass
 
     def __unicode__(self):
         if self.parent:
@@ -394,3 +394,40 @@ class City(Base):
             return u'<City {0} {1}>'.format(self.parent, self.name)
         else:
             return u'<City {0}>'.format(self.name)
+
+
+class ByYearVolume(Base):
+    """
+    """
+    __tablename__ = u'open_by_year_volume'
+
+    SOURCE_TYPE_CHOICE = (
+        'C',  # (Company)车商车源统计结果
+        'P',  # (Person)个人车源统计结果
+    )
+
+    id = Column(Integer, primary_key=True)
+    avg_price = Column(
+        DECIMAL(precision=10, scale=1), nullable=True, doc=u'平均标价')
+    units = Column(Integer, default=0, nullable=False, doc=u'参与统计的车源数量')
+    year = Column(Integer, default=0, nullable=False, index=True)
+    volume = Column(
+        DECIMAL(precision=5, scale=1), default=None, index=True, doc=u'排量')
+    price_range_min = Column(DECIMAL(precision=10, scale=1), nullable=True)
+    price_range_max = Column(DECIMAL(precision=10, scale=1), nullable=True)
+    depreciation_rate = Column(DECIMAL(precision=5, scale=4), nullable=True)
+    avg_price_bn = Column(
+        DECIMAL(precision=10, scale=1), default=None, doc=u'同排量下的平均新车指导价')
+    avg_tradein_price = Column(
+        DECIMAL(precision=10, scale=1), default=None, doc=u'平均的商家收购价')
+    theoretic_tradein_price = Column(
+        DECIMAL(precision=10, scale=1), default=None)
+    source = Column(Enum(SOURCE_TYPE_CHOICE), nullable=True, doc=u'统计来源')
+    brand_slug = Column(String(32), default=None, index=True)
+    model_slug = Column(String(32), default=None, index=True)
+
+    def __unicode__(self):
+        return u'<ByYearVolume {0} {1} {2}>'.format(
+            self.brand_slug, self.model_slug, self.year, self.volume)
+
+    __repr__ = __unicode__

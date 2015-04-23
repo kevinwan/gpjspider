@@ -39,6 +39,8 @@ rule = {
             ),
             "format": "http://haoche.ganji.com{0}",
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "next_page_url": {
             "xpath": (

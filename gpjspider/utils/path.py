@@ -63,3 +63,21 @@ def import_rule(rule_name):
     rule_path = 'gpjspider.rules.' + rule_name + '.rule'
     rule = import_object(rule_path)
     return rule
+
+
+def import_update_rule(rule_name):
+    """
+    导入更新规则
+    """
+    rule_path = 'gpjspider.rules.update' + rule_name + '.rule'
+    rule = import_object(rule_path)
+    return rule
+
+
+def import_incr_rule(rule_name):
+    """
+    导入增量规则
+    """
+    rule_path = 'gpjspider.rules.incr' + rule_name + '.rule'
+    rule = import_object(rule_path)
+    return rule

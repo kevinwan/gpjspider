@@ -66,6 +66,8 @@ rule = {
             ),
             'dont_filter': False,   # 默认值就是 False
             "step": 'parse_detail',
+            'update': True,
+            'category': 'usedcar'
         },
         "next_page_url": {
             "xpath": (
