@@ -17,9 +17,12 @@ from gpjspider.utils.path import import_rule_function, import_item
 from gpjspider.utils.path import import_processor
 from gpjspider.checkers import CheckerManager
 from gpjspider.checkers.constants import HIGH_QUALITY_RULE_CHECKER_NAME
+import re
+import json
 
 
 class GPJBaseSpider(scrapy.Spider):
+
     """
     公平价基本爬虫
     """
@@ -79,6 +82,13 @@ class GPJBaseSpider(scrapy.Spider):
         import sys
         my_name = sys._getframe().f_code.co_name
         step_rule = self.website_rule[my_name]
+        if 'items' in step_rule:
+            items_rule = step_rule['items']
+            item_class = import_item(items_rule['class'])
+            items = self.get_items(item_class, items_rule, response)
+            for item in items:
+                yield item
+                # break
         # 提取新的 url
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
@@ -87,6 +97,7 @@ class GPJBaseSpider(scrapy.Spider):
             for request in requests:
                 self.log(u'start --request {0}'.format(request.url))
                 yield request
+                # break
         if 'next_page_url' in step_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
@@ -114,6 +125,12 @@ class GPJBaseSpider(scrapy.Spider):
         import sys
         my_name = sys._getframe().f_code.co_name
         step_rule = self.website_rule[my_name]
+        if 'items' in step_rule:
+            item_rule = step_rule['items']
+            item_class = import_item(item_rule['class'])
+            items = self.get_items(item_class, item_rule, response)
+            for item in items:
+                yield item
         # 提取新的 url
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
@@ -218,16 +235,19 @@ class GPJBaseSpider(scrapy.Spider):
             # 比 rule function 多一个 url_rule参数，
             # 每次 yield 是一个 url dict,可以包含Request支持的参数
             func = url_rule.get('function')
-            func_name = func.__class__.__name__
+            func_name = func.__name__
             self.log(u'try to get url from function {0}'.format(func_name))
             url_dicts = func(response, url_rule, self)
             for url_dict in url_dicts:
-                cookies = url_dict.get('cookies')
-                self.log(u'cookies is {0}'.format(pp_str(cookies)))
+                if 'url' in url_dict:
+                    url = url_dict.pop('url')
+                else:
+                    print 'no url get'
+                    continue
+                # self.log(u'cookies is {0}'.format(pp_str(cookies)))
+                self.log(u'args is {0}'.format(pp_str(url_dict)))
                 request = Request(
-                    url_dict['url'], callback=step_function, cookies=cookies,
-                    priority=1, dont_filter=dont_filter
-                )
+                    url, callback=step_function, priority=1, dont_filter=dont_filter, **url_dict)
                 ret_requests.append(request)
         else:
             if urls:
@@ -243,6 +263,67 @@ class GPJBaseSpider(scrapy.Spider):
                 except:
                     self.log(u'保存请求{0}时失败', level=log.ERROR)
         return ret_requests
+
+    def get_items(self, item_class, items_rule, response):
+        """
+        根据 field 规则获取响应数据items
+        优先级: arg/xpath > key/json > default
+        """
+        nodes = []
+        if 'xpath' in items_rule:
+            nodes = response.xpath(items_rule['xpath'])
+            if items_rule['is_json']:
+                nodes = self.load_json(nodes.extract()[0])
+        elif 'json' in items_rule:
+            json_str = response.body    # .encode('utf-8')
+            nodes = self.get_json(json_str, items_rule['json'])
+        res_url = response.url
+        for item_node in nodes:
+            item = item_class()
+            item['domain'] = self.domain
+            for field_name, field in items_rule['fields'].iteritems():
+                values = None
+                # is_global = field.get('global')
+                # if is_global:
+                #     values = locals().get(field_name)
+                if 'arg' in field:
+                    values = re.findall(
+                        '[&\?]%s=([^&]*)' % field['arg'], res_url)[0]
+                elif 'xpath' in field:
+                    xpath = field['xpath']
+                    values = self.get_xpath(
+                        xpath, response if xpath[0].startswith('//') else item_node)
+                if values is None:
+                    if 'key' in field:
+                        values = item_node[field['key']]
+                    elif 'json' in field:
+                        values = self.get_json(response.body, field['json'])
+                    if values is None:
+                        if 'default' in field:
+                            default = field['default']
+                            try:
+                                values = eval(default)
+                            except:
+                                values = default
+                if values:
+                    item[field_name] = values
+                    item = self.exec_processor(field_name, field, item)
+                    if field_name == 'url' and 'format' in field:
+                        # item[field_name] = field['format'].format(item[field_name])
+                        item[field_name] = self.format_urls(
+                            field, [item[field_name]])
+                if field.get('required', False):
+                    if field_name not in item:
+                        m = u'{0} is required: {1}'.format(field_name, res_url)
+                        raise DropItem(m)
+                # if is_global and field_name not in locals():
+                #     exec '%s = item[field_name]' % (field_name, )
+            teardown_func = items_rule.get('teardown')
+            if teardown_func:
+                teardown_func = import_processor(teardown_func)
+                if teardown_func:
+                    teardown_func(item)
+            yield item
 
     def get_item(self, item_class, item_rule, response):
         """
@@ -292,7 +373,8 @@ class GPJBaseSpider(scrapy.Spider):
             # required判断
             if field.get('required', False):
                 if field_name not in item:
-                    m = u'{0} is required:{1}'.format(field_name, response.url)
+                    m = u'{0} is required: {1}'.format(
+                        field_name, response.url)
                     raise DropItem(m)
         return item
 
@@ -307,14 +389,16 @@ class GPJBaseSpider(scrapy.Spider):
         """
         处理一段 json 字符串
         """
-        import json
         try:
-            jso = json.loads(json_unicode)
+            jso = self.load_json(json_unicode)
         except Exception as e:
             self.log(str(e), level=log.ERROR)
             return None
         else:
             return self.parse_json_path(json_path, jso)
+
+    def load_json(self, json_unicode):
+        return json.loads(json_unicode)
 
     def get_css(self, css_rules, response):
         """

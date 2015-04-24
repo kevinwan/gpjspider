@@ -29,3 +29,15 @@ def cond_level(value):
         return u'优秀'
     else:
         return value
+
+BRANDS = {}
+
+
+def setup_brand(item):
+    global BRANDS
+    BRANDS[item['slug']] = item['name']
+
+
+def get_model_parent(value):
+    global BRANDS
+    return BRANDS[value]
