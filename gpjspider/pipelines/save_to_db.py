@@ -67,11 +67,10 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         """
         klass = None
         #  调试的数据 URL 加上 DEBUG
-        DEBUG = False
-        # DEBUG = spider.settings.getbool('DEBUG')
         url = item.get('url', '')
-        if DEBUG:
-            url = 'DEBUG ' + url
+        # DEBUG = spider.settings.getbool('DEBUG')
+        # if DEBUG:
+        #     url = 'DEBUG ' + url
         if isinstance(item, UsedCarItem):
             klass = UsedCar
             item['dmodel'] = item['title']
