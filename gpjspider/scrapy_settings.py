@@ -24,6 +24,7 @@ DOWNLOADER_MIDDLEWARES = {
     # 'gpjspider.downloaders.FilterReduplicatedMiddleware': 1,  # 去重
     'gpjspider.downloaders.ProxyMiddleware': 100,
     'gpjspider.downloaders.SeleniumDownloader': 110,
+    'gpjspider.downloaders.CurlDownloader': 119,
 }
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
@@ -122,3 +123,8 @@ REDIS_CONFIG = [
     {"host": "192.168.190.122", "port": "6379"},
     {"host": "192.168.168.237", "port": "6380"}
 ]
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
