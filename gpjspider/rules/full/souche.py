@@ -113,7 +113,7 @@ rule = {
                     'xpath': (
                         '//div[@class="detail_price_left clearfix"]/em/text()',
                     ),
-                    'processors': ['first', 'strip', 'price', 'gpjfloat'],
+                    'processors': ['first', 'strip', 'price'],
                 },
                 'price_bn': {
                     'xpath': ('//label[@class="new"]/text()',),

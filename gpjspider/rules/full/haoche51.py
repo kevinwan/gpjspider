@@ -106,11 +106,11 @@ rule = {
                 },
                 'price': {
                     'xpath': ('//div[@class="car-quotation"]/strong/text()',),
-                    'processors': ['first', 'strip', 'gpjfloat'],
+                    'processors': ['first', 'strip', 'price'],
                 },
                 'price_bn': {
                     'xpath': ('//i[@class="newcarj"]/text()',),
-                    'processors': ['first', 'strip', 'gpjfloat'],
+                    'processors': ['first', 'strip', 'price'],
                 },
                 'brand_slug': {
                     'xpath': ('//div[@class="autotit"]/strong/text()',),
