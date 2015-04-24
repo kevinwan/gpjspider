@@ -21,7 +21,7 @@ from scrapy.exceptions import NotConfigured, DropItem
 from scrapy import log
 from scrapy.contrib.exporter import BaseItemExporter
 
-from gpjspider.models.usedcars import UsedCar
+from gpjspider.models import *
 from gpjspider.items import UsedCarItem, GpjspiderItem
 from gpjspider.utils import get_mysql_connect
 
@@ -42,9 +42,11 @@ def not_set(string):
 
 
 class SaveToMySQLBySqlalchemyPipeline(object):
+
     """
     使用 sqlalchemy 保存到 MySQL。
     """
+
     def __init__(self, settings):
         if not settings.getdict('MYSQL_SQLALCHEMY_URL'):
             raise NotConfigured()
@@ -65,12 +67,19 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         """
         klass = None
         #  调试的数据 URL 加上 DEBUG
-        DEBUG = spider.settings.getbool('DEBUG')
-        if DEBUG:
-            item['url'] = 'DEBUG' + item['url']
+        url = item.get('url', '')
+        # DEBUG = spider.settings.getbool('DEBUG')
+        # if DEBUG:
+        #     url = 'DEBUG ' + url
         if isinstance(item, UsedCarItem):
             klass = UsedCar
             item['dmodel'] = item['title']
+        else:
+            cls_name = item.__class__.__name__
+            try:
+                klass = eval(cls_name.replace('Item', ''))
+            except:
+                pass
         if not klass:
             raise DropItem(u'未找到数据库模型:{0}'.format(type(item)))
         session = self.Session()
@@ -80,20 +89,22 @@ class SaveToMySQLBySqlalchemyPipeline(object):
             session.commit()
         except IntegrityError:
             session.rollback()
-            q = session.query(klass).filter(klass.url == item['url'])
+            q = session.query(klass).filter(klass.url == url)
+            # q = session.query(klass).filter(klass.domain == item['domain']).filter(klass.name == item['name'])
             q.update(dict(item), synchronize_session=False)
-            q = session.query(klass).filter(klass.url == item['url'])
+            # q = session.query(klass).filter(klass.url == url)
             item['id'] = q.first().id
-            spider.log(u'成功保存:重复:{0}'.format(item['url']))
+            spider.log(u'成功保存:重复:{0}'.format(url))
         else:
             item['id'] = o.id
-            spider.log(u'成功保存:{0}'.format(item['url']))
+            spider.log(u'成功保存:{0}'.format(url))
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)
         return item
 
 
 class MongoDBPipeline(BaseItemExporter):
+
     """ MongoDB pipeline class """
     # Default options
     config = {
@@ -150,7 +161,8 @@ class MongoDBPipeline(BaseItemExporter):
 
         # Ensure unique index
         if self.config['unique_key']:
-            self.collection.ensure_index(self.config['unique_key'], unique=True)
+            self.collection.ensure_index(
+                self.config['unique_key'], unique=True)
             log.msg('uEnsuring index for key {0}'.format(
                 self.config['unique_key']))
 
@@ -295,7 +307,8 @@ class MongoDBPipeline(BaseItemExporter):
                 for k in dict(self.config['unique_key']).keys():
                     key[k] = item[k]
             else:
-                key[self.config['unique_key']] = item[self.config['unique_key']]
+                key[self.config['unique_key']] = item[
+                    self.config['unique_key']]
 
             self.collection.update(key, item, upsert=True)
             msg = u'Stored item(s) in MongoDB {0}/{1}'.format(
@@ -306,9 +319,11 @@ class MongoDBPipeline(BaseItemExporter):
 
 
 class DebugPipeline(object):
+
     """
     调试用
     """
+
     def process_item(self, item, spider):
         if isinstance(item, GpjspiderItem):
             pp(dict(item))

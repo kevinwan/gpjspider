@@ -4,11 +4,11 @@
 """
 from sqlalchemy import Column, Integer, String, Enum
 # from sqlalchemy.orm import relationship
-
 from . import Base
 
 
 class BrandModel(Base):
+
     """
     车辆品牌、型号模型
 
@@ -33,5 +33,5 @@ class BrandModel(Base):
     url = Column(String(500), default='', nullable=True)
     parent = Column(String(32), nullable=True)
     status = Column(Enum(STATUS_CHOICE), default='A')
-    mum = Column(String(32), nullable=True, doc=u'生产车商')
-    source = Column("source_id", Integer, default=1)
+    mum = Column(String(32), nullable=True, doc=u'生产车商', default=None)
+    # source = Column("source_id", Integer, default=0)

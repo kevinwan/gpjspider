@@ -1,9 +1,12 @@
 *.pyc
 *.pyo
 *.db
+*.log
+*.bak
 .DS_Store
 .coverage
-local_settings.py
+*local_settings.py
 static/
+data/
 docs/.build/*
 sftp-config.json

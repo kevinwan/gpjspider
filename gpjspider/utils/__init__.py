@@ -1,10 +1,11 @@
 #-*- coding:utf-8 -*-
 from rediscluster import RedisCluster
+import redis
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.engine.url import URL
 from gpjspider.celery_settings import REDIS_CLUSTERS
-from gpjspider.scrapy_settings import MYSQL_SQLALCHEMY_URL
+from gpjspider.scrapy_settings import MYSQL_SQLALCHEMY_URL, DEBUG
 
 
 def get_redis_cluster():
@@ -14,6 +15,11 @@ def get_redis_cluster():
     return RedisCluster(startup_nodes=REDIS_CLUSTERS)
 
 
+def get_local_redis():
+    return redis.StrictRedis(host='127.0.0.1', port=6379)
+
+if DEBUG:
+    get_redis_cluster = get_local_redis
 __engine = None
 
 
