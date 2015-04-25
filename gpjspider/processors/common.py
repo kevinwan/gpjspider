@@ -69,7 +69,7 @@ def gpjint(value, default=0):
         return value
 
 
-def gpjfloat(value, default=0.0):
+def gpjdecimal(value, default=0.0):
     """
     将 value 尝试转换成 float, 不成功时返回 default
     """
@@ -253,7 +253,10 @@ def examine_insurance(value):
 
 def status(value):
     if value == '1':
-        return True
+        return 'sale'
     elif value == '0':
-        return False
-    return bool(value)
+        return 'review'
+    return 'sale'
+
+
+gpjfloat = decimal

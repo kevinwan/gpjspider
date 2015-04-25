@@ -12,7 +12,8 @@ from gpjspider.utils.common import create_spider_class
 from gpjspider.utils.common import create_full_spider_class
 from gpjspider.utils.common import create_update_spider_class
 from gpjspider.utils.common import create_incr_spider_class
-from gpjspider.utils.path import import_rule
+from gpjspider.utils.path import import_rule, import_update_rule
+from gpjspider.utils.path import import_full_rule, import_incr_rule
 
 
 @app.task(name="run_spider", bind=True, base=GPJSpiderTask)
@@ -64,7 +65,6 @@ def run_full_spider(self, rule_name):
     logger = get_task_logger('run_full_spider')
     spider_name = 'full'
     spider_class_name = '{0}AutoSpider'.format(spider_name.lower().capitalize())
-    spider_name = spider_name + '_' + rule_name
     spider_class = create_full_spider_class(spider_class_name, spider_name)
     logger.debug(u'run spider {0}, rule:{1}'.format(
         spider_class.name, spider_name + '.' + rule_name))
@@ -81,7 +81,7 @@ def run_full_spider(self, rule_name):
     jobdir = scrapy_setting.get('JOBDIR')
     # 原来使用爬虫名称作为JOBDIR的名称，在多个爬虫爬取同一个网站的情况下，
     # 使用 domain 可以减少一些请求
-    rule = import_rule(rule_name)
+    rule = import_full_rule(rule_name)
     jobdir = '{0}/{1}'.format(jobdir, rule['domain'])
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     pidfile = self.log_dir + '/' + spider_class.name + '.pid'
@@ -124,7 +124,7 @@ def run_incr_spider(self, rule_name):
     jobdir = scrapy_setting.get('JOBDIR')
     # 原来使用爬虫名称作为JOBDIR的名称，在多个爬虫爬取同一个网站的情况下，
     # 使用 domain 可以减少一些请求
-    rule = import_rule(rule_name)
+    rule = import_incr_rule(rule_name)
     jobdir = '{0}/{1}'.format(jobdir, rule['domain'])
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     pidfile = self.log_dir + '/' + spider_class.name + '.pid'
@@ -168,7 +168,7 @@ def run_update_spider(self, rule_name):
     jobdir = scrapy_setting.get('JOBDIR')
     # 原来使用爬虫名称作为JOBDIR的名称，在多个爬虫爬取同一个网站的情况下，
     # 使用 domain 可以减少一些请求
-    rule = import_rule(rule_name)
+    rule = import_update_rule(rule_name)
     jobdir = '{0}/{1}'.format(jobdir, rule['domain'])
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     pidfile = self.log_dir + '/' + spider_class.name + '.pid'

@@ -95,50 +95,42 @@ CELERYBEAT_SCHEDULE = {
     "renrenche_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='46'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='22', minute='56'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='20', minute='13'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='33'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='22', minute='28'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='20', minute='16'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_hg_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='32'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "youche"},
     },
     # 认证车商二手车
     "mcc_58_car": {
         'task': 'run_full_spider',
         'schedule': crontab(hour='21', minute='32'),
-        'args': ("high_quality_car",),
         'kwargs': {"rule_name": "manufacturer_certificated_cars.58"},
     },
     #==========================================================================
@@ -146,50 +138,42 @@ CELERYBEAT_SCHEDULE = {
     #==========================================================================
     "renrenche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='16', minute=58),
-        'args': ("incr_car",),
+        'schedule': crontab(hour='5-22', minute='*/8'),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/6'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/7'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/8'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/6'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "youche"},
     },
     "58_incr_car": {
         'task': 'run_incr_spider',
         'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("incr_car",),
         'kwargs': {"rule_name": "58"},
     },
 
@@ -198,50 +182,42 @@ CELERYBEAT_SCHEDULE = {
     #==========================================================================
     "renrenche_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='16', minute=58),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=58),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/6'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=52),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/7'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=46),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/8'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=40),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/6'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=34),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=28),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=22),
         'kwargs': {"rule_name": "youche"},
     },
     "58_update_car": {
         'task': 'run_update_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
-        'args': ("update_car",),
+        'schedule': crontab(hour='5-22', minute=10),
         'kwargs': {"rule_name": "58"},
     },
     #==========================================================================
@@ -255,7 +231,6 @@ CELERYBEAT_SCHEDULE = {
     #  夜间再检测一次，检测代理 IP 可用
     "check_proxy_ip-2h": {
         'task': 'check_proxy_ip',
-        'schedule': crontab(hour='3', minute=45),
+        'schedule': crontab(hour='4', minute=45),
     },
-
 }
