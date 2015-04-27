@@ -123,3 +123,8 @@ REDIS_CONFIG = [
     {"host": "192.168.190.122", "port": "6379"},
     {"host": "192.168.168.237", "port": "6380"}
 ]
+
+try:
+    from local_settings import *
+except ImportError:
+    pass

@@ -28,8 +28,8 @@ def main():
         pass
     scrapy_setting = get_project_settings()
     scrapy_setting.set('LOG_ENABLED', True, priority='cmdline')
-    # scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
-    scrapy_setting.set('LOG_LEVEL', 'INFO', priority='cmdline')
+    scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
+    scrapy_setting.set('LOG_LEVEL', 'DEBUG', priority='cmdline')
     # scrapy_setting.set('LOG_LEVEL', 'ERROR', priority='cmdline')
     # 原来使用爬虫名称作为JOBDIR的名称，在多个爬虫爬取同一个网站的情况下，
     # 使用 domain 可以减少一些请求
@@ -41,7 +41,7 @@ def main():
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()
     crawler.spiders._spiders[spider_class.name] = spider_class
-    spargs = {'rule_path': rule_name}
+    spargs = {'rule_name': rule_name}
     spider = crawler.spiders.create(spider_class.name, **spargs)
     crawler.crawl(spider)
     crawler_process.start()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from .common import is_certified
 # from gpjspider.processors.common import is_certified
+from . import is_certified
 from gpjspider.utils import constants
 
 
