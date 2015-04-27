@@ -89,19 +89,14 @@ def gpjint(value, default=0):
         return value
 
 
-<<<<<<< HEAD
 def gpjdecimal(value, default=0.0):
-    """
-=======
-def gpjfloat(value, default=0.0):
     '''
->>>>>>> 20ac117d6e182a213b11b52b8e3a6d81074e2b8f
     将 value 尝试转换成 float, 不成功时返回 default
     '''
     if isinstance(value, basestring):
         value = value.strip()
     try:
-        value = float(value)
+        value = decimal(value)
     except:
         return default
     else:
@@ -287,7 +282,7 @@ mandatory_insurance = year_month
 business_insurance = year_month
 examine_insurance = year_month
 
-<<<<<<< HEAD
+
 def status(value):
     if value == '1':
         return 'sale'
@@ -297,7 +292,7 @@ def status(value):
 
 
 gpjfloat = decimal
-=======
+
 
 def str_to_unicode(value, encoding):
     return unicode(value, encoding) if isinstance(value, str) else value
@@ -470,4 +465,3 @@ True
 if __name__ == '__main__':
     import doctest
     print(doctest.testmod())
->>>>>>> 20ac117d6e182a213b11b52b8e3a6d81074e2b8f
