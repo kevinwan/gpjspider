@@ -40,6 +40,7 @@ class UsedCar(Base):
     )
 
     __tablename__ = u'open_product_source'
+    # __tablename__ = u'open_product_source_tmp'
 
     id = Column(Integer, primary_key=True)
     title = Column(String(200), nullable=True, doc=u'标题')
