@@ -12,8 +12,9 @@ from gpjspider.utils.path import import_rule
 
 def main():
     spider_name = 'test'
-    name = 'ganjihaoche'
-    rule_name = '.'.join(['bm', name])
+    tp = 'full'		# full bm
+    name = 'che168'		# ganjihaoche
+    rule_name = '.'.join([tp, name])
     log_dir = '/tmp/gpjspider'
     spider_class_name = '{0}AutoSpider'.format(
         spider_name.lower().capitalize())
@@ -27,8 +28,9 @@ def main():
         pass
     scrapy_setting = get_project_settings()
     scrapy_setting.set('LOG_ENABLED', True, priority='cmdline')
-    scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
-    scrapy_setting.set('LOG_LEVEL', 'DEBUG', priority='cmdline')
+    # scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
+    scrapy_setting.set('LOG_LEVEL', 'INFO', priority='cmdline')
+    # scrapy_setting.set('LOG_LEVEL', 'ERROR', priority='cmdline')
     # 原来使用爬虫名称作为JOBDIR的名称，在多个爬虫爬取同一个网站的情况下，
     # 使用 domain 可以减少一些请求
     # pdb.set_trace()
