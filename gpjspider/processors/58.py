@@ -47,9 +47,9 @@ def source_type(values):
         if value == '1':
             return SOURCE_TYPE_MANUFACTURER
         if 'http://shop.58.com' in value:
-            return SOURCE_TYPE_SELLER
+            return SOURCE_TYPE_ODEALER
     _v = u' '.join(values)
     if any([u'7天可退' in _v, u'原厂联保' in _v]):
-        return SOURCE_TYPE_ODEALER
+        return SOURCE_TYPE_SELLER
     # 个人车
     return SOURCE_TYPE_GONGPINGJIA

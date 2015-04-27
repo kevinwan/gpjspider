@@ -31,7 +31,7 @@ rule = {
         },
         "next_page_url": {
             "xpath": ('//a[@class="next"]/@href', ),
-            'format': 'http://quanguo.58.com{0}',
+            'format': u'http://quanguo.58.com{0}',
             "step": 'parse_list',
         },
     },
@@ -48,7 +48,7 @@ rule = {
         },
         "next_page_url": {
             "xpath": ('//a[@class="next"]/@href', ),
-            'format': 'http://quanguo.58.com{0}',
+            'format': u'http://quanguo.58.com{0}',
             "step": 'parse_list',
         },
     },

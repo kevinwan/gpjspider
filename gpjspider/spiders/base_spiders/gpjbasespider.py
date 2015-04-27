@@ -27,12 +27,12 @@ class GPJBaseSpider(scrapy.Spider):
     公平价基本爬虫
     """
 
-    def __init__(self, rule_path, checker_name=None, *args, **kwargs):
+    def __init__(self, rule_name, checker_name=None, *args, **kwargs):
         """
         继承的子类必须在__init__里面调用self.checker.check()
         """
         super(GPJBaseSpider, self).__init__(*args, **kwargs)
-        self.__rule_path = rule_path
+        self.__rule_path = rule_name
         self.website_rule = {}
         self.domain = None
         self.checker_manager = CheckerManager()
@@ -41,7 +41,7 @@ class GPJBaseSpider(scrapy.Spider):
 
         self.__checker_name = checker_name
         self.checker_class = self.checker_manager.get_checker(checker_name)
-        self.checker = self.checker_class(rule_path)
+        self.checker = self.checker_class(rule_name)
         self.website_rule = self.checker.check()
         pp(self.website_rule)
         if not self.website_rule:
@@ -100,7 +100,7 @@ class GPJBaseSpider(scrapy.Spider):
                 # break
         if 'next_page_url' in step_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
-            self.log(msg, level=log.DEBUG)
+            self.log(msg)
             requests = self.get_requests(step_rule['next_page_url'], response)
             for request in requests:
                 self.log(
@@ -112,7 +112,7 @@ class GPJBaseSpider(scrapy.Spider):
             requests = self.get_requests(step_rule['incr_page_url'], response)
             for request in requests:
                 self.log(
-                    u'start request next page: {0}.'.format(request.url))
+                    u'start request incr page: {0}.'.format(request.url))
                 yield request
 
         if 'item' in step_rule:
@@ -247,7 +247,9 @@ class GPJBaseSpider(scrapy.Spider):
                 # self.log(u'cookies is {0}'.format(pp_str(cookies)))
                 self.log(u'args is {0}'.format(pp_str(url_dict)))
                 request = Request(
-                    url, callback=step_function, priority=1, dont_filter=dont_filter, **url_dict)
+                    url, callback=step_function, priority=1,
+                    dont_filter=dont_filter, **url_dict
+                )
                 ret_requests.append(request)
         else:
             if urls:
@@ -291,8 +293,8 @@ class GPJBaseSpider(scrapy.Spider):
                         '[&\?]%s=([^&]*)' % field['arg'], res_url)[0]
                 elif 'xpath' in field:
                     xpath = field['xpath']
-                    values = self.get_xpath(
-                        xpath, response if xpath[0].startswith('//') else item_node)
+                    res = response if xpath[0].startswith('//') else item_node
+                    values = self.get_xpath(xpath, res)
                 if values is None:
                     if 'key' in field:
                         values = item_node[field['key']]
@@ -309,7 +311,6 @@ class GPJBaseSpider(scrapy.Spider):
                     item[field_name] = values
                     item = self.exec_processor(field_name, field, item)
                     if field_name == 'url' and 'format' in field:
-                        # item[field_name] = field['format'].format(item[field_name])
                         item[field_name] = self.format_urls(
                             field, [item[field_name]])
                 if field.get('required', False):
@@ -364,7 +365,8 @@ class GPJBaseSpider(scrapy.Spider):
                                     item[field_name] = field['default']
                                 else:
                                     # 连 default 都没有配置，就没有值了，说明规则不对
-                                    m = u'field {0} 没有任何值'.format(field_name)
+                                    m = u'field {0} 没有任何值:{1}'.format(
+                                        field_name, response.url)
                                     self.log(m, log.ERROR)
             if values:
                 item[field_name] = values

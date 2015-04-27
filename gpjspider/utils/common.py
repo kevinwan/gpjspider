@@ -14,7 +14,6 @@ def create_item_class(class_name, field_list):
     return type(class_name, (GpjspiderItem,), {'fields': fields})
 
 
-
 def create_spider_class(class_name, spider_name):
     return type(class_name, (GPJBaseSpider,), {'name': spider_name})
 

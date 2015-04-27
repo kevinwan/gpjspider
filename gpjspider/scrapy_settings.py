@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-DEBUG = True
+DEBUG = False
 
 BOT_NAME = 'gpjspider'
 
@@ -13,7 +13,7 @@ ITEM_PIPELINES = {
     # 优质二手车的第一个 pipeline
     # 'gpjspider.pipelines.ProcessUsedCarPipeline': 500,
     # 打印
-    'gpjspider.pipelines.save_to_db.DebugPipeline': 998,
+    # 'gpjspider.pipelines.save_to_db.DebugPipeline': 998,
     # 保存到数据库
     'gpjspider.pipelines.save_to_db.SaveToMySQLBySqlalchemyPipeline': 899,
     'gpjspider.pipelines.CachedCarsPipeline': 900,
@@ -123,8 +123,3 @@ REDIS_CONFIG = [
     {"host": "192.168.190.122", "port": "6379"},
     {"host": "192.168.168.237", "port": "6380"}
 ]
-
-try:
-    from local_settings import *
-except ImportError:
-    pass

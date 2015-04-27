@@ -68,7 +68,7 @@ def run_full_spider(self, rule_name):
     spider_class = create_full_spider_class(spider_class_name, spider_name)
     logger.debug(u'run spider {0}, rule:{1}'.format(
         spider_class.name, spider_name + '.' + rule_name))
-    logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
+    logfile = self.log_dir + '/{0}_{1}.log'.format(spider_class.name, rule_name)
     try:
         if os.path.exists(logfile):
             os.remove(logfile)
@@ -91,6 +91,7 @@ def run_full_spider(self, rule_name):
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()
     crawler.spiders._spiders[spider_class.name] = spider_class
+    rule_name = 'full.' + rule_name
     spargs = {'rule_name': rule_name}
     spider = crawler.spiders.create(spider_class.name, **spargs)
     crawler.crawl(spider)
