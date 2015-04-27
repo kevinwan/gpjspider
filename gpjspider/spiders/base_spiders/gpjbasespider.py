@@ -310,11 +310,9 @@ class GPJBaseSpider(scrapy.Spider):
                 if values:
                     item[field_name] = values
                     item = self.exec_processor(field_name, field, item)
-<<<<<<< HEAD
                     if field_name == 'url' and 'format' in field:
                         item[field_name] = self.format_urls(
                             field, [item[field_name]])
-=======
                     if 'regex' in field:
                         try:
                             item[field_name] = re.findall(field['regex'], item[field_name])[0]
@@ -322,8 +320,6 @@ class GPJBaseSpider(scrapy.Spider):
                             pass
                     if 'format' in field:
                         item[field_name] = field['format'].format(item[field_name])
-                        # item[field_name] = self.format_urls(field, [item[field_name]])
->>>>>>> 20ac117d6e182a213b11b52b8e3a6d81074e2b8f
                 if field.get('required', False):
                     if field_name not in item:
                         m = u'{0} is required: {1}'.format(field_name, res_url)
