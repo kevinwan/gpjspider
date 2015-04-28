@@ -127,11 +127,11 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(hour='21', minute='32'),
         'kwargs': {"rule_name": "youche"},
     },
-    "che168_car": {
-        'task': 'run_full_spider',
-        'schedule': crontab(hour='20', minute='25'),
-        'kwargs': {"rule_name": "che168"},
-    },
+    # "che168_car": {
+    #     'task': 'run_full_spider',
+    #     'schedule': crontab(hour='20', minute='25'),
+    #     'kwargs': {"rule_name": "che168"},
+    # },
     # 认证车商二手车
     "mcc_58_car": {
         'task': 'run_full_spider',
