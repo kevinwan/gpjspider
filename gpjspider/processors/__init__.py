@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 from dateutil.parser import parse
 from exceptions import TypeError
 
-
 reg_blank_split = re.compile(r'\s+')
 
 

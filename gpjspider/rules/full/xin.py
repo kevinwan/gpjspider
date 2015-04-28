@@ -70,7 +70,10 @@ rule = {
                     'xpath': (u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',),
                     'processors': ['first', 'strip'],
                 },
-
+                'phone': {
+                    'xpath': ('//span[@id="tel_num"]/@tel',),
+                    'processors': ['first', 'strip', 'xin.phone'],
+                },
                 'color': {
                     'xpath': (u'//td[contains(text(), "颜色")]/following-sibling::td/text()',),
                     'processors': ['first', 'strip'],

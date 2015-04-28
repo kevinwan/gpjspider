@@ -273,7 +273,10 @@ def model_slug(item, logger):
 def phone(item, logger):
     """
     """
-    pass
+    if phone.startswith('http'):
+        return False
+    else:
+        return True
 
 
 def city(item, logger):

@@ -104,6 +104,12 @@ rule = {
                     ),
                     'processors': ['first', 'strip', 'ganjihaoche.price_bn'],
                 },
+                'phone': {
+                    'xpath': (
+                        '//b[@class="teltype"]/text()',
+                    ),
+                    'processors': ['first', 'strip'],
+                },
                 'brand_slug': {
                     'xpath': (u'//span[contains(text(), "检测车型")]/text()',),
                     'processors': ['first', 'strip', 'ganjihaoche.brand_slug'],
