@@ -188,7 +188,7 @@ CELERYBEAT_SCHEDULE = {
     },
     "taoche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
+        'schedule': crontab(hour='5-22', minute='*/10'),
         'kwargs': {"rule_name": "taoche"},
     },
 

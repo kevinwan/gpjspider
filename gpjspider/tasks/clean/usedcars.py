@@ -274,10 +274,14 @@ def model_slug(item, logger):
 def phone(item, logger):
     tel = item.get('phone')
     if tel.startswith('http'):
-        tel = ConvertPhonePic2Num(tel).find_possible_num()
-        item['phone'] = tel
+        match = ConvertPhonePic2Num(tel).find_possible_num()[0]
+        tel = match[0]
+        if match[1] == 0.99 and tel:
+            item['phone'] = tel
+        else:
+            return False
     return tel
-    return phone_validate(tel)
+    # return phone_validate(tel)
 
 
 def phone_validate(phone):
