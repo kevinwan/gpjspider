@@ -1,5 +1,4 @@
-*.pyc
-*.pyo
+*.py[co]
 *.db
 *.log
 *.bak
@@ -8,5 +7,7 @@
 *local_settings.py
 static/
 data/
-docs/.build/*
+docs/.build/
+.git/
 sftp-config.json
+*test.py

@@ -67,6 +67,7 @@ PROXIES = [
 # 使用 selenium
 SELENIUM_DOMAINS = [
     'cn2che.com',
+    'taoche.com',
     # 'iautos.cn',
 ]
 

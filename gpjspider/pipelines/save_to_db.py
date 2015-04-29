@@ -74,7 +74,8 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         #     url = 'DEBUG ' + url
         if isinstance(item, UsedCarItem):
             klass = UsedCar
-            item['dmodel'] = item['title']
+            if item.get('dmodel') is None:
+                item['dmodel'] = item['title']
         else:
             cls_name = item.__class__.__name__
             try:

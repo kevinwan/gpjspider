@@ -376,14 +376,19 @@ class GPJBaseSpider(scrapy.Spider):
                 item[field_name] = values
                 # 执行处理器
                 item = self.exec_processor(field_name, field, item)
+                value = item[field_name]
                 if 'regex' in field:
                     try:
-                        item[field_name] = re.findall(field['regex'], item[field_name])[0]
+                        value = re.findall(field['regex'], value)[0]
                     except:
                         pass
+                elif 'after' in field:
+                    value = value.split(field['after'])[-1]
+                elif 'before' in field:
+                    value = value.split(field['before'])[0]
                 if 'format' in field:
-                    item[field_name] = field['format'].format(item[field_name])
-                    # item[field_name] = self.format_urls(field, [item[field_name]])
+                    value = field['format'].format(value)
+                item[field_name] = value
             # required判断
             if field.get('required', False):
                 if field_name not in item:

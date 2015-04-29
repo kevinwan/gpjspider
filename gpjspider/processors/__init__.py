@@ -8,7 +8,8 @@ processor暂不支持除 value 之外的参数
 """
 from decimal import Decimal
 import re
-
+import pdb
+# pdb.set_trace()
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 from exceptions import TypeError
@@ -42,15 +43,19 @@ def last(value):
         return value
 
 
-def join(values):
+def join(values, token=' '):
     '''
     todo:  暂时用空格 join
     '''
     value = [strip(v) for v in values]
     if isinstance(value, (list, tuple)):
-        return u' '.join(value)
+        return token.join(value)
     else:
         return value
+
+
+def comma_join(values):
+    return join(values, ', ')
 
 
 def concat(values):
@@ -166,7 +171,15 @@ u'test'
 
 
 def city(value):
-    return value.strip(u'市').strip(u'二手车城').strip(u'二手').strip('>')
+    u'''
+>>> city(u'河北 石家庄')
+u'\\u77f3\\u5bb6\\u5e84'
+    '''
+    if ' ' in value:
+        value = value.split()[-1]
+    else:
+        value = value.strip(u'市').strip(u'二手车城').strip(u'二手>')
+    return value
 
 
 def strip_url(url_with_query):
@@ -210,10 +223,12 @@ def price_bn(value):
     u'''
 >>> price_bn(u'新车价：29.88万+2.56万（购置税）')
 Decimal('29.88')
+>>> price_bn(u'新车：31.80万 + 2.72万购置税')
+Decimal('31.80')
 >>> price_bn(u'(裸车价44.95万元+购置税3.84万元)')
 Decimal('44.95')
     '''
-    return extract(value, ur'车价[^\d]?(\d+\.\d{1,2})万', decimal)
+    return extract(value, ur'[新车价]{2,}[^\d]{,2}(\d+\.\d{1,2})万', decimal)
 
 
 def mile(value):
@@ -247,6 +262,10 @@ def month(value):
 
 
 def year_month(value):
+    u'''
+>>> year_month(u'保险到期： 2014-7')
+u'2014-7-01'
+    '''
     regx = re.compile(ur'(\d{4}).(\d{1,2})')
     a = regx.findall(value)
     if a:
@@ -425,7 +444,16 @@ def is_certified(value):
 >>> is_certified(u'原厂质保')
 True
     '''
-    return u'质保' in value
+    # pdb.set_trace()
+    return value == '1' or u'质保' in value or u'保障' in value or u'认证' in value
+
+
+def has_maintenance_record(value):
+    u'''
+>>> has_maintenance_record('1')
+u'\\u662f'
+    '''
+    return value == '1' and u'是' or u'否'
 
 if __name__ == '__main__':
     import doctest

@@ -22,6 +22,7 @@ from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
+from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect
 
 
@@ -137,10 +138,10 @@ def is_normalized(item, logger):
     先不判断 time(item),
     """
     ret = [
-        title(item, logger), year(item, logger), month(item, logger),
+        title(item, logger), phone(item, logger), year(item, logger), month(item, logger),
         mile(item, logger), volume(item, logger), control(item, logger),
         price(item, logger), model_slug(item, logger), brand_slug(item, logger),
-        city(item, logger), imgurls(item, logger),
+        city(item, logger), imgurls(item, logger), maintenance_desc(item, logger),
         is_certifield_car(item, logger)
     ]
     return all(ret)
@@ -271,12 +272,30 @@ def model_slug(item, logger):
 
 
 def phone(item, logger):
-    """
-    """
-    if phone.startswith('http'):
-        return False
-    else:
+    tel = item.get('phone')
+    if tel.startswith('http'):
+        tel = ConvertPhonePic2Num(tel).find_possible_num()
+        item['phone'] = tel
+    return tel
+    return phone_validate(tel)
+
+
+def phone_validate(phone):
+    """ 判断电话号码是否有效 """
+    if (phone[:2] in ('13', '15', '18') or phone[:3] == '147') and len(phone) == 11:
         return True
+    else:
+        return False
+
+
+def maintenance_desc(item, logger):
+    value = item.get('maintenance_desc')
+    if value:
+        if value == '-':
+            value = u'不详'
+    else:
+        value = item.get('maintenance_record') and u'有4S店保养' or u'无4S店保养'
+    return value
 
 
 def city(item, logger):
