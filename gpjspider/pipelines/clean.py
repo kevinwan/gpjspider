@@ -24,7 +24,6 @@ class CleanPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):
         return cls(crawler.settings)
-    # 
 
     # def open_spider(self, spider):
     #     """

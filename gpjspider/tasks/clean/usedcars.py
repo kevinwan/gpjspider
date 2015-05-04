@@ -107,7 +107,6 @@ def preprocess_item(item, session, logger):
     elif item['source_type'] == 5:
         item['source_type'] = 'odealer'
 
-
     # 默认item['price_bn']是省下的价格
     if 'che.ganji.com' in item['domain'] and item['price'] and item['price_bn']:
         item['price_bn'] += item['price']
@@ -138,10 +137,13 @@ def is_normalized(item, logger):
     先不判断 time(item),
     """
     ret = [
-        title(item, logger), phone(item, logger), year(item, logger), month(item, logger),
+        title(item, logger), phone(item, logger), year(
+            item, logger), month(item, logger),
         mile(item, logger), volume(item, logger), control(item, logger),
-        price(item, logger), model_slug(item, logger), brand_slug(item, logger),
-        city(item, logger), imgurls(item, logger), maintenance_desc(item, logger),
+        price(item, logger), model_slug(
+            item, logger), brand_slug(item, logger),
+        city(item, logger), imgurls(
+            item, logger), maintenance_desc(item, logger),
         is_certifield_car(item, logger)
     ]
     return all(ret)
@@ -295,7 +297,7 @@ def phone_validate(phone):
 def maintenance_desc(item, logger):
     value = item.get('maintenance_desc')
     if value:
-        if value == '-':
+        if '-' in value:
             value = u'不详'
     else:
         value = item.get('maintenance_record') and u'有4S店保养' or u'无4S店保养'
@@ -315,10 +317,7 @@ def imgurls(item, logger):
     nopic： 图片里不能有默认图片
     """
     imgurls = item.get('imgurls')
-    if imgurls:
-        return 'nopic' not in imgurls
-    else:
-        return False
+    return imgurls and 'nopic' not in imgurls
 
 
 def is_certifield_car(item, logger):
@@ -335,24 +334,12 @@ def insert_to_carsource(item, session, logger):
     """
     """
     car_source = CarSource()
-    car_source.url = item['url']
-    car_source.title = item['title']
-    car_source.pub_time = item['time'] if item['time'] else item['created_on']
-    car_source.brand_slug = item['brand_slug']
-    car_source.model_slug = item['model_slug']
+    for attr in 'url title brand_slug model_slug mile year month control \
+        city price volume color thumbnail phone domain source_type'.split():
+        setattr(car_source, attr, item[attr])
+    car_source.pub_time = item['time'] or item['created_on']
     car_source.model_detail_slug = item['detail_model']
     car_source.mile = item['mile']
-    car_source.year = item['year']
-    car_source.month = item['month']
-    car_source.control = item['control']
-    car_source.city = item['city']
-    car_source.price = item['price']
-    car_source.volume = item['volume']
-    car_source.color = item['color']
-    car_source.thumbnail = item['thumbnail']
-    car_source.phone = item['phone']
-    car_source.domain = item['domain']
-    car_source.source_type = item['source_type']
     car_source.status = 'sale'
 
     session.add(car_source)
@@ -360,7 +347,7 @@ def insert_to_carsource(item, session, logger):
         session.commit()
     except IntegrityError:
         session.rollback()
-        logger.error(u'成功保存:重复:{0}'.format(car_source.url))
+        logger.error(u'重复:{0}'.format(car_source.url))
     except Exception as e:
         logger.error(u'未知异常:{0}\n{1}'.format(car_source.url, unicode(e)))
     else:
@@ -393,7 +380,7 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
         session.commit()
     except IntegrityError:
         session.rollback()
-        msg = u'成功保存:重复:car_detail_info:car_source:{0}'.format(car_source.id)
+        msg = u'重复:car_detail_info:car_source:{0}'.format(car_source.id)
         logger.error(msg)
     except Exception as e:
         logger.error(u'未知异常:{0}\n{1}'.format(car_source.url, unicode(e)))
@@ -416,7 +403,7 @@ def insert_to_carimage(item, car_source, session, logger):
         session.commit()
     except IntegrityError:
         session.rollback()
-        msg = u'成功保存:重复:CarImage:car_source:{0}'.format(car_source.id)
+        msg = u'重复:CarImage:car_source:{0}'.format(car_source.id)
         logger.error(msg)
     except Exception as e:
         logger.error(u'未知异常:{0}\n{1}'.format(car_source.url, unicode(e)))

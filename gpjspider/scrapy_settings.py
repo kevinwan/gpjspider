@@ -17,14 +17,14 @@ ITEM_PIPELINES = {
     # 保存到数据库
     'gpjspider.pipelines.save_to_db.SaveToMySQLBySqlalchemyPipeline': 899,
     'gpjspider.pipelines.CachedCarsPipeline': 900,
-    'gpjspider.pipelines.CleanPipeline': 920,
+    # 'gpjspider.pipelines.CleanPipeline': 920,
 }
 
 DOWNLOADER_MIDDLEWARES = {
     # 'gpjspider.downloaders.FilterReduplicatedMiddleware': 1,  # 去重
     'gpjspider.downloaders.ProxyMiddleware': 100,
     'gpjspider.downloaders.SeleniumDownloader': 110,
-    'gpjspider.downloaders.CurlDownloader': 119,
+    # 'gpjspider.downloaders.CurlDownloader': 119,
 }
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent

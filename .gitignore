@@ -11,3 +11,4 @@ docs/.build/
 .git/
 sftp-config.json
 *test.py
+*schedule

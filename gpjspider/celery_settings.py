@@ -5,7 +5,6 @@
 import os
 from kombu import Exchange, Queue
 from celery.schedules import crontab
-# from datetime import timedelta
 
 
 #==============================================================================
@@ -94,37 +93,37 @@ CELERYBEAT_SCHEDULE = {
     #==========================================================================
     "renrenche_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='21', minute='46'),
+        'schedule': crontab(hour='7,21', minute='46'),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='22', minute='56'),
+        'schedule': crontab(hour='6,22', minute='56'),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='20', minute='13'),
+        'schedule': crontab(hour='5,20', minute='43'),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='21', minute='33'),
+        'schedule': crontab(hour='7,21', minute='13'),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='22', minute='28'),
+        'schedule': crontab(hour='6,22', minute='28'),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='20', minute='16'),
+        'schedule': crontab(hour='5,20', minute='16'),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_hg_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='21', minute='32'),
+        'schedule': crontab(hour='7,21', minute='32'),
         'kwargs': {"rule_name": "youche"},
     },
     # "che168_car": {
@@ -135,7 +134,7 @@ CELERYBEAT_SCHEDULE = {
     # 认证车商二手车
     "mcc_58_car": {
         'task': 'run_full_spider',
-        'schedule': crontab(hour='21', minute='32'),
+        'schedule': crontab(hour='*/6', minute='32'),
         'kwargs': {"rule_name": "manufacturer_certificated_cars.58"},
     },
     #==========================================================================
@@ -143,53 +142,58 @@ CELERYBEAT_SCHEDULE = {
     #==========================================================================
     "renrenche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/8'),
+        'schedule': crontab(hour='5-22', minute='*/14'),
         'kwargs': {"rule_name": "renrenche"},
     },
     "99haoche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/6'),
+        'schedule': crontab(hour='5-22', minute='*/15'),
         'kwargs': {"rule_name": "99haoche"},
     },
     "ganjihaoche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/7'),
+        'schedule': crontab(hour='5-22', minute='*/13'),
         'kwargs': {"rule_name": "ganjihaoche"},
     },
     "cheyipai_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/8'),
+        'schedule': crontab(hour='5-22', minute='*/12'),
         'kwargs': {"rule_name": "cheyipai"},
     },
     "xin_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/6'),
+        'schedule': crontab(hour='5-22', minute='*/11'),
         'kwargs': {"rule_name": "xin"},
     },
     "souche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
+        'schedule': crontab(hour='5-22', minute='*/10'),
         'kwargs': {"rule_name": "souche"},
     },
     "youche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
+        'schedule': crontab(hour='5-22', minute='*/9'),
         'kwargs': {"rule_name": "youche"},
     },
     "58_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
+        'schedule': crontab(hour='5-22', minute='*/8'),
         'kwargs': {"rule_name": "58"},
     },
     "che168_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/5'),
+        'schedule': crontab(hour='5-22', minute='*/20'),
         'kwargs': {"rule_name": "che168"},
     },
     "taoche_incr_car": {
         'task': 'run_incr_spider',
-        'schedule': crontab(hour='5-22', minute='*/10'),
+        'schedule': crontab(hour='5-22', minute='*/20'),
         'kwargs': {"rule_name": "taoche"},
+    },
+    "sohu_incr_car": {
+        'task': 'run_incr_spider',
+        'schedule': crontab(hour='5-22', minute='*/20'),
+        'kwargs': {"rule_name": "sohu"},
     },
 
     #==========================================================================
@@ -246,6 +250,6 @@ CELERYBEAT_SCHEDULE = {
     #  夜间再检测一次，检测代理 IP 可用
     "check_proxy_ip-2h": {
         'task': 'check_proxy_ip',
-        'schedule': crontab(hour='4', minute=45),
+        'schedule': crontab(hour='3', minute=45),
     },
 }

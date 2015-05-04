@@ -18,8 +18,6 @@ from gpjspider.utils.path import import_full_rule, import_incr_rule
 
 @app.task(name="run_spider", bind=True, base=GPJSpiderTask)
 def run_spider(self, rule_name):
-    """
-    """
     logger = get_task_logger('run_spider')
     spider_name = 'default'
     spider_class_name = '{0}AutoSpider'.format(spider_name.lower().capitalize())

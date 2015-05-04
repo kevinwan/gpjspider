@@ -329,9 +329,4 @@ class DebugPipeline(object):
     def process_item(self, item, spider):
         if isinstance(item, GpjspiderItem):
             pp(dict(item))
-            for k, v in item.items():
-                if v:
-                    print "{0}  ->  {1}".format(k, unicode(v).encode('utf-8'))
-                else:
-                    print "{0}  ->  {1}".format(k, v)
         return item

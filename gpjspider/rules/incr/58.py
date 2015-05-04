@@ -200,7 +200,7 @@ rule = {
                     'xpath': (
                         u'//span[contains(text(), "交强")]/following-sibling::span/text()',
                     ),
-                    'processors': ['first', 'strip', 'mandatory_insurance'],
+                    # 'processors': ['first', 'strip', 'mandatory_insurance'],
                 },
                 # 'business_insurance': {
                 #     'xpath': (
