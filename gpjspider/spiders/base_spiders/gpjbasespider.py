@@ -45,6 +45,8 @@ class GPJBaseSpider(scrapy.Spider):
         self.checker_class = self.checker_manager.get_checker(checker_name)
         self.checker = self.checker_class(rule_name)
         self.website_rule = self.checker.check()
+        self.setup_rule(rule_name)
+        # pp(self.website_rule['parse'])
         self.page_urls = set()
         self.page_rule = None
         self.max_page = None
@@ -52,6 +54,9 @@ class GPJBaseSpider(scrapy.Spider):
         if not self.website_rule:
             raise ValueError('TODO')
         self.domain = self.website_rule['domain']
+
+    def setup_rule(self, rule_name):
+        pass
 
     def set_crawler(self, crawler):
         super(GPJBaseSpider, self).set_crawler(crawler)
@@ -92,7 +97,6 @@ class GPJBaseSpider(scrapy.Spider):
             items = self.get_items(item_class, items_rule, response)
             for item in items:
                 yield item
-                # break
         # 提取新的 url
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
@@ -101,7 +105,6 @@ class GPJBaseSpider(scrapy.Spider):
             for request in requests:
                 self.log(u'start --request {0}'.format(request.url))
                 yield request
-                # break
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)

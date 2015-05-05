@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from .utils import *
-from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
 
 
 def parse_meta(key, with_key=False):
@@ -83,7 +82,6 @@ item_rule = {
             'processors': ['concat', 'taoche.source_type'],
             'processors': ['first', 'sohu.source_type'],
             # 'default': '%(source_info)s',
-            # 'default': SOURCE_TYPE_GONGPINGJIA,
         },
         'city': {
             'xpath': (

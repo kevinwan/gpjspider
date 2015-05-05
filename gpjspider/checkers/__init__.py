@@ -14,7 +14,11 @@ class DefaultRuleChecker(object):
         """
         """
         self.__rule_name = rule_name
-        self.rule = import_rule(self.__rule_name)
+        # print rule_name
+        # import pdb
+        # pdb.set_trace()
+        self.rule = import_rule(rule_name)
+        # self.rule = import_rule(self.__rule_name)
         if not self.rule:
             raise ValueError('todo')
 

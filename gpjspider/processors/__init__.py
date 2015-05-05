@@ -73,7 +73,7 @@ u'\\u8d28\\u4fdd\\u5230\\u671f\\uff1a\\u5df2\\u8fc7\\u671f, \\u5ef6\\u957f\\u8d2
 >>> quality_service(u'质保到期： test,原厂延保： ,24,个月/,9.9,万公里&nbsp;(自您购车日起算)'.split(','))
 u'\\u8d28\\u4fdd\\u5230\\u671f\\uff1atest, \\u539f\\u5382\\u5ef6\\u4fdd\\uff1a24\\u4e2a\\u6708/9.9\\u4e07\\u516c\\u91cc&nbsp;(\\u81ea\\u60a8\\u8d2d\\u8f66\\u65e5\\u8d77\\u7b97)'
     '''
-    value = concat(values).replace(' ', '')
+    value = isinstance(values, (list, tuple)) and concat(values).replace(' ', '') or values
     match = re.findall(ur'(.{3}保)：', value)
     # match = re.findall(ur'(延长质保|原厂延保)：', value)
     # match = re.findall(ur'([原厂]{,2}延.{,2}保)：', value)
@@ -502,7 +502,7 @@ True
 
 
 def transfer_owner(value):
-    return isinstance(value, basestring) and (u'否' in value and 1 or 0) or value
+    return isinstance(value, basestring) and (u'否' in value and 1 or 0) or value.rstrip(u'次')
 
 
 def has_maintenance_record(value):
