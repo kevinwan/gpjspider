@@ -83,6 +83,10 @@ def import_incr_rule(rule_name):
     return rule
 
 
+def import_incr2_rule(rule_name):
+    return import_incr_rule(rule_name) or import_full_rule(rule_name)
+
+
 def import_full_rule(rule_name):
     """
     导入增量规则

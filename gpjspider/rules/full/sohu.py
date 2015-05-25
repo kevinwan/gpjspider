@@ -22,7 +22,6 @@ item_rule = {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',
             ),
-            'processors': ['first'],
         },
         'title': {
             'xpath': (
@@ -31,7 +30,6 @@ item_rule = {
                 # '//div[@class="lixdianh_left"]/h2/text()',
                 # '/html/head/title/text()',
             ),
-            'processors': ['first'],
             'required': True,
         },
         'dmodel': {
@@ -40,10 +38,7 @@ item_rule = {
             #     '/html/head/title/text()',
             # ),
             'default': '%(title)s',
-            # 'default': '{title}',
             'after': '-',
-            'processors': ['first'],
-            # 'processors': ['join'],
         },
         'time': {
             'xpath': (
@@ -67,8 +62,6 @@ item_rule = {
                 # for autonomous cars
                 # '//div[@class="assess-ul"]//text()',
             ),
-            'processors': ['concat', 'is_certified'],
-            'processors': ['first', 'is_certified'],
             # 'default': False,
         },
         'source_type': {
@@ -79,9 +72,7 @@ item_rule = {
                 # '//div[@class="cycsrz"]/text() | //div[@class="yichebaoz"]//text()',
                 # '//meta[@http-equiv="mobile-agent"]/@content | //div[@class="part4"]//text()',
             ),
-            'processors': ['concat', 'taoche.source_type'],
             'processors': ['first', 'sohu.source_type'],
-            # 'default': '%(source_info)s',
         },
         'city': {
             'xpath': (
@@ -91,7 +82,7 @@ item_rule = {
             # 'default': '%(meta)s',
             # 'regex': parse_meta(u'车源所在地'),
             # 'processors': ['first'],
-            'processors': ['concat', 'city'],
+            'processors': ['concat'],
         },
         'brand_slug': {
             'xpath': (
@@ -101,7 +92,7 @@ item_rule = {
             ),
             # 'regex': ur'二手(.*)',
             'after': u'二手',
-            'processors': ['join', 'brand_slug'],
+            'processors': ['join'],
         },
         'model_slug': {
             'xpath': (
@@ -110,7 +101,7 @@ item_rule = {
                 # '//div[@class="breadnav"]/a[last()]/text()',
             ),
             'after': u'二手',
-            'processors': ['join', 'model_slug']
+            'processors': ['join']
         },
         'volume': {
             # 'xpath': (
@@ -134,7 +125,6 @@ item_rule = {
             # 'xpath': (
             #     u'//*[@id="hidBuyCarDate"]/@value | //*[contains(text(), "上牌")]/following-sibling::text()',
             # ),
-            # 'processors': ['first'],
             'default': '%(meta)s',
             'regex': parse_meta(u'上牌'),
         },
@@ -163,7 +153,6 @@ item_rule = {
                 # '//*[@id="hidPrice"]/@value',
                 # u'//*[contains(text(), "价格")]/following-sibling::p//text()',
             ),
-            # 'processors': ['first', 'price'],
         },
         'control': {
             # 'xpath': (
@@ -180,6 +169,7 @@ item_rule = {
                 after_has(u'是否一手车'),
                 u'//*[contains(text(), "过户次数")]/span/text()',
             ),
+            'processors': ['first', 'sohu.transfer_owner'],
             # 'regex': ur'(\d+)次',
             # 'default': '%(meta)s',
             # 'regex': parse_meta(u'是否一手车'),
@@ -208,9 +198,6 @@ item_rule = {
                 after_has(u'商业险'),
                 # u'//*[contains(text(), "商业险")]/text()',
             ),
-            'processors': ['first', 'year_month'],
-            # 'default': '%(meta)s',
-            # 'regex': parse_meta(u'商业险'),
         },
         'examine_insurance': {
             # 'xpath': (
@@ -291,7 +278,6 @@ item_rule = {
                 # '//div[@class="cyssbut"]/a/@href',
             ),
             'format': True,
-            # 'processors': ['first'],
         },
         'phone': {
             'xpath': (
@@ -310,7 +296,6 @@ item_rule = {
                 # u'//*[@id="carOwnerInfo"]/div[1]/div[last()-1]/text()',
             ),
             # 'regex': r'([^\(\[\s]{1,4})[\(\[\s]?',
-            'processors': ['join'],
             'processors': ['first', 'after_colon'],
         },
         'region': {
@@ -321,7 +306,6 @@ item_rule = {
                 # '//*[@id="carOwnerInfo"]/div[1]/div[last()]/text()',
             ),
             # 'before': '[',
-            'processors': ['first', 'after_colon', 'strip'],
             'processors': ['last'],
         },
         'description': {
@@ -361,7 +345,7 @@ parse_rule = {
             # '//a[@class="next_on"]/@href',
         ),
         'format': True,
-        # 'max_pagenum': 50000,
+        # 'incr_pageno': 6,
         # 'match': '/pg\d+.shtml',
         'step': 'parse',
     },
@@ -374,6 +358,10 @@ rule = {
 
     'start_urls': [
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/',
+        # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0s/',
         # Debug details
@@ -388,17 +376,14 @@ rule = {
     ],
 
     'parse': parse_rule,
-    # 'parse_list': parse_rule,
     'parse_detail': {
         'item': item_rule,
     },
 }
 
 
-def fmt_urls(rule, base_url=rule['base_url']):
-    for k, v in rule.items():
-        if 'url' in k and v.get('format'):
-            v['format'] = to_url(base_url)
-
-fmt_urls(rule['parse'])
-fmt_urls(item_rule['fields'])
+fmt_rule_urls(rule)
+# start_url = rule['start_urls'][0]
+# if ('html' in start_url and len(start_url) > 40) \
+#         or rule['parse']['url']['contains'][0] in start_url:
+#     rule['parse'] = rule['parse_detail']

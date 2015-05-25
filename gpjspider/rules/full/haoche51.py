@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-好车无忧优质二手车 规则
-
-规则包含非 ascii 字符，必须使用 unicode 编码
-"""
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
-
+from .utils import *
 
 def format_func(url_str):
     """
@@ -26,16 +21,22 @@ rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': '优质二手车-好车无忧-规则',
+    'name': u'好车无忧',
     'domain': 'haoche51.com',
-    'start_urls': ['http://bj.haoche51.com/vehicle_list.html'],
+    'start_urls': [
+        'http://bj.haoche51.com/vehicle_list.html',
+        #  'http://nj.haoche51.com/details/24703.html',
+    ],
 
     #==========================================================================
     #  默认步骤  parse
     #==========================================================================
     'parse': {
         "url": {
-            "xpath": ('//div[@id="layer_follow1"]/ul/li/div/a/@href',),
+            "xpath": (
+                url(has_cls('city-cs')),
+                # '//div[@id="layer_follow1"]/ul/li/div/a/@href',
+            ),
             "step": 'parse_list',
         }
     },
@@ -49,8 +50,8 @@ rule = {
             ),
             "format": format_func,
             "step": 'parse_detail',
-            'update': True,
-            'category': 'usedcar'
+            # 'update': True,
+            # 'category': 'usedcar'
         },
         "next_page_url": {
             "xpath": (
@@ -58,8 +59,9 @@ rule = {
             ),
             "excluded": ("javascript:void()",),
             # "format": "http://haoche.ganji.com{0}",
-            # 新 url 对应的解析函数
             "step": 'parse_list',
+            # 'max_pagenum': 50,
+            # 'incr_pageno': 1,
         },
     },
 
@@ -72,7 +74,6 @@ rule = {
             "fields": {
                 'title': {
                     'xpath': ('//div[@class="autotit"]/strong/text()',),
-                    'processors': ['first', 'strip'],
                     'required': True,
                 },
                 'meta': {
@@ -80,91 +81,72 @@ rule = {
                         '//meta[@name="Description"]/@content',
                         '//meta[@name="description"]/@content'
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'year': {
                     'xpath': ('//div[@class="autotit"]/h2/text()',),
-                    'processors': ['first', 'strip', 'haoche51.year'],
                 },
                 'month': {
                     'xpath': ('//div[@class="autotit"]/h2/text()',),
-                    'processors': ['first', 'strip', 'haoche51.month'],
                 },
                 'mile': {
                     'xpath': ('//div[@class="autotit"]/h2/text()',),
-                    'processors': ['first', 'strip', 'haoche51.mile'],
                 },
                 'volume': {
                     'xpath': (
                         u'//li[contains(text(), "排量")]/following-sibling::li[1]/text()',
                     ),
-                    'processors': ['first', 'strip', 'gpjfloat'],
                 },
                 'control': {
                     'xpath': ('//div[@class="autotit"]/h2/text()',),
-                    'processors': ['first', 'strip', 'haoche51.control'],
+                    'processors': ['first', 'haoche51.control'],
                 },
                 'price': {
                     'xpath': ('//div[@class="car-quotation"]/strong/text()',),
-                    'processors': ['first', 'strip', 'price'],
                 },
                 'price_bn': {
                     'xpath': ('//i[@class="newcarj"]/text()',),
-                    'processors': ['first', 'strip', 'price'],
                 },
                 'brand_slug': {
                     'xpath': ('//div[@class="autotit"]/strong/text()',),
-                    'processors': ['first', 'strip', 'haoche51.brand_slug'],
                 },
                 'model_slug': {
                     'xpath': ('//div[@class="autotit"]/strong/text()',),
-                    'processors': ['first', 'strip', 'haoche51.model_slug'],
                 },
                 'city': {
                     'xpath': ('//div[@class="autotit"]/h2/text()',),
-                    'processors': ['first', 'strip', 'haoche51.city'],
+                    'processors': ['first', 'haoche51.city'],
                 },
                 'description': {
                     'xpath': (
                         '//p[@class="f-type03"]/text()',
                         '//div[@class="ow-sa"]/p[not(@class)]/text()'
                     ),
-                    'processors': ['join', 'strip'],
                 },
                 'imgurls': {
                     'xpath': (
                         '//ul[@class="mrd_ul"]/li/a/img/@data-original',
                         '//div[@class="dt-pictype"]/img/@data-original',
                     ),
-                    'processors': ['join', 'strip', 'strip_imgurls'],
+                    'processors': ['join', 'raw_imgurls'],
+                    'processors': ['join', 'strip_imgurls'],
                 },
                 'phone': {
                     'xpath': ('//li[@class="tc-der"]/strong/text()',),
-                    'processors': ['join', 'strip'],
                 },
                 'mandatory_insurance': {
                     'xpath': (
                         u'//div[@class="ow-sa1"]/ul/li[contains(text(), "交强")]/text()',
                     ),
-                    'processors': [
-                        'first', 'strip', 'haoche51.mandatory_insurance'
-                    ],
                 },
                 'business_insurance': {
                     'xpath': (
                         u'//div[@class="ow-sa1"]/ul/li[contains(text(), "商业")]/text()',
                     ),
-                    'processors': [
-                        'first', 'strip', 'haoche51.business_insurance'
-                    ],
                 },
                 'examine_insurance': {
                     'xpath': (
                         u'//div[@class="ow-sa1"]/ul/li[contains(text(), "年检")]/text()',
                     ),
-                    'processors': [
-                        'first', 'strip', 'haoche51.examine_insurance'
-                    ],
                 },
                 'transfer_owner': {
                     'xpath': (
@@ -172,16 +154,11 @@ rule = {
                         '//div[@class="autotit"]/h2/text()[1]',
                         '//div[@class="ow-sa"]/div/strong/text()',
                     ),
-                    'processors': ['first', 'strip', 'haoche51.transfer_owner'],
+                    'processors': ['first', 'haoche51.transfer_owner'],
                     'default': 0,
                 },
                 'quality_service': {
                     'default': u' '.join([
-                        # u'只有高品质二手车',
-                        # u'完全杜绝事故车辆',
-                        # u'完全杜绝泡水车辆',
-                        # u'完全杜绝火烧车辆',
-                        # u'全程透明双方协商',
                         u'1年/2万公里放心质保',
                         u'14天可退车',
                     ])
@@ -193,15 +170,19 @@ rule = {
                     'xpath': (
                         u'//li[contains(text(), "行驶证")]/text()',
                     ),
-                    'processors': ['first', 'strip', 'haoche51.driving_license'],
+                    'processors': ['first', 'haoche51.driving_license'],
                 },
                 'invoice': {
                     'xpath': (
                         u'//li[contains(text(), "购车发票")]/text()',
                     ),
-                    'processors': ['first', 'strip', 'haoche51.invoice'],
+                    'processors': ['first', 'haoche51.invoice'],
                 },
             },
         },
     },
 }
+# start_url = rule['start_urls'][0]
+# if ('html' in start_url and len(start_url) > 40) \
+#         or rule['parse']['url']['contains'][0] in start_url:
+#     rule['parse'] = rule['parse_detail']

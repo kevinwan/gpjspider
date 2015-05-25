@@ -58,8 +58,6 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         return cls(crawler.settings)
 
     def open_spider(self, spider):
-        """
-        """
         self.Session = get_mysql_connect()
 
     def process_item(self, item, spider):
@@ -67,11 +65,7 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         所有数据库类都要有 url 和 domain
         """
         klass = None
-        #  调试的数据 URL 加上 DEBUG
         url = item.get('url', '')
-        # DEBUG = spider.settings.getbool('DEBUG')
-        # if DEBUG:
-        #     url = 'DEBUG ' + url
         if isinstance(item, UsedCarItem):
             klass = UsedCar
             if item.get('dmodel') is None:
@@ -83,23 +77,31 @@ class SaveToMySQLBySqlalchemyPipeline(object):
             except:
                 pass
         if not klass:
-            raise DropItem(u'未找到数据库模型:{0}'.format(type(item)))
+            raise DropItem(u'No Model: {0}'.format(type(item)))
         session = self.Session()
         o = klass(**item)
-        session.add(o)
         try:
-            session.commit()
+            # with session.begin_nested():
+            session.add(o)
+            session.flush()
         except IntegrityError:
-            session.rollback()
-            q = session.query(klass).filter(klass.url == url)
-            # q = session.query(klass).filter(klass.domain == item['domain']).filter(klass.name == item['name'])
-            q.update(dict(item), synchronize_session=False)
-            # q = session.query(klass).filter(klass.url == url)
-            item['id'] = q.first().id
-            spider.log(u'成功保存:重复:{0}'.format(url))
+            if spider.update:
+                q = session.query(klass).filter(klass.url == url, klass.status.in_(['E', 'P', 'u']))
+                if q.count():
+                    # old_item = q.first()
+                    # item['status'] = 'Y'
+                    # for attr in 'phone model_slug price city is_certifield_car company_name company_url contact region time source_type mandatory_insurance business_insurance examine_insurance'
+                    # q.update(dict(item), synchronize_session=False)
+                    q.update(dict(item, status='Y'), synchronize_session=False)
+                # item['id'] = q.first().id
+                spider.log(u'Updated Item: {0}'.format(url))
+            else:
+                spider.log(u'Dup Item: {0}'.format(url))
+            # spider.dup_item_amount += 1
         else:
             item['id'] = o.id
-            spider.log(u'成功保存:{0}'.format(url))
+            # session.commit()
+            spider.log(u'Saved Item: {0}'.format(url))
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)
         return item
@@ -321,12 +323,15 @@ class MongoDBPipeline(BaseItemExporter):
 
 
 class DebugPipeline(object):
-
-    """
-    调试用
-    """
+    is_fisrt = True
 
     def process_item(self, item, spider):
         if isinstance(item, GpjspiderItem):
-            pp(dict(item))
+            if self.is_fisrt:
+                pp(dict(item))
+                self.is_fisrt = False
+            else:
+                print item['url']
+        else:
+            print item
         return item

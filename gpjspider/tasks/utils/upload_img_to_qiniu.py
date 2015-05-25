@@ -40,7 +40,7 @@ def batch_upload_to_qiniu(self, file_urls, qiniu_bucket=None):
         if r:
             ret.append(r)
         else:
-            logger.error(u'上传{0}失败'.format(file_url))
+            logger.error(u'上传 {0} 失败'.format(file_url))
     return ret
 
 
@@ -74,11 +74,10 @@ def __upload_file(qiniu_store, tmp_file, file_url, logger):
     """
     ret, info = qiniu_store.upload_file(tmp_file, delete_on_sucess=True)
     if ret:
-        logger.info(u'上传{0}到七牛:成功'.format(file_url))
+        logger.info(u'上传 {0} 到七牛:成功'.format(file_url))
         return ret['key']
     else:
-        logger.info(u'上传{0}到七牛:失败'.format(file_url))
-        return None
+        logger.warning(u'上传 {0} 到七牛:失败'.format(file_url))
 
 
 def __upload_img_file(qiniu_store, tmp_file, file_url, logger):

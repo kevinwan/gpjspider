@@ -5,31 +5,13 @@
 
 
 def transfer_owner(value):
-    """
-    """
     if isinstance(value, list):
         return len(value) - 1
     else:
         return 0
 
-
-def description(value):
-    """
-    """
-    return value.strip(' \r\n\t\b').replace(' ', '')
-
-
 def imgurls(value):
-    """
-    """
-    va = value.split(' ')
-    c = []
-    for v in va:
-        c.append(v.split('@')[0])
-    return ' '.join(c)
-
-
-def company_url(value):
-    """
-    """
-    return 'http://www.souche.com' + value
+    token = '?' in value and '?' or '@' in value and '@' or None
+    if token:
+        value = ' '.join([v.split(token)[0] for v in value.split(' ')])
+    return value

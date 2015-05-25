@@ -4,29 +4,124 @@
 """
 from decimal import Decimal
 from datetime import datetime, timedelta
-from prettyprint import pp_str
 from sqlalchemy.exc import IntegrityError
 from celery.utils.log import get_task_logger
 from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
 from gpjspider.items import UsedCarItem
 from gpjspider.models.product import CarSource, CarDetailInfo, CarImage
-from gpjspider.models.requests import RequestModel
+from gpjspider.models import UsedCar
 from gpjspider.services.cars import get_gpj_category
 from gpjspider.services.cars import get_gpj_detail_model
 from gpjspider.services.cars import get_average_price
 # from gpjspider.services.city import get_gongpingjia_city
-from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
-from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 
 
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
-from gpjspider.utils import get_mysql_connect
+from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
+from gpjspider.processors import souche
+from celery import group
+import threading
+import pdb
+from time import sleep
 
+
+class async(object):
+    ''' Decorator that turns a callable function into a thread.'''
+
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        return self.run(*args, **kwargs)
+
+    def run(self, *args, **kwargs):
+        thread = threading.Thread(
+            target=self.func,
+            args=args,
+            kwargs=kwargs
+        )
+        thread.start()
+        return True
 
 Session = get_mysql_connect()
+
+
+@app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
+def clean_domains(self, sync=False, amount=500):
+    domains = '99haoche.com souche.com youche.com'.split()
+    group(clean_domain.s(domain, sync, amount) for domain in domains)
+
+
+@app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
+def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
+    print str(datetime.now())[11:19], 'Starting..'
+    session = Session()
+    cursor = get_cursor()
+    domains = domain and [domain] or \
+        ['haoche51.com', '99haoche.com', 'haoche.ganji.com', 'souche.com',
+            'xin.com', 'youche.com', 'c.cheyipai.com', 'renrenche.com']
+    # status!='C';"
+    # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'
+    # update = "update open_product_source set status='C' where created_on>=curdate() and source_id=1 \
+    update = "update open_product_source set status='C' where created_on>=curdate() and source_id=1 \
+        and url in (SELECT url from car_source where status!='C');"
+    if sync:
+        cursor.execute(update.format("','".join(domains)))
+    # items = session.query(UsedCar).filter_by(source=1, is_certifield_car=True, id=18842029) \
+    query = session.query(UsedCar).filter_by(source=1, is_certifield_car=True, status='Y',
+         # id=18993748,
+         # UsedCar.domain.in_(domains), 
+         ).filter(
+            UsedCar.created_on >= str(datetime.now())[:10],
+            # UsedCar.created_on <= '2015-05-10',
+            # UsedCar.created_on >= '2015-05-1',
+            # UsedCar.created_on >= '2015-05-10',
+            UsedCar.phone != None, UsedCar.model_slug != None, UsedCar.imgurls != None, UsedCar.control != None,
+                  UsedCar.price > 0, UsedCar.volume > 0, UsedCar.year > 2007, UsedCar.mile < 30
+                  )
+    remain = query.count()
+    # remain = ''
+    print remain
+    # return
+    index = 0
+    psize = 20  
+    # psize = 50
+    # psize = 100
+    amount = (remain / psize)
+    items = []
+    global WORKER
+    waits = 10
+    for item in query.yield_per(psize):
+        index += 1
+        items.append(item.__dict__)
+        if index % psize == 0:
+            ids = [str(_['id']) for _ in items]
+            print str(datetime.now())[11:19], amount, '%s - %s' % (min(ids), max(ids))
+            cursor.execute('update open_product_source set status="I" where id in (%s)' % ','.join(ids))
+            async_clean(clean_usedcar, items)
+            amount -= 1
+            sleep(3 if WORKER < 3 else 1)
+            while WORKER == 0:
+                sleep(waits)
+            items = []
+    if items:
+        ids = [str(_['id']) for _ in items]
+        print str(datetime.now())[11:19], amount, '%s - %s' % (min(ids), max(ids))
+        async_clean(clean_usedcar, items)
+        print str(datetime.now())[11:19], 'Done'
+
+WORKER = 20
+
+@async
+def async_clean(func, *args, **kwargs):
+    global WORKER
+    WORKER -= 1
+    func(*args, **kwargs)
+    WORKER += 1
+    # func.delay(*args, **kwargs)
 
 
 @app.task(name="clean_usedcar", bind=True, base=GPJSpiderTask)
@@ -35,67 +130,92 @@ def clean_usedcar(self, items, *args, **kwargs):
     if not isinstance(items, list):
         items = [items]
     logger.debug(u'清理数据,长度:{0}: {1}'.format(len(items), items))
+    status = {
+        'C': [],
+        'P': [],
+        'E': [],
+        'S': [],
+    }
     session = Session()
     for item in items:
         # 本任务只处理UsedCar
-        if not isinstance(item, UsedCarItem):
-            logger.error(u'item 不是 UsedCar:{0}'.format(pp_str(item)))
-            continue
+        # if not isinstance(item, UsedCarItem):
+        #     logger.error(u'item 不是 UsedCar:{0}'.format(pp_str(item)))
+        #     continue
 
-        # 预处理
+        sid = str(item['id'])
+        # print sid
         item = preprocess_item(item, session, logger)
-        # 业务判断
         if not is_normalized(item, logger):
-            logger.warning(u'source.id:{0}不符合规则要求'.format(item['id']))
+            logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
+            if sid:
+                status['P'].append(sid)
             continue
-        # 业务判断通过，后续处理
-        # 上传图片，设置thumbnail
-        qiniu_url = upload_img(item, logger)
-        if not qiniu_url:
-            logger.error(u'上传失败：{0}'.format(item['url']))
-            qiniu_url = item['imgurls'].split(' ')[0]
-        item['thumbnail'] = qiniu_url
-        # 上传全部图片
-        item['imgurls'] = upload_imgs(item, logger)
-        # 确保 time 正确
-        if not item.get('time'):
-            item['time'] = item['created_on']
-        # control 要么是手动，要么是自动
-        if u'手动' in item['control']:
-            item['control'] = u'手动'
-        else:
-            item['control'] = u'自动'
-        # phone
-        # 1.手机号长度不对
-        # 2.400号码长度不对
-        # 3.座机号码长度不对
-        if 'youche.com' == item['domain']:
-            item['quality_service'] = u'14天包退 360天保修'
-        elif 'haoche51.com' == item['domain']:
-            item['quality_service'] = u'1年/2万公里放心质保 14天可退车'
+        try:
+            # 确保 time 正确
+            if not item.get('time'):
+                item['time'] = item['created_on']
+            # control 要么是手动，要么是自动
+            if u'手动' in item['control']:
+                item['control'] = u'手动'
+            else:
+                item['control'] = u'自动'
+            # phone
+            # 1.手机号长度不对
+            # 2.400号码长度不对
+            # 3.座机号码长度不对
+            # TODO: add phone validation
+            if 'youche.com' == item['domain']:
+                item['quality_service'] = u'14天包退 360天保修'
+            elif 'haoche51.com' == item['domain']:
+                item['quality_service'] = u'1年/2万公里放心质保 14天可退车'
 
-        # 保存到产品表
-        car_source = insert_to_carsource(item, session, logger)
-        if not car_source:
-            msg = u'插入CarSource时失败:source.id:{0}'.format(item['id'])
-            logger.error(msg)
-            continue
+            # 业务判断通过，后续处理
+            upload_img(item, logger)
+            # upload_imgs(item, logger)
 
-        insert_to_cardetailInfo(item, car_source, session, logger)
-        insert_to_carimage(item, car_source, session, logger)
-        logger.error(u'清理source.id={0}成功'.format(item['id']))
+            # 保存到产品表
+            car_source = insert_to_carsource(item, session, logger)
+            # print car_source.id
+            # return
+            if not car_source:
+                logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
+                s = 'S'
+            else:
+                logger.error(u'清理source.id={0}成功'.format(sid))
+                s = 'C'
+        except Exception as e:
+            print e, sid
+            s = 'E'
+        if sid:
+            status[s].append(sid)
+    cursor = get_cursor()
+    for k, v in status.items():
+        if v:
+            # cursor.execute(
+            #     'update open_product_source set status="%s" where id in (%s) and status="%s";' % (k.lower(), ','.join(v), k))
+            cursor.execute(
+                'update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
+    session.commit()
+    session.close()
+
+def get_province_by_city(city):
+    res = get_cursor().execute(
+        'SELECT b.name FROM open_city a, open_city b WHERE a.name="%s" and a.parent=b.id;' % city).fetchone()
+    return res[0] if res else None
 
 
 def preprocess_item(item, session, logger):
-    """
-    将需要改变值的字段做处理，如 brand_slug等
-    city 换成
-    """
     # todo: 将 city 进行匹配
     item['city'] = item['city'].strip(u' 市')
+    province = get_province_by_city(item['city'])
+    if province:
+        item['province'] = province
+    else:
+        return item
 
-    if '58.com' in item['domain']:
-        if item['source_type'] in (SOURCE_TYPE_MANUFACTURER, SOURCE_TYPE_ODEALER):
+    if item['domain'] in ['58.com']:
+        if item['source_type'] in (2, 3):
             item['is_certifield_car'] = True
 
     if item['source_type'] == 2:
@@ -124,35 +244,28 @@ def preprocess_item(item, session, logger):
             gpj_category, item['dmodel'], item['domain'])
         if gpj_detail_model:
             item['detail_model'] = gpj_detail_model.detail_model_slug
-        else:
-            logger.warning(u'无法匹配到detail_model：{0},{1},{2}'.format(
-                gpj_category.id, item['dmodel'], item['domain']))
+        # else:
+        #     logger.warning(u'无法匹配到detail_model：{0},{1},{2}'.format(
+        #         gpj_category.id, item['dmodel'], item['domain']))
     return item
 
 
 def is_normalized(item, logger):
-    """
-    判断是否符合业务需要
-
-    先不判断 time(item),
-    """
-    ret = [
-        title(item, logger), phone(item, logger), year(
-            item, logger), month(item, logger),
-        mile(item, logger), volume(item, logger), control(item, logger),
-        price(item, logger), model_slug(
-            item, logger), brand_slug(item, logger),
-        city(item, logger), imgurls(
-            item, logger), maintenance_desc(item, logger),
-        is_certifield_car(item, logger)
-    ]
-    return all(ret)
+    funcs = [title, city, price, model_slug, brand_slug, phone, year, month, 
+            mile, volume, control, imgurls, maintenance_desc]
+    try:
+        for func in funcs:
+            if not func(item, logger):
+                return
+        return True
+    except Exception as e:
+        print e, item.get(func.__name__)
 
 
 #==============================================================================
 # 业务要求
 # 不作要求的字段： meta、month、url、color\city_slug\region\region_slug\thumbnail
-#               contact\phone\company_name\company_url\price_bn\description\
+#               contact\phone\company_name\company_url\price_bn\description
 #               domain\mandatory_insurance\business_insurance\examine_insurance
 #==============================================================================
 def title(item, logger):
@@ -177,15 +290,14 @@ def year(item, logger):
 
 
 def month(item, logger):
-    """
-    """
     a_month = item.get('month')
     try:
-        a_month = int(a_month)
+        if 0 < int(a_month) <= 12:
+            return True
     except:
-        return False
-    else:
-        return 0 < a_month <= 12
+        pass
+    item['month'] = None
+    return True
 
 
 def time(item, logger):
@@ -234,9 +346,9 @@ def control(item, logger):
 
 
 def price(item, logger):
-    price = item.get('price')
-    price = Decimal(price)
-    if price <= 0 or price > 1000:
+    p = item.get('price')
+    p = Decimal(p)
+    if p <= 0 or p > 1000:
         return False
     average_price = get_average_price(
         item['brand_slug'], item['model_slug'], item['year'], item['volume'])
@@ -244,18 +356,19 @@ def price(item, logger):
         year = datetime.now().year
         # a = 2*(v_avg_price*v_count+v_price)/(v_count+1)
         # b = v_avg_price*v_count+v_price)/(v_count+1)/2
-        a = average_price.avg_price * average_price.units + price
+        a = average_price.avg_price * average_price.units + p
         a = a / (average_price.units + 1)
         a = 2 * a
         b = a / 2
-        if year - average_price.year == 0:
-            return price <= average_price.avg_price_bn * Decimal('1.2')
-        elif year - average_price.year == 1:
-            return price <= average_price.avg_price_bn * Decimal('1.1')
-        elif year - average_price.year > 1:
-            return price < average_price.avg_price_bn
+        if average_price.avg_price_bn:
+            if year - average_price.year == 0:
+                return p <= average_price.avg_price_bn * Decimal('1.2')
+            elif year - average_price.year == 1:
+                return p <= average_price.avg_price_bn * Decimal('1.1')
+            elif year - average_price.year > 1:
+                return p < average_price.avg_price_bn
         else:
-            return b <= price <= a
+            return b <= p <= a
     return True
 
 
@@ -275,7 +388,7 @@ def model_slug(item, logger):
 
 def phone(item, logger):
     tel = item.get('phone')
-    if tel.startswith('http'):
+    if tel and tel.startswith('http'):
         match = ConvertPhonePic2Num(tel).find_possible_num()[0]
         tel = match[0]
         if match[1] == 0.99 and tel:
@@ -288,7 +401,7 @@ def phone(item, logger):
 
 def phone_validate(phone):
     """ 判断电话号码是否有效 """
-    if (phone[:2] in ('13', '15', '18') or phone[:3] == '147') and len(phone) == 11:
+    if (phone[:2] in ('13', '15', '18') or phone[:3] == '147') and len(phone) in (10, 11):
         return True
     else:
         return False
@@ -305,10 +418,7 @@ def maintenance_desc(item, logger):
 
 
 def city(item, logger):
-    """
-    没有城市不行
-    """
-    return item.get('city')
+    return item.get('province') and item.get('city')
 
 
 def imgurls(item, logger):
@@ -317,14 +427,8 @@ def imgurls(item, logger):
     nopic： 图片里不能有默认图片
     """
     imgurls = item.get('imgurls')
+    item['imgurls'] = souche.imgurls(imgurls)
     return imgurls and 'nopic' not in imgurls
-
-
-def is_certifield_car(item, logger):
-    """
-    优质二手车的is_certifield_car必须为 真
-    """
-    return item.get('is_certifield_car')
 
 
 #==============================================================================
@@ -335,16 +439,18 @@ def insert_to_carsource(item, session, logger):
     """
     car_source = CarSource()
     for attr in 'url title brand_slug model_slug mile year month control \
-        city price volume color thumbnail phone domain source_type'.split():
+        city price volume color thumbnail phone domain source_type province'.split():
         setattr(car_source, attr, item[attr])
     car_source.pub_time = item['time'] or item['created_on']
     car_source.model_detail_slug = item['detail_model']
     car_source.mile = item['mile']
     car_source.status = 'sale'
 
-    session.add(car_source)
     try:
-        session.commit()
+        # with session.begin_nested():
+        session.add(car_source)
+        # session.commit()
+        session.flush()
     except IntegrityError:
         session.rollback()
         logger.error(u'重复:{0}'.format(car_source.url))
@@ -352,9 +458,8 @@ def insert_to_carsource(item, session, logger):
         logger.error(u'未知异常:{0}\n{1}'.format(car_source.url, unicode(e)))
     else:
         logger.info(u'成功保存:{0}'.format(car_source.url))
-        q = session.query(RequestModel)
-        q = q.filter(RequestModel.url == car_source.url)
-        q.update({'status': 'need_update'})
+        insert_to_cardetailInfo(item, car_source, session, logger)
+        insert_to_carimage(item, car_source, session, logger)
     return car_source
 
 
@@ -375,9 +480,11 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
     car_detail_info.car_key = None
     car_detail_info.quality_assurance = item.get('quality_service')
     car_detail_info.condition_score = item.get('condition_level')
-    session.add(car_detail_info)
     try:
-        session.commit()
+        # with session.begin_nested():
+            # session.merge(car_detail_info)
+        session.add(car_detail_info)
+        session.flush()
     except IntegrityError:
         session.rollback()
         msg = u'重复:car_detail_info:car_source:{0}'.format(car_source.id)
@@ -400,7 +507,7 @@ def insert_to_carimage(item, car_source, session, logger):
         session.add(car_image)
         logger.debug(u'添加CarImage：{0}'.format(img))
     try:
-        session.commit()
+        session.flush()
     except IntegrityError:
         session.rollback()
         msg = u'重复:CarImage:car_source:{0}'.format(car_source.id)
@@ -416,37 +523,38 @@ def insert_to_carimage(item, car_source, session, logger):
 #==============================================================================
 
 def upload_img(item, logger):
-    """
-    上传全部图片
-    """
     thumbnail = item.get('thumbnail')
     if not thumbnail:
-        thumbnail = item['imgurls'].split(' ')[0]
+        item['thumbnail'] = thumbnail = item['imgurls'].split(' ')[0]
     if thumbnail:
+        base_qiniu = 'http://gongpingjia.qiniudn.com/'
+        if thumbnail.startswith(base_qiniu):
+            return thumbnail
         logger.info(u'上传 thumbnail：{0}'.format(thumbnail))
         qiniu_url = upload_to_qiniu(thumbnail, QINIU_IMG_BUCKET)
         if qiniu_url:
             logger.info(u'上传 thumbnail成功：{0}'.format(qiniu_url))
-            return 'http://gongpingjia.qiniudn.com/' + qiniu_url
+            item['thumbnail'] = thumbnail = base_qiniu + qiniu_url
         else:
             logger.info(u'上传 thumbnail失败：{0}'.format(thumbnail))
-            return None
     else:
         logger.error(u'没有 thumbnail，原始 URL：{0}'.format(item['url']))
-        return None
+    return thumbnail
 
 
 def upload_imgs(item, logger):
-    """
-    批量上传全部图片
-    """
-    imgurls = item.get('imgurls')
+    imgurls = item['imgurls']
+    base_qiniu = 'http://gongpingjia.qiniudn.com/'
+    if imgurls and imgurls.startswith(base_qiniu):
+        return imgurls
     imgurls = imgurls.split(' ')
     if not imgurls:
         return None
     urls = batch_upload_to_qiniu(imgurls, QINIU_IMG_BUCKET)
     _urls = []
     for url in urls:
-        a_url = 'http://gongpingjia.qiniudn.com/' + url
+        a_url = base_qiniu + url
         _urls.append(a_url)
-    return ' '.join(_urls)
+    if _urls:
+        item['thumbnail'] = _urls[0]
+    item['imgurls'] = ' '.join(_urls)

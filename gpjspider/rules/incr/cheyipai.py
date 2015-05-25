@@ -7,7 +7,7 @@ def start_function(start_url_template, spider):
     """
     pagesize = 50
     pageno = 1
-    while pageno < 2:
+    while pageno < 3:
         url = start_url_template.format(pageno=pageno, pagesize=pagesize)
         spider.log(u'start request:pageno:{0}, pagesize={1}'.format(
             pageno, pagesize)

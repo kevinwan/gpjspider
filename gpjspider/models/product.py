@@ -43,7 +43,7 @@ class CategoryDict(Base):
     keywords = Column(Text, nullable=True)
     status = Column(Enum(STATUS_CHOICE), default='A')
     # One To Many
-    global_slug = Column(Integer, ForeignKey('open_category.slug'))
+    global_slug = Column(String(32), ForeignKey('open_category.slug'))
 
     def is_brand(self):
         return not self.parent
@@ -283,6 +283,7 @@ class CarSource(Base):
         Enum(CAR_SOURCE_STATUS_CHOICES), index=True, default='',
         nullable=True, doc=u'状态'
     )
+    province = Column(String(32), nullable=True)
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")
     # One to Many

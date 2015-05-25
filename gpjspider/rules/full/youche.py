@@ -25,7 +25,7 @@ def new_requests(response, url_rule, spider):
         s += len('cityjump(')
         e = u.index(',', s)
         city_id = u[s:e]
-        std = u[e+1]
+        std = u[e + 1]
         num += 1
         cookies = {'cityID': city_id, 'ccc': num}
         url_dict = {'url': base_url.format(std), 'cookies': cookies}
@@ -38,12 +38,15 @@ rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-优车诚品-规则',
+    'name': u'优车诚品',
     'domain': 'youche.com',
     # start_urls  或者 start_url_template只能设置其一，
     # start_url_function 配合 start_url_template一起用
     #  start_url_function 必须返回一个生成器
-    'start_urls': ['http://www.youche.com/'],
+    'start_urls': [
+        'http://www.youche.com/',
+        # 'http://www.youche.com/detail/9719.shtml',
+    ],
 
     #==========================================================================
     #  默认步骤  parse
@@ -51,9 +54,7 @@ rule = {
     'parse': {
         "url": {
             "function": new_requests,
-            # 新 url 对应的解析函数
             "step": 'parse_list',
-            'dont_filter': True,
         },
     },
     #==========================================================================
@@ -64,7 +65,6 @@ rule = {
             "xpath": (
                 '//ul[@class="ulConListPro"]/li/div/a/@href',
             ),
-            'dont_filter': False,   # 默认值就是 False
             "step": 'parse_detail',
             'update': True,
             'category': 'usedcar'
@@ -75,9 +75,8 @@ rule = {
             ),
             "excluded": ('javascript',),
             "format": "http://www.youche.com{0}",
-            'dont_filter': True,
-            # 新 url 对应的解析函数
             "step": 'parse_list',
+            'incr_pageno': 1,
         },
     },
     #==========================================================================
@@ -178,14 +177,15 @@ rule = {
                     ],
                 },
                 # 'business_insurance': {
-                #     'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
-                #     'processors': ['strip'],  # 处理器
+                # 'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
+                # 'processors': ['strip'],  # 处理器
                 # },
                 'examine_insurance': {
                     'xpath': (
                         u'//li/span[contains(text(), "交强")]/../span[@class="fr"]/text()',
                     ),
-                    'processors': ['first', 'strip', 'youche.examine_insurance'],  # 处理器
+                    # 处理器
+                    'processors': ['first', 'strip', 'youche.examine_insurance'],
                 },
                 'transfer_owner': {
                     'xpath': (
@@ -221,12 +221,12 @@ rule = {
                 },
 
                 # 'driving_license': {
-                #     'json': '-data$#$-cr$#$-procedureInfo$#$-crDrivingLicense',
-                #     'processors': ['strip'],  # 处理器
+                # 'json': '-data$#$-cr$#$-procedureInfo$#$-crDrivingLicense',
+                # 'processors': ['strip'],  # 处理器
                 # },
                 # 'invoice': {
-                #     'json': '-data$#$-cr$#$-procedureInfo$#$-crBuyCarInvoice',
-                #     'processors': ['strip'],  # 处理器
+                # 'json': '-data$#$-cr$#$-procedureInfo$#$-crBuyCarInvoice',
+                # 'processors': ['strip'],  # 处理器
                 # },
                 'quality_service': {
                     'xpath': (

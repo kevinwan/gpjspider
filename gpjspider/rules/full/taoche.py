@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
-
+from .utils import *
 
 item_rule = {
     'class': 'UsedCarItem',
@@ -10,7 +9,7 @@ item_rule = {
                 '//div[@class="tc14-cyxq-tit"]/h3//text()',
                 '/html/head/title/text()',
             ),
-            'processors': ['join', 'strip'],
+            'processors': ['join'],
             'required': True,
         },
         'dmodel': {
@@ -19,83 +18,72 @@ item_rule = {
                 '/html/head/title/text()',
             ),
             'after': ' - ',
-            'processors': ['join', 'strip'],
+            'processors': ['join'],
         },
         'meta': {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',
             ),
-            'processors': ['first'],
         },
         'year': {
             'xpath': (
                 u'//*[@id="hidBuyCarDate"]/@value | //*[contains(text(), "上牌")]/following-sibling::text()',
             ),
-            'processors': ['first', 'year'],
         },
         'month': {
             'xpath': (
                 u'//*[@id="hidBuyCarDate"]/@value | //*[contains(text(), "上牌")]/following-sibling::text()',
             ),
-            'processors': ['first', 'month'],
         },
         'mile': {
             'xpath': (
                 u'//*[contains(text(), "行驶里程")]/following-sibling::*/text()',
             ),
-            'processors': ['first', 'mile'],
         },
         'volume': {
             'xpath': (
                 u'//*[contains(text(), "发 动 机")]/following-sibling::*/text()',
             ),
-            'processors': ['first', 'volume'],
         },
         'control': {
             'xpath': (
                 u'//*[contains(text(), "变 速 ")]/following-sibling::*/text()',
             ),
-            'processors': ['first'],
         },
         'price': {
             'xpath': (
                 '//*[@id="hidPrice"]/@value',
             ),
-            'processors': ['first', 'price'],
         },
         'price_bn': {
             'xpath': (
                 u'//*[@class="jagfcbox"]/p[2]//text()',
             ),
-            'processors': ['join', 'price_bn'],
+            'processors': ['join'],
         },
         'brand_slug': {
             'xpath': (
                 u'//*[contains(text(), "车辆品牌")]/following-sibling::*/text()',
                 '//div[@class="breadnav"]/a[last()-1]/text()',
             ),
-            'processors': ['first', 'brand_slug'],
         },
         'model_slug': {
             'xpath': (
                 u'//*[contains(text(), "车辆型号")]/following-sibling::*/text()',
                 '//div[@class="breadnav"]/a[last()]/text()',
             ),
-            'processors': ['first', 'model_slug']
         },
         'city': {
             'xpath': (
                 u'//*[contains(text(), "牌照地点")]/following-sibling::*/text()',
                 '//div[@class="breadnav"]/a[2]/text()',
             ),
-            'processors': ['first', 'city'],
         },
         'phone': {
             'xpath': (
                 '//*[@class="tc14-cydh"]/@style',
             ),
             'regex': '(http://cache.taoche.com/buycar/gettel.ashx\?u=\d+&t=\w+)[,&]',
-            'processors': ['first'],
         },
         'contact': {
             'xpath': (
@@ -109,7 +97,6 @@ item_rule = {
                 u'//*[contains(@class,"cycsrzbox")]//*[contains(text(), "地址")]/following-sibling::text()',
             ),
             'before': '[',
-            'processors': ['first'],
         },
         'company_name': {
             'xpath': (
@@ -122,7 +109,6 @@ item_rule = {
                 '//*[contains(@class,"cycsrzbox")]//h3/a/@href',
                 '//div[@class="cyssbut"]/a/@href',
             ),
-            'processors': ['first'],
         },
         'maintenance_record': {
             'xpath': (
@@ -152,20 +138,17 @@ item_rule = {
             'xpath': (
                 u'//*[contains(text(), "保险到期") or contains(text(), "交强险到期")]/text()',
             ),
-            'processors': ['first', 'year_month'],
         },
         'examine_insurance': {
             'xpath': (
                 u'//*[contains(text(), "年检")]/following-sibling::text()',
             ),
-            'processors': ['first', 'year_month'],
         },
         'transfer_owner': {
             'xpath': (
                 u'//*[contains(text(), "过户次数")]/span/text()',
             ),
             'regex': ur'(\d+)次',
-            'processors': ['first', 'gpjint'],
         },
         'car_application': {
             'xpath': (
@@ -184,7 +167,7 @@ item_rule = {
             'xpath': (
                 '//div[@class="cycsrz" or @class="xbfwicobox"]//text()',
             ),
-            'processors': ['concat', 'is_certified'],
+            'processors': ['concat'],
             'default': False,
         },
     },
@@ -194,11 +177,16 @@ rule = {
     # ==========================================================================
     #  基本配置
     # ==========================================================================
-    'name': '二手车之家',
+    'name': u'二手车之家',
     'domain': 'taoche.com',
     'base_url': 'http://www.taoche.com',
     'start_urls': [
         'http://www.taoche.com/all/',
+        # 'http://www.taoche.com/all/?page=2',
+        # 'http://www.taoche.com/buycar/pges5bxcdza/',
+        # 'http://www.taoche.com/buycar/pges3bxcdza/',
+        # 'http://www.taoche.com/buycar/pges2bxcdza/',
+        # 'http://www.taoche.com/buycar/pges1bxcdza/',
         # Debug details
         # 'http://www.taoche.com/buycar/p-5860783.html',
         # 'http://www.taoche.com/buycar/b-DealerAUDI1080088S.html',
@@ -223,8 +211,13 @@ rule = {
         'next_page_url': {
             'xpath': (
                 '//a[@class="next_on"]/@href',
+                url(after('*[@id="logwtdealer"]//li[@class="current"]', '*')),
             ),
             'step': 'parse',
+            # 'processors': ['clean_param'],
+            'format': True,
+            # 'max_pagenum': 25,
+            # 'incr_pageno': 5,
         },
     },
 
@@ -236,8 +229,4 @@ rule = {
     }
 }
 
-
-if rule['start_urls'][0].endswith('.html'):
-    p = rule['parse']
-    p['item'] = item_rule
-    p.pop('next_page_url')
+fmt_rule_urls(rule)

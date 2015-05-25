@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from . import is_certified
+from . import is_certified, transfer_owner as _transfer_owner
 from gpjspider.utils import constants
 
+def transfer_owner(value):
+    return u'\u662f' in value and 1 or _transfer_owner(value)
 
 def source_type(value):
     u'''

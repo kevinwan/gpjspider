@@ -28,6 +28,7 @@ rule = {
             "xpath": ('//a[@id="pagenow"]/following-sibling::a[1]/@href', ),
             'format': 'http://www.99haoche.com{0}',
             "step": 'parse',
+            # 'incr_pageno': 3,
         },
     },
     #==========================================================================

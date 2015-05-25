@@ -73,7 +73,8 @@ u'\\u8d28\\u4fdd\\u5230\\u671f\\uff1a\\u5df2\\u8fc7\\u671f, \\u5ef6\\u957f\\u8d2
 >>> quality_service(u'质保到期： test,原厂延保： ,24,个月/,9.9,万公里&nbsp;(自您购车日起算)'.split(','))
 u'\\u8d28\\u4fdd\\u5230\\u671f\\uff1atest, \\u539f\\u5382\\u5ef6\\u4fdd\\uff1a24\\u4e2a\\u6708/9.9\\u4e07\\u516c\\u91cc&nbsp;(\\u81ea\\u60a8\\u8d2d\\u8f66\\u65e5\\u8d77\\u7b97)'
     '''
-    value = isinstance(values, (list, tuple)) and concat(values).replace(' ', '') or values
+    value = isinstance(values, (list, tuple)) and concat(
+        values).replace(' ', '') or values
     match = re.findall(ur'(.{3}保)：', value)
     # match = re.findall(ur'(延长质保|原厂延保)：', value)
     # match = re.findall(ur'([原厂]{,2}延.{,2}保)：', value)
@@ -117,7 +118,7 @@ def volume(value):
 1.8
     '''
     a = re.compile(r'(\d\.\d)').findall(value)
-    return a and gpjfloat(a[0]) or None
+    return a and gpjfloat(a[0]) or 0
 
 
 def brand_slug(value):
@@ -140,6 +141,10 @@ u'test'
 
 def model_slug(value):
     u'''
+>>> model_slug(u'1-test2013款')
+u'test'
+>>> model_slug(u'1-test13款')
+u'test'
 >>> model_slug(u'1  test')
 u'test'
 >>> model_slug(u'test >')
@@ -149,13 +154,16 @@ u'test'
 >>> model_slug(u'二手test')
 u'test'
     '''
+    # pdb.set_trace()
     value = value.strip('> ').lstrip(u'二手')
     if ' ' in value:
         a = reg_blank_split.split(value)
         return a[1]
     elif '-' in value:
         a = value.split('-')
-        return a[1]
+        value = a[1]
+        match = re.findall(u'([^21]+)\d{2,4}款', value)
+        return match and match[0] or value
     else:
         return value
 
@@ -164,11 +172,17 @@ def city(value):
     u'''
 >>> city(u'河北 石家庄')
 u'\\u77f3\\u5bb6\\u5e84'
+>>> city(u'test二手车市>')
+u'test'
+>>> city(u'二手A城')
+u'A\\u57ce'
     '''
     if ' ' in value:
         value = value.split()[-1]
     else:
-        value = value.strip(u'二手车城市>')
+        value = re.sub(u'[二手车]{2,}.*$', '', value.lstrip(u'二手'))
+        # value = re.sub(ur'车.*$', '', value.strip(u'二手'))
+        # value = value.strip(u'二手车商市> ')
     return value
 
 
@@ -253,7 +267,7 @@ Decimal('0.06')
 Decimal('0.06')
     '''
     v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})万公里', decimal)
-    if isinstance(v, Decimal) and v > 100 or value and not u'万' in value:
+    if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
         v = extract(value, ur'(\d+)公里', decimal) / 10000
     return v
 
@@ -264,8 +278,10 @@ def year(value):
 2007
 >>> year(u'2014年09月')
 2014
+>>> year(u'2014年')
+2014
     '''
-    return extract(value, ur'(\d{4}).\d{1,2}', gpjint)
+    return extract(extract(value, ur'(\d{4}).\d{1,2}', gpjint), ur'(\d{4}).', gpjint)
 
 
 def month(value):
@@ -276,8 +292,10 @@ def month(value):
 9
 >>> month(u'2012年3月')
 3
+>>> month(u'2012年')
     '''
-    return extract(value, ur'\d{4}.(\d{1,2})', gpjint)
+    m = extract(value, ur'\d{4}.(\d{1,2})', gpjint)
+    return m if isinstance(m, int) else None
 
 
 def get_overdue_date():
@@ -289,15 +307,19 @@ def year_month(value):
     u'''
 >>> year_month(u'保险到期： 2014-7')
 u'2014-7-1'
->>> year_month(u'已过期')
-u'2015-4-1'
+>>> year_month(u'2014-8-12')
+u'2014-8-1'
+>>> year_month(u'已过期').endswith('-1')
+True
     '''
     regx = re.compile(ur'(\d{4}).(\d{1,2})')
     a = regx.findall(value)
     if a:
-        return u'-'.join(a[0]) + u'-1'
+        a = a[0]
+        # print a
+        return u'-'.join(a) + (len(a) == 3 and '' or '-1')
     else:
-        return u'已过期' in value and get_overdue_date() or ''
+        return u'已过期' in value and get_overdue_date() or None
 
 mandatory_insurance = year_month
 business_insurance = year_month
@@ -453,6 +475,14 @@ def clean_anchor(value):
     return extract(value, '([^#]+)#?.*')
 
 
+def clean_param(value):
+    '''
+>>> clean_param('http://www.taoche.com/buycar/b-DealerSHTY1149889S.html?mz_ca=2004885&mz_sp=6sk40')
+'http://www.taoche.com/buycar/b-DealerSHTY1149889S.html'
+    '''
+    return value.split('?')[0]
+
+
 def after_space(value):
     u'''
 >>> after_space(u'维修保养： 定期4S保养')
@@ -489,7 +519,11 @@ u'2009\\u6b3e1.8TSI \\u624b\\u52a8 \\u8212\\u9002\\u578b'
 >>> dmodel(u'大众迈腾09款1.8TSI 手动 舒适型')
 u'09\\u6b3e1.8TSI \\u624b\\u52a8 \\u8212\\u9002\\u578b'
     '''
-    return extract(value, u'(\d{2}款.+|\d{4}款.+)$')
+    return extract(value, u'(\d{2}款.+|\d{4}款.+)$').replace('  ', ' ')
+
+
+def raw_imgurls(value):
+    return
 
 
 def is_certified(value):
@@ -497,12 +531,17 @@ def is_certified(value):
 >>> is_certified(u'原厂质保')
 True
     '''
-    # pdb.set_trace()
-    return value == '1' or u'质保' in value or u'保障' in value or u'认证' in value
+    return (value == '1' or u'质保' in value or u'保障' in value or u'认证' in value) if isinstance(value, basestring) else bool(value)
+    return isinstance(value, basestring) and (value == '1' or u'质保' in value or u'保障' in value or u'认证' in value) or False
+is_certifield_car = is_certified
 
 
 def transfer_owner(value):
-    return isinstance(value, basestring) and (u'否' in value and 1 or 0) or value.rstrip(u'次')
+    u'''
+>>> transfer_owner(u'一手车')
+0
+    '''
+    return (1 if (u'否' in value or u'二手' in value) else 0 if (u'是' in value or u'一手' in value) else value.rstrip(u'次')) if isinstance(value, basestring) else value
 
 
 def has_maintenance_record(value):

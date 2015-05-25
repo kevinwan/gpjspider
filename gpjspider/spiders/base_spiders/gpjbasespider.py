@@ -20,14 +20,23 @@ from gpjspider.checkers.constants import HIGH_QUALITY_RULE_CHECKER_NAME
 import re
 import json
 from .utils import *
+from gpjspider.utils import get_mysql_cursor
 import pdb
 
 
-class GPJBaseSpider(scrapy.Spider):
+def debug():
+    pdb.set_trace()
 
-    """
-    公平价基本爬虫
-    """
+
+class GPJBaseSpider(scrapy.Spider):
+    default_max_page = 10000
+    full_page = 20
+    full_page = 12
+    incr_page = 5
+    # incr_page = 3
+    # incr_page = 0
+    # incr_page = 100
+    _incr_enabled = False
 
     def __init__(self, rule_name, checker_name=None, *args, **kwargs):
         """
@@ -44,16 +53,22 @@ class GPJBaseSpider(scrapy.Spider):
         self.__checker_name = checker_name
         self.checker_class = self.checker_manager.get_checker(checker_name)
         self.checker = self.checker_class(rule_name)
-        self.website_rule = self.checker.check()
+        rule = self.website_rule = self.checker.check()
         self.setup_rule(rule_name)
-        # pp(self.website_rule['parse'])
         self.page_urls = set()
+        self.detail_urls = set()
         self.page_rule = None
-        self.max_page = None
+        self.max_page = self.default_max_page
         self.new = None
         if not self.website_rule:
             raise ValueError('TODO')
-        self.domain = self.website_rule['domain']
+        for attr in 'domain update'.split():
+            setattr(self, attr, rule.get(attr))
+        # if self.update:
+        #     rule['parse']['item'] = rule['parse_detail']['item']
+        # self.domain = self.website_rule['domain']
+        # pp(self.website_rule['parse'])
+        # print self.__dict__
 
     def setup_rule(self, rule_name):
         pass
@@ -68,15 +83,31 @@ class GPJBaseSpider(scrapy.Spider):
     def get_proxy_ips(self):
         redis = get_redis_cluster()
         s = redis.smembers('valid_proxy_ips')
-        self.log(u'all proxies: {0}'.format(s))
-        if s:
-            return list(s)
-        else:
-            return []
+        # self.log(u'all proxies: {0}'.format(s))
+        return s and list(s) or []
 
     def start_requests(self):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
+            if self.update:
+                query = "select id,url from open_product_source where status='u' and domain='%s' limit 250,300;"
+                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
+                update = 'update open_product_source set status="n" where id in (%s) and status="u";'
+                while True:
+                    res = self.get_cursor().execute(query % self.domain).fetchall()
+                    ids = []
+                    for c in res:
+                        start_url = c.url
+                        self.detail_urls.add(start_url)
+                        self.log(u'start request {0}'.format(start_url), log.INFO)
+                        # yield Request(start_url, callback=self.parse_detail,
+                        # dont_filter=True)
+                        ids.append(str(c.id))
+                        yield Request(start_url, callback=self.parse_detail, dont_filter=True)
+                        #yield Request(start_url, callback=self.parse_detail, dont_filter=False)
+                    self.get_cursor().execute(update % ','.join(ids))
+                    if len(res) < 50:
+                        break
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
             start_urls = start_url_function(
@@ -87,43 +118,34 @@ class GPJBaseSpider(scrapy.Spider):
             self.page_urls.add(start_url)
             yield self.make_requests_from_url(start_url)
 
-    def parse(self, response):
-        import sys
-        my_name = sys._getframe().f_code.co_name
+    def parse(self, response, my_name='parse'):
         step_rule = self.website_rule[my_name]
-        if 'items' in step_rule:
-            items_rule = step_rule['items']
-            item_class = import_item(items_rule['class'])
-            items = self.get_items(item_class, items_rule, response)
-            for item in items:
-                yield item
-        # 提取新的 url
+
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
+            # self.get_requests(step_rule['url'], response)
             requests = self.get_requests(step_rule['url'], response)
             for request in requests:
-                self.log(u'start --request {0}'.format(request.url))
+                url = request.url
+                self.log('start --request {0}'.format(url))
                 yield request
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg)
-            requests = self.get_requests(page_rule, response)
+            # self.get_requests(page_rule, response, step_rule)
+            requests = self.get_requests(page_rule, response, step_rule)
             for request in requests:
                 url = request.url
-                self.page_urls.add(url)
-                if len(self.page_urls) > self.get_max_page(page_rule, step_rule):
-                    break
-                self.log(
-                    u'start request next page: {0}.'.format(url))
+                self.log(u'start request next page: {0}.'.format(url))
                 yield request
 
         if 'item' in step_rule:
-            item_rule = step_rule['item']
-            item_class = import_item(item_rule['class'])
-            item = self.get_item(item_class, item_rule, response)
-            yield item
+            yield self.get_item(step_rule['item'], response)
+        elif 'items' in step_rule:
+            for item in self.get_items(step_rule['items'], response):
+                yield item
 
     def get_page_rule(self, step_rule):
         if self.page_rule is None:
@@ -131,28 +153,31 @@ class GPJBaseSpider(scrapy.Spider):
                 'incr_page_url', step_rule.get('next_page_url'))
         return self.page_rule
 
-    def get_max_page(self, page_rule, step_rule):
-        if self.max_page is None:
-            self.max_page = page_rule.get('max_pagenum',
-                                          'incr_page_url' in step_rule and 3 or 30)
+    def get_max_page(self, page_rule):
+        if self.max_page >= self.default_max_page:
+            url_no = len(self.page_urls)
+            if self._incr_enabled:
+                page = page_rule.get('incr_pageno', url_no > 8 and 1 or url_no > 1 and 3 or \
+                    self.incr_page)
+                # url_no = url_no > 40 and 40 or url_no
+            else:
+                page = page_rule.get('max_pagenum', self.full_page)
+                #page = 31
+            self.max_page = page * url_no
             # print self.max_page
         return self.max_page
 
-    parse_list = parse
+    def parse_list(self, response):
+        return self.parse(response, 'parse_list')
 
     def parse_detail(self, response):
-        """
-        """
         import sys
         my_name = sys._getframe().f_code.co_name
         step_rule = self.website_rule[my_name]
         if 'item' in step_rule:
-            item_rule = step_rule['item']
-            item_class = import_item(item_rule['class'])
-            item = self.get_item(item_class, item_rule, response)
-            yield item
+            yield self.get_item(step_rule['item'], response)
 
-    def get_requests(self, url_rule, response):
+    def get_requests(self, url_rule, response, step_rule=None):
         """
         支持 xpath  re  css  json  function
         excluded中的将会被排除
@@ -184,26 +209,20 @@ class GPJBaseSpider(scrapy.Spider):
         #         if ex_url in url:
         #             tmp_urls.add(url)
         #             break
-        #     self.log(u'要删除的 URL:{0}'.format(tmp_urls), log.INFO)
-        #     urls = urls - tmp_urls
+        tmp_urls = set()
         if 'contains' in url_rule:
-            tmp_urls = set()
             for url in urls:
                 if not any([info in url for info in url_rule['contains']]):
                     tmp_urls.add(url)
-            if tmp_urls:
-                self.log(u'要删除的 URL:{0}'.format(tmp_urls), log.INFO)
-            urls = urls - tmp_urls
         if 'excluded' in url_rule:
-            tmp_urls = set()
             for url in urls:
                 for ex_url in url_rule['excluded']:
                     if ex_url in url:
                         tmp_urls.add(url)
                         break
-            if tmp_urls:
-                self.log(u'要删除的 URL:{0}'.format(tmp_urls), log.INFO)
-            urls = urls - tmp_urls
+        if tmp_urls:
+            self.log(u'Dups URL:{0}'.format(tmp_urls), log.INFO)
+        urls = urls - tmp_urls
 
         urls = self.format_urls(url_rule, urls)
 
@@ -212,16 +231,15 @@ class GPJBaseSpider(scrapy.Spider):
         if 'dont_filter' in url_rule:
             dont_filter = url_rule['dont_filter']
         else:
-            if 'item' in self.website_rule[step_function.__name__]:
+            next_step = step_function.__name__
+            if 'item' in self.website_rule[next_step] or next_step == 'parse_detail':
                 dont_filter = False
             else:
                 dont_filter = True
+
         ret_requests = []
+        _url = response.url
         if 'function' in url_rule:
-            # url function 和 rule function 声明形式一样，但只能写在 rule 文件中
-            # url function只能返回生成器
-            # 比 rule function 多一个 url_rule参数，
-            # 每次 yield 是一个 url dict,可以包含Request支持的参数
             func = url_rule.get('function')
             func_name = func.__name__
 
@@ -234,40 +252,84 @@ class GPJBaseSpider(scrapy.Spider):
                     if url in self.page_urls:
                         continue
                 else:
-                    print 'no url get'
+                    self.log(u'no url get from {0}'.format(url_dict))
                     continue
                 # self.log(u'cookies is {0}'.format(pp_str(cookies)))
                 if url_dict:
-                    self.log(u'args is {0}'.format(pp_str(url_dict)))
+                    self.log(u'args is {0}'.format(url_dict))
                 request = Request(
-                    url, callback=step_function, priority=1,
-                    dont_filter=dont_filter, **url_dict
+                    url, callback=step_function, dont_filter=dont_filter, **url_dict
                 )
+                # yield request
                 ret_requests.append(request)
         else:
-            if urls:
-                for url in urls - self.page_urls:
-                    url = self.exec_processor(None, url_rule, url)
-                    request = Request(
-                        url, callback=step_function, dont_filter=dont_filter
-                    )
-                    ret_requests.append(request)
-        if 'update' in url_rule and 'category' in url_rule:
-            if url_rule['update']:
-                try:
-                    self.save_request(ret_requests, url_rule['category'])
-                except Exception as e:
-                    # self.log(u'保存请求{0}时失败', level=log.ERROR)
-                    self.log(str(e), level=log.ERROR)
+            urls = set([self.exec_processor(None, url_rule, url) for url in urls])
+            if dont_filter:
+                urls = urls - self.page_urls
+                for url in urls:
+                    self.page_urls.add(url)
+                if step_rule:
+                    max_page = self.max_page
+                    pages = len(self.page_urls)
+                    if pages > max_page:
+                        self.log(
+                            'visit {0}/{1} pages before {2}'.format(pages, max_page, _url))
+                        return []
+                        # urls = []
+            else:
+                urls = urls - self.detail_urls
+                for url in urls:
+                    self.detail_urls.add(url)
+                if urls and not self.update and self.domain != 'c.cheyipai.com':
+                    max_page = self.get_max_page(url_rule)
+                    urls = self.clean_detail_urls(urls, _url, max_page)
+
+            for url in urls:
+                request = Request(
+                    url, callback=step_function, dont_filter=dont_filter)
+                # yield request
+                ret_requests.append(request)
+
+        # if 'update' in url_rule and 'category' in url_rule:
+        #     if url_rule['update']:
+        #         try:
+        #             self.save_request(ret_requests, url_rule['category'])
+        #         except Exception as e:
+        # self.log(u'Save request{0} failed', level=log.ERROR)
+        #             self.log(str(e), level=log.ERROR)
 
         return ret_requests
 
-    def get_items(self, item_class, items_rule, response):
+    def clean_detail_urls(self, urls, url, max_page):
+        # klass = UsedCar
+        # res = session.query(klass).filter(klass.url.in_(urls)).values('url')
+        query = "select url from open_product_source where url in ('%s')"
+        res = self.get_cursor().execute(query % "','".join(urls)).fetchall()
+        existed_urls = set([c.url for c in res])
+        new_urls = urls - existed_urls
+        new_no = len(new_urls)
+        all_no = len(urls)
+        if new_no:
+            self.log(
+                u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
+            if new_no > all_no / 3 or new_no >= 8:
+                max_page += 1.3
+        elif max_page > 30:
+            max_page -= 0.7
+        self.max_page = max_page
+
+        return new_urls
+
+    def get_cursor(self):
+        return get_mysql_cursor()
+
+    def get_items(self, items_rule, response):
         """
         根据 field 规则获取响应数据items
         优先级: arg/xpath > key/json > default
         """
         nodes = []
+        item_class = import_item(item_rule['class'])
         if 'xpath' in items_rule:
             nodes = response.xpath(items_rule['xpath'])
             if items_rule['is_json']:
@@ -306,15 +368,15 @@ class GPJBaseSpider(scrapy.Spider):
                 if values:
                     item[field_name] = values
                     item = self.exec_processor(field_name, field, item)
+                    value = item[field_name]
                     if 'regex' in field:
                         try:
-                            item[field_name] = re.findall(
-                                field['regex'], item[field_name])[0]
+                            value = re.findall(field['regex'], value)[0]
                         except:
                             pass
-                    if 'format' in field:
-                        item[field_name] = field[
-                            'format'].format(item[field_name])
+                    if 'format' in field and not value.startswith('http'):
+                        value = field['format'].format(value)
+                    item[field_name] = value
                 if field.get('required', False):
                     if field_name not in item:
                         m = u'{0} is required: {1}'.format(field_name, res_url)
@@ -328,18 +390,24 @@ class GPJBaseSpider(scrapy.Spider):
                     teardown_func(item)
             yield item
 
-    def get_item(self, item_class, item_rule, response):
+    item_keys = [
+        'url', 'meta', 'title', 'dmodel', 'city', 'city_slug', 'brand_slug', 'model_slug',
+        'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
+        'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
+        'company_name', 'company_url', 'phone', 'contact', 'region', 'description', 'imgurls',
+        'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
+        'time', 'is_certifield_car', 'source_type',
+    ]
+
+    def get_item(self, item_rule, response):
         """
-        根据 field 规则获取响应数据
-        优先级: xpath > json > css > str > function > default
+        priority: xpath > json > css > str > function > default
         """
-        item = item_class()
-        # 默认使用请求的 url 作为 item 的 url，如果不是这样，可以在 field 中设置 url 的规则
+        item = import_item(item_rule['class'])()
         item['url'] = response.url
         item['domain'] = self.domain
         fields = item_rule['fields']
-        # for field_name, field in fields.iteritems():
-        for field_name in item_rule.get('keys', fields.keys()):
+        for field_name in item_rule.get('keys', self.item_keys):
             field = fields.get(field_name)
             if not field:
                 continue
@@ -362,7 +430,7 @@ class GPJBaseSpider(scrapy.Spider):
                                 if not func:
                                     f = field['function']
                                     m = u'无法导入规则函数:{0}'.format(f)
-                                    self.log(m, log.ERROR)
+                                    self.log(m, log.WARNING)
                                     continue
                                 args = field['function'].get('args', tuple())
                                 kwargs = field['function'].get('kwargs', {})
@@ -377,7 +445,7 @@ class GPJBaseSpider(scrapy.Spider):
                                     # 连 default 都没有配置，就没有值了，说明规则不对
                                     m = u'field {0} is NULL: {1}'.format(
                                         field_name, response.url)
-                                    self.log(m, log.ERROR)
+                                    self.log(m, log.WARNING)
             if values:
                 item[field_name] = values
                 # 执行处理器
@@ -388,29 +456,30 @@ class GPJBaseSpider(scrapy.Spider):
                     it = self.exec_processor(field_name, field, item)
                     if isinstance(it, dict):
                         item = it
-                    value = item[field_name]
+
                 except Exception as e:
-                    # print e
-                    print field_name, field
+                    print e
                     # value = value or None
-                    continue
+                    # continue
+                finally:
+                    value = item[field_name]
                 try:
                     if 'regex' in field:
                         try:
                             value = re.findall(field['regex'], value)[0]
                         except Exception as e:
-                            print e
+                            pass
+                            # print e, field_name, value, field['regex']
                     elif 'after' in field:
                         value = after(value, field['after'])
                     elif 'before' in field:
                         value = before(value, field['before'])
-                    if 'format' in field:
+                    if 'format' in field and not value.startswith('http'):
                         value = field['format'].format(value)
                 except:
                     pass
                 if field_name == item_rule.get('debug'):
                     pdb.set_trace()
-                # if self.is_new():
                 item[field_name] = self.exec_processor(None, field_name, value)
 
             # required判断
@@ -420,15 +489,6 @@ class GPJBaseSpider(scrapy.Spider):
                         field_name, response.url)
                     raise DropItem(m)
         return item
-
-    def is_new(self):
-        if self.new is None:
-            self.new = self.domain in [
-                'che168.com',
-                'taoche.com',
-                'sudo.com',
-            ]
-        return self.new
 
     def get_xpath(self, xpath_rules, response):
         for xpath_rule in xpath_rules:
@@ -537,7 +597,7 @@ class GPJBaseSpider(scrapy.Spider):
         if not inspect.ismethod(step):
             n, cn = step.__name__, step.__class__.__name__
             self.log(
-                u'object {0} is instance of {1}'.format(n, cn), level=log.ERROR)
+                u'object {0} is instance of {1}'.format(n, cn), level=log.WARNING)
             return None
         return step
 
@@ -550,14 +610,16 @@ class GPJBaseSpider(scrapy.Spider):
         这种情况下，只能去自定义函数去处理了
         """
         if urls:
-            self.log(u'原始 URL:{0}'.format(urls))
+            self.log(u'got {0} urls'.format(urls))
         if 'format' not in url_rule:
             return urls
         format_rule = url_rule['format']
         new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
             for url in urls:
-                new_urls.add(format_rule.format(url))
+                if not url.startswith('http'):
+                    url = format_rule.format(url)
+                new_urls.add(url)
         elif inspect.isfunction(format_rule):
             for url in urls:
                 _url = format_rule(url)
@@ -566,7 +628,7 @@ class GPJBaseSpider(scrapy.Spider):
                 else:
                     del_urls.add(url)
         if del_urls:
-            self.log(u'以下 url 被删除:{0}'.format(del_urls))
+            self.log(u'deleted {0} urls'.format(del_urls))
         # else:
         #     self.log(u'没有 url 被格式化删除')
         return new_urls
@@ -587,12 +649,15 @@ class GPJBaseSpider(scrapy.Spider):
             request_model.meta = pickle.dumps(request.meta)
             request_model.encoding = request.encoding
             session.add(request_model)
-        try:
-            session.commit()
-        except IntegrityError:
-            session.rollback()
-        except Exception as e:
-            self.log(u'未知异常：{0}'.format(e), log.ERROR)
-            session.rollback()
-        else:
-            self.log(u'成功保存请求{0}'.format(request_model.url), log.INFO)
+        if requests:
+            try:
+                session.commit()
+            except IntegrityError:
+                session.rollback()
+            except Exception as e:
+                self.log(u'Save request failed: {0}'.format(e), log.WARNING)
+                session.rollback()
+            else:
+                self.log(
+                    u'Save request {0}'.format(request_model.url), log.INFO)
+            session.close()

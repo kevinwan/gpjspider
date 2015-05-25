@@ -4,11 +4,11 @@ import copy
 
 def make_incr_rule(full_rule, start_urls=[]):
     rule = copy.deepcopy(full_rule)
+    # p = rule.get('parse_list', rule['parse'])
+    for k in 'parse_list parse'.split():
+        p = rule.get(k)
+        if p and 'next_page_url' in p:
+            incr = p['incr_page_url'] = p.pop('next_page_url')
 
-    # if start_urls:
-    #     rule['start_urls'] += start_urls
-
-    rule['parse']['incr_page_url'] = rule['parse'].pop('next_page_url')
-    rule['parse']['incr_page_url'].pop('max_pagenum')
-    # rule['parse']['incr_page_url']['max_pagenum'] = 1
+    # incr['incr_pagenum'] = 3
     return rule

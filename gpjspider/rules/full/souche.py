@@ -1,43 +1,35 @@
 # -*- coding: utf-8 -*-
-"""
-大搜车优质二手车 规则
-
-
-规则包含非 ascii 字符，必须使用 unicode 编码
-"""
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
-
+from .utils import *
 
 rule = {
-    #==========================================================================
-    #  基本配置
-    #==========================================================================
-    'name': '优质二手车-大搜车-规则',
+    'name': u'大搜车',
     'domain': 'souche.com',
-    # start_urls  或者 start_url_template只能设置其一，
-    # start_url_function 配合 start_url_template一起用
-    #  start_url_function 必须返回一个生成器
-    'start_urls': ['http://www.souche.com'],
+    'base_url': 'http://www.souche.com',
+    'start_urls': [
+        'http://www.souche.com',
+        # 'http://www.souche.com/henan/list-pg4',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6NaYXhP2BW',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
+    ],
 
-    #==========================================================================
-    #  默认步骤  parse
-    #==========================================================================
     'parse': {
         "url": {
-            "xpath": ('//div[@class="area-line"]/a/@data-pinyin',),
+            "xpath": (
+                '//div[@class="area-line"]/a/@data-pinyin',
+            ),
             "format": "http://www.souche.com/{0}/list",
-            # 新 url 对应的解析函数
+            # "format": "http://www.souche.com/{0}/list-mx2014-styishou",
             "step": 'parse_list',
+            # 'default': ['http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6e4acb6b-7182-4e5a-97ff-2123138ea1d8'],
+            # "step": 'parse_detail',
         }
     },
-    #==========================================================================
-    #  详情页步骤  parse_list
-    #==========================================================================
     'parse_list': {
         "url": {
             "xpath": (
-                ('//div[@class="card-box clearfix car-wrap "]'
-                    '/div/a[@class="car-link"]/@href'),
+                url(has_cls('carItem')),
             ),
             "format": "http://www.souche.com{0}",
             "step": 'parse_detail',
@@ -49,137 +41,129 @@ rule = {
                 '//a[@class="next"]/@href',
             ),
             "format": "http://www.souche.com{0}",
-            # 新 url 对应的解析函数
             "step": 'parse_list',
+            # 'max_pagenum': 10,
+            # 'incr_pageno': 0,
         },
     },
 
-    #==========================================================================
-    #  详情页步骤  parse_detail
-    #==========================================================================
     'parse_detail': {
         "item": {
             "class": "UsedCarItem",
+            'keys': [
+                'meta', 'title', 'dmodel', 'city', 'city_slug', 'brand_slug', 'model_slug',
+                'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
+                'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
+                'company_name', 'company_url', 'phone', 'contact', 'region', 'description', 'imgurls',
+                'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
+                'time', 'is_certifield_car', 'source_type',
+            ],
             "fields": {
+                'meta': {
+                    'xpath': ('//meta[@name="Description"]/@content',),
+                },
                 'title': {
                     'xpath': (
                         '//div[@class="detail_main_info"]/div/h1/ins/text()',
                     ),
-                    'processors': ['first', 'strip'],
                     'required': True,
                 },
-                'meta': {
-                    'xpath': ('//meta[@name="Description"]/@content',),
-                    'processors': ['first', 'strip'],
+                'dmodel': {
+                    'default': '%(title)s',
                 },
                 'year': {
                     'xpath': (
                         '//div[@class="car_detail clearfix"]/div[1]/strong/text()',
                     ),
-                    'processors': ['first', 'strip', 'year'],
                 },
                 'month': {
                     'xpath': (
                         '//div[@class="car_detail clearfix"]/div[1]/strong/text()',
                     ),
-                    'processors': ['first', 'strip', 'month'],
                 },
                 'mile': {
-                    'xpath': (
-                        '//div[@class="car_detail clearfix"]/div[2]/strong/text()',
-                    ),
-                    'processors': ['first', 'strip', 'mile'],
+                    # 'xpath': (
+                    #     '//div[@class="car_detail clearfix"]/div[2]/strong/text()',
+                    # ),
+                    'default': '%(meta)s',
                 },
                 'volume': {
                     'xpath': (
                         u'//th[contains(text(), "排量")]/../td[not(@class)]/text()',
                     ),
-                    'processors': ['first', 'strip'],
+                    'default': '%(title)s',
                 },
-
                 'color': {
                     'xpath': (
                         u'//th[contains(text(), "颜色")]/../td[not(@class)]/text()',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'control': {
                     'xpath': (
                         u'//th[contains(text(), "变速箱")]/../td[not(@class)]/text()',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'price': {
                     'xpath': (
                         '//div[@class="detail_price_left clearfix"]/em/text()',
                     ),
-                    'processors': ['first', 'strip', 'price'],
                 },
                 'price_bn': {
                     'xpath': ('//label[@class="new"]/text()',),
-                    'processors': ['first', 'strip', 'price_bn'],
                 },
                 'brand_slug': {
                     'xpath': ('//div[@class="detail-map"]/a[last()-1]/text()',),
-                    'processors': ['first', 'strip', 'brand_slug'],
                 },
                 'model_slug': {
                     'xpath': ('//div[@class="detail-map"]/a[last()]/text()',),
-                    'processors': ['first', 'strip', 'model_slug'],
                 },
                 'city': {
                     'xpath': (
                         '//div[@class="item"][3]/strong/text()',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'description': {
                     'xpath': (
                         '//div[@class="sub_title"]/text()',
                     ),
-                    'processors': ['join', 'strip', 'souche.description'],
+                    'processors': ['join'],
                 },
                 'imgurls': {
                     'xpath': (
                         '//ul[@class="photosSmall"]/li/img/@data-original',
                     ),
-                    'processors': ['join', 'strip', 'souche.imgurls'],
+                    'processors': ['join', 'souche.imgurls'],
                 },
                 'contact': {
                     'xpath': (
                         '//a[@class="shop-name"]/text()[1]',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'phone': {
                     'xpath': (
                         '//div[@class="phone-num"]/text()',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'company_name': {
                     'xpath': (
                         '//a[@class="shop-name"]/text()[1]',
                     ),
-                    'processors': ['first', 'strip'],
                 },
                 'company_url': {
                     'xpath': (
                         '//a[@class="shop-name"]/@href',
                     ),
-                    'processors': ['first', 'strip', 'souche.company_url'],
+                    'format': 'http://www.souche.com{0}',
                 },
                 # 'mandatory_insurance': {
                 #     'xpath': (
                 #         u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',
                 #     ),
-                #     'processors': ['first', 'strip'],
                 # },
                 # 'examine_insurance': {
                 #     'xpath': (
                 #         u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
                 #     ),
-                #     'processors': ['first', 'strip'],
                 # },
                 #  大搜车的准入规则决定都是 非运营
                 'car_application': {
@@ -199,6 +183,9 @@ rule = {
                     'processors': ['souche.transfer_owner'],
                     'default': 0,
                 },
+                'is_certifield_car': {
+                    'default': '%(quality_service)s',
+                },
                 'source_type': {
                     'default': SOURCE_TYPE_SELLER,
                 },
@@ -206,3 +193,8 @@ rule = {
         },
     },
 }
+fmt_rule_urls(rule)
+# start_url = rule['start_urls'][0]
+# if ('html' in start_url and len(start_url) > 40) \
+#         or rule['parse']['url']['contains'][0] in start_url:
+#     rule['parse'] = rule['parse_detail']
