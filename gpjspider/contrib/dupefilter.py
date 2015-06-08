@@ -24,7 +24,7 @@ class DomainRequestDupeFilter(BaseDupeFilter):
         self.logdupes = True
         self.debug = debug
         if path:
-            self.file = open(os.path.join(path, 'requests.seen'), 'aw+')
+            self.file = open(os.path.join(path, 'requests.seen'), 'a+')
             self.fingerprints.update(x.rstrip() for x in self.file)
 
     @classmethod
