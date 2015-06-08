@@ -53,7 +53,9 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
     job_queue = os.path.join(jobdir, 'requests.queue')
     #os.system('[ -e {0} ] && rm -rf {0}/*'.format(job_queue))
     if os.path.exists(job_queue):
-        os.removedirs(job_queue)
+        #os.removedirs(job_queue) """ 不能删除非空目录 """
+        import shutil
+        shutil.rmtree(job_queue)
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()
