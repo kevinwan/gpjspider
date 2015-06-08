@@ -157,12 +157,6 @@ rule = {
                     'processors': ['first', 'haoche51.transfer_owner'],
                     'default': 0,
                 },
-                'quality_service': {
-                    'default': u' '.join([
-                        u'1年/2万公里放心质保',
-                        u'14天可退车',
-                    ])
-                },
                 'source_type': {
                     'default': SOURCE_TYPE_SELLER,
                 },

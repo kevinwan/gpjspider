@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-本模块只存放最后一个 Pipeline。
-
-- SaveToMySQLBySqlalchemy  使用 sqlalchemy 保存数据到 MySQL
-- DebugPipeline  调试用，打印到屏幕上
-
-"""
 import datetime
 
 from prettyprint import pp
@@ -43,11 +36,6 @@ def not_set(string):
 
 
 class SaveToMySQLBySqlalchemyPipeline(object):
-
-    """
-    使用 sqlalchemy 保存到 MySQL。
-    """
-
     def __init__(self, settings):
         if not settings.getdict('MYSQL_SQLALCHEMY_URL'):
             raise NotConfigured()
@@ -61,9 +49,6 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         self.Session = get_mysql_connect()
 
     def process_item(self, item, spider):
-        """
-        所有数据库类都要有 url 和 domain
-        """
         klass = None
         url = item.get('url', '')
         if isinstance(item, UsedCarItem):
@@ -81,26 +66,21 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         session = self.Session()
         o = klass(**item)
         try:
-            # with session.begin_nested():
             session.add(o)
-            session.flush()
         except IntegrityError:
+            session.rollback()
             if spider.update:
-                q = session.query(klass).filter(klass.url == url, klass.status.in_(['E', 'P', 'u']))
+                q = session.query(klass).filter(
+                    klass.url == url, klass.status.in_(['E', 'P', 'u']))
                 if q.count():
-                    # old_item = q.first()
-                    # item['status'] = 'Y'
-                    # for attr in 'phone model_slug price city is_certifield_car company_name company_url contact region time source_type mandatory_insurance business_insurance examine_insurance'
-                    # q.update(dict(item), synchronize_session=False)
                     q.update(dict(item, status='Y'), synchronize_session=False)
-                # item['id'] = q.first().id
                 spider.log(u'Updated Item: {0}'.format(url))
             else:
                 spider.log(u'Dup Item: {0}'.format(url))
             # spider.dup_item_amount += 1
         else:
             item['id'] = o.id
-            # session.commit()
+            session.commit()
             spider.log(u'Saved Item: {0}'.format(url))
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)
@@ -324,12 +304,15 @@ class MongoDBPipeline(BaseItemExporter):
 
 class DebugPipeline(object):
     is_fisrt = True
+    index = 0
 
     def process_item(self, item, spider):
         if isinstance(item, GpjspiderItem):
             if self.is_fisrt:
                 pp(dict(item))
-                self.is_fisrt = False
+                self.index += 1
+                if self.index > 10:
+                    self.is_fisrt = False
             else:
                 print item['url']
         else:

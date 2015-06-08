@@ -280,7 +280,8 @@ class CarSource(Base):
         nullable=True, doc=u'来源'
     )
     status = Column(
-        Enum(CAR_SOURCE_STATUS_CHOICES), index=True, default='',
+        # Enum(CAR_SOURCE_STATUS_CHOICES),
+        index=True, default='',
         nullable=True, doc=u'状态'
     )
     province = Column(String(32), nullable=True)

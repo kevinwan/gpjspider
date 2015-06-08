@@ -31,18 +31,20 @@ def run_spider(self, rule_name):
 
 
 def crawl(self, logger, logfile, spider_class, rule, rule_name):
+    # domain = rule.get('domain', 'test')
     domain = rule['domain']
     # pidfile = self.log_dir + '/pid_' + domain
     pidfile = os.path.join(self.log_dir, domain + '.pid')
     # pidfile = self.log_dir + '/pid_' + spider_class.name + '.pid'
-    if os.path.exists(pidfile):# and domain != '58.com':
+    if os.path.exists(pidfile):# and not (domain == '58.com' and rule_name.startswith('full')):
         print 'already run..'
         return
-    # try:
-    #     if os.path.exists(logfile):
-    #         os.remove(logfile)
-    # except:
-    #     logger.error(u'Delete {0} failed'.format(logfile))
+    try:
+        #if rule_name.startswith('incr') and os.path.exists(logfile):
+        if os.path.exists(logfile):
+            os.remove(logfile)
+    except:
+        logger.error(u'Delete {0} failed'.format(logfile))
     scrapy_setting = get_project_settings()
     scrapy_setting.set('LOG_ENABLED', True, priority='cmdline')
     scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
@@ -96,14 +98,13 @@ def run_incr_spider(self, rule_name):
     spider_name = spider_name + '.' + rule_name
     spider_class = create_incr_spider_class(spider_class_name, spider_name)
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
+    # pdb.set_trace()
     rule = import_incr_rule(rule_name)
     crawl(self, logger, logfile, spider_class, rule, rule_name)
 
 
 @app.task(name="run_update_spider", bind=True, base=GPJSpiderTask)
 def run_update_spider(self, rule_name):
-    """
-    """
     logger = None   # get_task_logger('run_update_spider')
     spider_name = 'update'
     spider_class_name = '{0}AutoSpider'.format(

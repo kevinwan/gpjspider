@@ -164,18 +164,18 @@ rule = {
                         u'车评估系统，保证车源真实可靠，交易安全省心。买车卖车就在车易拍。'
                     )
                 },
-                'contact': {
-                    'default': u'车易拍客服'
-                },
-                'phone': {
-                    'default': u'4000690555'
-                },
-                'company_name': {
-                    'default': u'车易拍'
-                },
-                'company_url': {
-                    'default': u'http://c.cheyipai.com/'
-                },
+                #'contact': {
+                #    'default': u'车易拍客服'
+                #},
+                #'phone': {
+                #    'default': u'4000690555'
+                #},
+                #'company_name': {
+                #    'default': u'车易拍'
+                #},
+                #'company_url': {
+                #    'default': u'http://c.cheyipai.com/'
+                #},
                 'is_certifield_car': {
                     'default': True
                 },

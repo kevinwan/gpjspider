@@ -12,7 +12,7 @@ from scrapy.dupefilter import BaseDupeFilter
 
 
 class DomainRequestDupeFilter(BaseDupeFilter):
-    """基于域名和请求的去重过滤器
+    u"""基于域名和请求的去重过滤器
     和 scrapy 提供的去重过滤器不一样的地方是：
     1. 按 domain 保存指纹，减小指纹库规模
     2. 根据 domain 加载指纹库，减小内存占用
@@ -24,7 +24,7 @@ class DomainRequestDupeFilter(BaseDupeFilter):
         self.logdupes = True
         self.debug = debug
         if path:
-            self.file = open(os.path.join(path, 'requests.seen'), 'a+')
+            self.file = open(os.path.join(path, 'requests.seen'), 'aw+')
             self.fingerprints.update(x.rstrip() for x in self.file)
 
     @classmethod

@@ -8,14 +8,6 @@ def parse_meta(key, with_key=False):
 
 item_rule = {
     'class': 'UsedCarItem',
-    'keys': [
-        'meta', 'title', 'dmodel', 'city', 'brand_slug', 'model_slug',
-        'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
-        'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
-        'company_name', 'company_url', 'phone', 'contact', 'region', 'description', 'imgurls',
-        'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
-        'time', 'is_certifield_car', 'source_type',
-    ],
     # 'debug': 'is_certifield_car',
     'fields': {
         'meta': {
@@ -361,6 +353,7 @@ rule = {
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/',
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/',
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/',
+        # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1548176.shtml',
         # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0s/',

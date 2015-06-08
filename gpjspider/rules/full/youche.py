@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-优车诚品二手车
-"""
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
 
@@ -30,6 +27,7 @@ def new_requests(response, url_rule, spider):
         cookies = {'cityID': city_id, 'ccc': num}
         url_dict = {'url': base_url.format(std), 'cookies': cookies}
         urls.append(url_dict)
+        break
     spider.log(u'urls is: {0}'.format(urls))
     return urls
 
@@ -44,7 +42,8 @@ rule = {
     # start_url_function 配合 start_url_template一起用
     #  start_url_function 必须返回一个生成器
     'start_urls': [
-        'http://www.youche.com/',
+        'http://www.youche.com/ershouche/',
+        #'http://www.youche.com/',
         # 'http://www.youche.com/detail/9719.shtml',
     ],
 
@@ -60,7 +59,8 @@ rule = {
     #==========================================================================
     #  列表页步骤  parse_list
     #==========================================================================
-    'parse_list': {
+    #'parse_list': {
+    'parse': {
         "url": {
             "xpath": (
                 '//ul[@class="ulConListPro"]/li/div/a/@href',
@@ -210,15 +210,15 @@ rule = {
                     'xpath': ('//*[@id="linksCallTel"]/text()',),
                     'processors': ['first', 'strip'],
                 },
-                'contact': {
-                    'default': u'优车诚品客服',
-                },
-                'company_name': {
-                    'default': u'优车诚品',
-                },
-                'company_url': {
-                    'default': 'http://www.youche.com/',
-                },
+                #'contact': {
+                #    'default': u'优车诚品客服',
+                #},
+                #'company_name': {
+                #    'default': u'优车诚品',
+                #},
+                #'company_url': {
+                #    'default': 'http://www.youche.com/',
+                #},
 
                 # 'driving_license': {
                 # 'json': '-data$#$-cr$#$-procedureInfo$#$-crDrivingLicense',

@@ -4,7 +4,7 @@ from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
-
+import pdb
 
 def city(value):
     """
@@ -16,40 +16,42 @@ def city(value):
         return value
 
 
-def phone(values):
-    """
-    """
-    vs = []
-    for value in values:
-        v = value.strip()
-        try:
-            long(v)
-        except:
-            continue
-        else:
-            vs.append(v)
-    return ''.join(vs)
+# def phone(values):
+#     vs = []
+#     for value in values:
+#         v = value.strip()
+#         try:
+#             long(v)
+#         except:
+#             continue
+#         else:
+#             vs.append(v)
+#     return ''.join(vs)
 
 
 def is_certifield_car(value):
-    """
-    """
-    return any([
-        u'7天可退' in value,
-        u'原厂联保' in value,
-    ])
+    return any([u'7天可退' in value, u'原厂联保' in value]) if isinstance(value, str) else value
 
 
 def source_type(values):
-    """
-    """
+    # print values
+    st = SOURCE_TYPE_GONGPINGJIA
     for value in values:
         if value == '1':
-            return SOURCE_TYPE_MANUFACTURER
-        if 'http://shop.58.com' in value:
-            return SOURCE_TYPE_ODEALER
-    _v = u' '.join(values)
-    if any([u'7天可退' in _v, u'原厂联保' in _v]):
-        return SOURCE_TYPE_SELLER
-    # 个人车
-    return SOURCE_TYPE_GONGPINGJIA
+            st = SOURCE_TYPE_MANUFACTURER
+            break
+        if value.startswith('icon_'):
+            st = SOURCE_TYPE_SELLER
+            break
+            # pdb.set_trace()
+            if 'renzheng' in value:
+                return SOURCE_TYPE_MANUFACTURER
+            elif 'chengxin' in value or '4S' in value:
+                return SOURCE_TYPE_SELLER
+        elif 'http://shop.58.com' in value:
+            st = SOURCE_TYPE_ODEALER
+            break
+    # _v = u' '.join(values)
+    # if is_certifield_car(_v):
+    #     st = SOURCE_TYPE_SELLER
+    return st

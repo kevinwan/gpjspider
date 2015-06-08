@@ -9,7 +9,7 @@ rule = {
     #==========================================================================
     #  基本配置
     #==========================================================================
-    'name': u'优质二手车-99好车-规则',
+    'name': u'99好车',
     'domain': '99haoche.com',
     'start_urls': ['http://www.99haoche.com/quanguo/all/?p=v1'],
 
@@ -207,10 +207,6 @@ rule = {
                     ),
                     'processors': ['first', 'strip'],
                 },
-                # contact
-                # condition_level
-                # condition_detail
-                # 
                 # maintenance_desc
             },
         },

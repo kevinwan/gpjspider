@@ -9,7 +9,8 @@ rule = {
     'start_urls': [
         'http://www.souche.com',
         # 'http://www.souche.com/henan/list-pg4',
-        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=82807b3d-58ee-4ec9-a126-1a9a6a1fe424',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6NaYXhP2BW',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
     ],
@@ -31,16 +32,14 @@ rule = {
             "xpath": (
                 url(has_cls('carItem')),
             ),
-            "format": "http://www.souche.com{0}",
+            "format": True,
             "step": 'parse_detail',
-            'update': True,
-            'category': 'usedcar'
         },
         "next_page_url": {
             "xpath": (
                 '//a[@class="next"]/@href',
             ),
-            "format": "http://www.souche.com{0}",
+            "format": True,
             "step": 'parse_list',
             # 'max_pagenum': 10,
             # 'incr_pageno': 0,
@@ -50,14 +49,6 @@ rule = {
     'parse_detail': {
         "item": {
             "class": "UsedCarItem",
-            'keys': [
-                'meta', 'title', 'dmodel', 'city', 'city_slug', 'brand_slug', 'model_slug',
-                'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
-                'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
-                'company_name', 'company_url', 'phone', 'contact', 'region', 'description', 'imgurls',
-                'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
-                'time', 'is_certifield_car', 'source_type',
-            ],
             "fields": {
                 'meta': {
                     'xpath': ('//meta[@name="Description"]/@content',),
@@ -153,7 +144,12 @@ rule = {
                     'xpath': (
                         '//a[@class="shop-name"]/@href',
                     ),
-                    'format': 'http://www.souche.com{0}',
+                    'format': True,
+                },
+                'region': {
+                    'xpath': (
+                        text(cls('add')),
+                    ),
                 },
                 # 'mandatory_insurance': {
                 #     'xpath': (
@@ -165,16 +161,11 @@ rule = {
                 #         u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
                 #     ),
                 # },
-                #  大搜车的准入规则决定都是 非运营
-                'car_application': {
-                    'default': u'非营运',
-                },
-                'quality_service': {
-                    'default': u' '.join([
-                        u'6年以内，12万公里以下 非营运车辆',
-                        # u'七天包退、七天包修',
-                        u'1年2万公里质保',
-                    ])
+                'time': {
+                    'xpath': (
+                        text(cls('push-time')),
+                        has(u'质检时间'),
+                    ),
                 },
                 'transfer_owner': {
                     'xpath': (
@@ -194,7 +185,4 @@ rule = {
     },
 }
 fmt_rule_urls(rule)
-# start_url = rule['start_urls'][0]
-# if ('html' in start_url and len(start_url) > 40) \
-#         or rule['parse']['url']['contains'][0] in start_url:
-#     rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']

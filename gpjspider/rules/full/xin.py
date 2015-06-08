@@ -8,8 +8,8 @@ rule = {
     'start_urls': [
         # 'http://www.xin.com/quanguo/s/o2a2i1v1/',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        # 'http://www.xin.com/c/10217442.html',
-        # 'http://www.xin.com/c/10254831.html',
+        #'http://www.xin.com/c/10288664.html',
+        # 'http://www.xin.com/c/10189359.html',
         # 'http://www.xin.com/c/10255141.html',
         # 'http://www.xin.com/c/10094112.html',
         # 'http://www.xin.com/c/10058394.html',
@@ -35,7 +35,7 @@ rule = {
             # "format": 'http://www.xin.com/quanguo/s/o2a2i{0}v1/',
             "format": 'http://www.xin.com/quanguo/s/o2a10i{0}v1/',
             "step": 'parse',
-            #'max_pagenum': 12000,
+            # 'max_pagenum': 1200,
             #'incr_pageno': 10,
         },
     },
@@ -121,7 +121,6 @@ rule = {
                 'transfer_owner': {
                     'xpath': (
                         after_has(u'过户次数'),
-                        u'//td[contains(text(), "过户次数")]/following-sibling::td/text()',
                     ),
                 },
                 'car_application': {
@@ -135,7 +134,9 @@ rule = {
                     ),
                 },
                 'quality_service': {
-                    'xpath': ('//div[@class="day-pic"]/img/@src',),
+                    'xpath': (
+                        img(cls('day-pic')),
+                    ),
                     'default': u'',
                     'processors': ['first', 'xin.quality_service']
                 },
@@ -156,7 +157,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-# start_url = rule['start_urls'][0]
-# if ('html' in start_url and len(start_url) > 40) \
-#         or rule['parse']['url']['contains'][0] in start_url:
-#     rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']

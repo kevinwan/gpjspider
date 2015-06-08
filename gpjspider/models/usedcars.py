@@ -75,8 +75,8 @@ class UsedCar(Base):
     phone = Column(String(128), index=True, nullable=True, doc=u'联系电话')
     company_name = Column(String(128), index=True, nullable=True)
     company_url = Column(String(500), index=True, nullable=True)
-    status = Column(
-        Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
+    status = Column(Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
+    # status = Column(index=True, default='Y', nullable=True, doc=u'状态')
     mandatory_insurance = Column(
         DateTime,  default=None, nullable=True, doc=u'交强险到期时间')
     business_insurance = Column(

@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-专属xin的 processor
-"""
-
 
 def transfer_owner(value):
-    """
-    """
     if u'一手车' in value:
         return 0
     if u'次' in value:
@@ -19,14 +13,10 @@ def transfer_owner(value):
 
 
 def company_url(value):
-    """
-    """
     return 'http://www.xin.com' + value
 
 
 def quality_service(value):
-    """
-    """
     if value == u'无':
         return ''
     else:
@@ -34,10 +24,3 @@ def quality_service(value):
             u'通过无事故承诺的好车，无重大事故，无火烧，无水淹',
             u'如若不符，15天全额包退',
         ])
-
-
-def phone(value):
-    """
-    400-9287-666转15397  ->  4009287666转15397
-    """
-    return value.replace('-', '')

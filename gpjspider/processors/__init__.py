@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-自定义 processor
-在字段规则定义中，processor路径是基于 gpjspider.processors的，
-如 cheyipai.year 表示 cheyipai 模块的 year函数
-
-processor暂不支持除 value 之外的参数
-"""
 from decimal import Decimal
 import re
 import pdb
@@ -238,6 +231,8 @@ Decimal('65')
 
 def price_bn(value):
     u'''
+>>> price_bn(u'新车指导价：39.8万')
+Decimal('39.8')
 >>> price_bn(u'新车价：29.88万+2.56万（购置税）')
 Decimal('29.88')
 >>> price_bn(u'新车：31.80万 + 2.72万购置税')
@@ -245,12 +240,13 @@ Decimal('31.80')
 >>> price_bn(u'(裸车价44.95万元+购置税3.84万元)')
 Decimal('44.95')
     '''
-    v = extract(value, ur'[新车价]{2,}[^\d]{,2}(\d*\.?\d{1,2})万', decimal)
+    # print value
+    v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})万', decimal)
     if isinstance(v, basestring) and value and not u'万' in value:
-        v = extract(value, ur'[新车价]{2,}[^\d]{,2}(\d*\.?\d{1,2})', decimal)
+        v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})', decimal)
     if isinstance(v, Decimal) and v > 10000:
         v /= 10000
-    return v
+    return v if isinstance(v, Decimal) else None
 
 
 def mile(value):
@@ -267,12 +263,17 @@ Decimal('0.06')
 Decimal('0.06')
     '''
     v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})万公里', decimal)
+    # print v
     if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
         v = extract(value, ur'(\d+)公里', decimal) / 10000
     return v
 
 
-def year(value):
+def gpj_now():
+    return datetime.now()
+
+
+def year(value, max_year=gpj_now().year):
     u'''
 >>> year('2007-1')
 2007
@@ -280,8 +281,18 @@ def year(value):
 2014
 >>> year(u'2014年')
 2014
+>>> year(u'09年')
+2009
     '''
-    return extract(extract(value, ur'(\d{4}).\d{1,2}', gpjint), ur'(\d{4}).', gpjint)
+    y = extract(extract(value, u'(\d{4}).\d{1,2}', gpjint), ur'(\d{2,4}).', gpjint)
+    if isinstance(y, int) and y < 99:
+        try:
+            y = int(y) + 2000
+            if y > max_year:
+                y -= 100
+        except:
+            pass
+    return y
 
 
 def month(value):
@@ -309,6 +320,8 @@ def year_month(value):
 u'2014-7-1'
 >>> year_month(u'2014-8-12')
 u'2014-8-1'
+>>> year_month(u'2014')
+'2014-1-1'
 >>> year_month(u'已过期').endswith('-1')
 True
     '''
@@ -319,7 +332,12 @@ True
         # print a
         return u'-'.join(a) + (len(a) == 3 and '' or '-1')
     else:
-        return u'已过期' in value and get_overdue_date() or None
+        if u'已过期' in value:
+            value = get_overdue_date()
+        else:
+            value = year(value)
+            value = '%s-1-1' % value if isinstance(value, int) else None
+        return value
 
 mandatory_insurance = year_month
 business_insurance = year_month
@@ -328,10 +346,6 @@ examine_insurance = year_month
 
 def str_to_unicode(value, encoding):
     return unicode(value, encoding) if isinstance(value, str) else value
-
-
-def gpj_now():
-    return datetime.now()
 
 
 def gpjtime(time, to_str=True):
@@ -354,9 +368,13 @@ True
         time = u'1天前'
     elif u'前天' in time:
         time = u'2天前'
+    elif u'半小时前' in time:
+        time = u'30分钟前'
     t = gpjtime_bytimedelta(time)
     time = t if isinstance(t, datetime) else gpjtime_byfmt(t)
     return to_str and time and str(time)[:19] or time
+
+time = gpjtime
 
 
 def gpjtime_bytimedelta(time, strick=False, encoding='utf-8'):
@@ -465,22 +483,22 @@ def gpjtime_strict(time, range=10):
     return t - timedelta(days=365) if t > gpj_now() + timedelta(seconds=int(range) * 60) else t
 
 
-def clean_anchor(value):
+def clean_anchor(url):
     '''
 >>> clean_anchor('http://www.che168.com/dealer/85459/4807604.html#pvareaid=100519')
 'http://www.che168.com/dealer/85459/4807604.html'
 >>> clean_anchor('/autonomous/4650620.html#pvareaid=100522#pos=11')
 '/autonomous/4650620.html'
     '''
-    return extract(value, '([^#]+)#?.*')
+    return extract(url, '([^#]+)#?.*')
 
 
-def clean_param(value):
+def clean_param(url):
     '''
 >>> clean_param('http://www.taoche.com/buycar/b-DealerSHTY1149889S.html?mz_ca=2004885&mz_sp=6sk40')
 'http://www.taoche.com/buycar/b-DealerSHTY1149889S.html'
     '''
-    return value.split('?')[0]
+    return url.split('?')[0]
 
 
 def after_space(value):
@@ -526,14 +544,16 @@ def raw_imgurls(value):
     return
 
 
-def is_certified(value):
+def is_certifield_car(value):
     u'''
->>> is_certified(u'原厂质保')
+>>> is_certifield_car(u'原厂质保')
+True
+>>> is_certifield_car(True)
 True
     '''
-    return (value == '1' or u'质保' in value or u'保障' in value or u'认证' in value) if isinstance(value, basestring) else bool(value)
-    return isinstance(value, basestring) and (value == '1' or u'质保' in value or u'保障' in value or u'认证' in value) or False
-is_certifield_car = is_certified
+    return any([value == '1', u'质保' in value, u'保障' in value, u'认证' in value, u'7天可退' in value, u'原厂联保' in value]) \
+        if isinstance(value, basestring) else bool(value)
+is_certified = is_certifield_car
 
 
 def transfer_owner(value):
@@ -542,6 +562,10 @@ def transfer_owner(value):
 0
     '''
     return (1 if (u'否' in value or u'二手' in value) else 0 if (u'是' in value or u'一手' in value) else value.rstrip(u'次')) if isinstance(value, basestring) else value
+
+
+def description(value):
+    return value.strip()
 
 
 def has_maintenance_record(value):
@@ -558,8 +582,10 @@ def phone(value):
 '18501050030'
 >>> phone('4000802020')
 '4000802020'
+>>> phone('181-1715-1473')
+'18117151473'
     '''
-    return len(value) >= 10 and value or None
+    return re.sub('\(.+\)', ' ', value.replace('-', '')).strip() if value and len(value) >= 10 else None
 
 
 if __name__ == '__main__':

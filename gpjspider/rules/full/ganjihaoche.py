@@ -8,9 +8,6 @@ rule = {
     #==========================================================================
     'name': u'赶集好车',
     'domain': 'haoche.ganji.com',
-    # start_urls  或者 start_url_template只能设置其一，
-    # start_url_function 配合 start_url_template一起用
-    #  start_url_function 必须返回一个生成器
     'start_urls': [
         #'http://haoche.ganji.com/cn/buy/',
         'http://haoche.ganji.com/www/buy/',
@@ -24,13 +21,9 @@ rule = {
         #     "url": {
         #         "xpath": ('//div[@class="c2city"]/ul/li/a/@href',),
         #         "format": "http://haoche.ganji.com{0}buy/",
-        # 新 url 对应的解析函数
         #         "step": 'parse_list',
         #     }
         # },
-        # ==========================================================================
-        # 详情页步骤  parse_list
-        # ==========================================================================
         # 'parse_list': {
         "url": {
             "xpath": (
@@ -75,6 +68,7 @@ rule = {
                 },
                 'month': {
                     'xpath': ('//li[@class="one"]/b/text()',),
+                    'default': '%(year)s',
                 },
                 'mile': {
                     'xpath': (u'//li[contains(text(), "里程")]/b/text()',),

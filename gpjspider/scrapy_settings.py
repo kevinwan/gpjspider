@@ -22,13 +22,19 @@ ITEM_PIPELINES = {
 
 DOWNLOADER_MIDDLEWARES = {
     # 'gpjspider.downloaders.FilterReduplicatedMiddleware': 1,  # 去重
-    # 'gpjspider.downloaders.ProxyMiddleware': 100,
+    'gpjspider.downloaders.ProxyMiddleware': 100,
     # 'gpjspider.downloaders.SeleniumDownloader': 110,
     # 'gpjspider.downloaders.CurlDownloader': 119,
     'scrapy.contrib.downloadermiddleware.downloadtimeout.DownloadTimeoutMiddleware': 350,
     'scrapy.contrib.downloadermiddleware.httpcompression.HttpCompressionMiddleware': 590,
 }
+COMPRESSION_ENABLED = True
 DOWNLOAD_TIMEOUT = 20
+AUTOTHROTTLE_ENABLED = True
+DOWNLOAD_DELAY = 1.25
+#AUTOTHROTTLE_START_DELAY = 0.25
+AUTOTHROTTLE_MAX_DELAY = 10
+AUTOTHROTTLE_DEBUG = True
 RETRY_ENABLED = False
 REDIRECT_ENABLED = False
 
@@ -42,22 +48,28 @@ SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleFifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeue.FifoMemoryQueue'
 
 # cookie 控制
-COOKIES_ENABLED = True
-COOKIES_DEBUG = DEBUG
+# COOKIES_ENABLED = False
+# COOKIES_DEBUG = DEBUG
 
 
 # 并发控制
 CONCURRENT_REQUESTS_PER_DOMAIN = 100
-CONCURRENT_REQUESTS_PER_DOMAIN = 60
 CONCURRENT_REQUESTS_PER_IP = 150
-CONCURRENT_REQUESTS_PER_IP = 30
+# CONCURRENT_REQUESTS_PER_DOMAIN = 40
+# CONCURRENT_REQUESTS_PER_IP = 20
+#CONCURRENT_REQUESTS_PER_DOMAIN = 20
+#CONCURRENT_REQUESTS_PER_IP = 10
 # DOWNLOAD_DELAY = 0.2
-DOWNLOAD_DELAY = 0.5
+# DOWNLOAD_DELAY = 0.25
+#DOWNLOAD_DELAY = 1.5
+# DOWNLOAD_DELAY = 2
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 # 性能调优
 AUTOTHROTTLE_ENABLED = True
-AUTOTHROTTLE_START_DELAY = 0.2
+AUTOTHROTTLE_START_DELAY = 0.25
+#AUTOTHROTTLE_START_DELAY = 1.25
+# AUTOTHROTTLE_START_DELAY = 2.5
 AUTOTHROTTLE_MAX_DELAY = 20
 AUTOTHROTTLE_DEBUG = DEBUG
 
@@ -103,12 +115,10 @@ MYSQL_SQLALCHEMY_URL = {
     'password':      'De32wsxc',
     'host':          '211.149.206.212',
     'port':          '3306',
-    # 'host':          '211.149.214.46',
-    # 'port':          '8066',
+    'host':          '211.149.214.46',
+    'port':          '8066',
     'database':      'pingjia',
     'query':         {'charset': 'utf8'},
-    #  mysql timeout 为 600，pool_recycle为create_engine的参数，不属于 URL。
-    'pool_recycle':  550,
 }
 
 

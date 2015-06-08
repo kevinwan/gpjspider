@@ -33,15 +33,13 @@ class GPJBaseSpider(scrapy.Spider):
     full_page = 20
     full_page = 12
     incr_page = 5
-    # incr_page = 3
+    incr_page = 3
     # incr_page = 0
-    # incr_page = 100
+    # full_page = 60
+    # incr_page = 30
     _incr_enabled = False
 
     def __init__(self, rule_name, checker_name=None, *args, **kwargs):
-        """
-        继承的子类必须在__init__里面调用self.checker.check()
-        """
         super(GPJBaseSpider, self).__init__(*args, **kwargs)
         self.__rule_path = rule_name
         self.website_rule = {}
@@ -64,9 +62,6 @@ class GPJBaseSpider(scrapy.Spider):
             raise ValueError('TODO')
         for attr in 'domain update'.split():
             setattr(self, attr, rule.get(attr))
-        # if self.update:
-        #     rule['parse']['item'] = rule['parse_detail']['item']
-        # self.domain = self.website_rule['domain']
         # pp(self.website_rule['parse'])
         # print self.__dict__
 
@@ -100,11 +95,8 @@ class GPJBaseSpider(scrapy.Spider):
                         start_url = c.url
                         self.detail_urls.add(start_url)
                         self.log(u'start request {0}'.format(start_url), log.INFO)
-                        # yield Request(start_url, callback=self.parse_detail,
-                        # dont_filter=True)
                         ids.append(str(c.id))
                         yield Request(start_url, callback=self.parse_detail, dont_filter=True)
-                        #yield Request(start_url, callback=self.parse_detail, dont_filter=False)
                     self.get_cursor().execute(update % ','.join(ids))
                     if len(res) < 50:
                         break
@@ -124,17 +116,16 @@ class GPJBaseSpider(scrapy.Spider):
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
-            # self.get_requests(step_rule['url'], response)
             requests = self.get_requests(step_rule['url'], response)
             for request in requests:
                 url = request.url
                 self.log('start --request {0}'.format(url))
                 yield request
+
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg)
-            # self.get_requests(page_rule, response, step_rule)
             requests = self.get_requests(page_rule, response, step_rule)
             for request in requests:
                 url = request.url
@@ -153,18 +144,21 @@ class GPJBaseSpider(scrapy.Spider):
                 'incr_page_url', step_rule.get('next_page_url'))
         return self.page_rule
 
-    def get_max_page(self, page_rule):
+    def get_max_page(self, page_rule=None):
         if self.max_page >= self.default_max_page:
+            rule = self.website_rule
+            page_rule = self.get_page_rule(rule.get('parse_list', rule.get('parse')))
             url_no = len(self.page_urls)
             if self._incr_enabled:
-                page = page_rule.get('incr_pageno', url_no > 8 and 1 or url_no > 1 and 3 or \
+                page = page_rule.get('incr_pageno', 
+                    url_no > 8 and 1 or url_no > 1 and 3 or \
                     self.incr_page)
                 # url_no = url_no > 40 and 40 or url_no
             else:
                 page = page_rule.get('max_pagenum', self.full_page)
                 #page = 31
             self.max_page = page * url_no
-            # print self.max_page
+            #print self.max_page
         return self.max_page
 
     def parse_list(self, response):
@@ -260,7 +254,6 @@ class GPJBaseSpider(scrapy.Spider):
                 request = Request(
                     url, callback=step_function, dont_filter=dont_filter, **url_dict
                 )
-                # yield request
                 ret_requests.append(request)
         else:
             urls = set([self.exec_processor(None, url_rule, url) for url in urls])
@@ -271,23 +264,22 @@ class GPJBaseSpider(scrapy.Spider):
                 if step_rule:
                     max_page = self.max_page
                     pages = len(self.page_urls)
+                    # TODO: need opt
                     if pages > max_page:
                         self.log(
                             'visit {0}/{1} pages before {2}'.format(pages, max_page, _url))
                         return []
-                        # urls = []
             else:
                 urls = urls - self.detail_urls
                 for url in urls:
                     self.detail_urls.add(url)
                 if urls and not self.update and self.domain != 'c.cheyipai.com':
                     max_page = self.get_max_page(url_rule)
+                    # max_page = self.get_max_page()
                     urls = self.clean_detail_urls(urls, _url, max_page)
-
             for url in urls:
                 request = Request(
                     url, callback=step_function, dont_filter=dont_filter)
-                # yield request
                 ret_requests.append(request)
 
         # if 'update' in url_rule and 'category' in url_rule:
@@ -304,18 +296,26 @@ class GPJBaseSpider(scrapy.Spider):
         # klass = UsedCar
         # res = session.query(klass).filter(klass.url.in_(urls)).values('url')
         query = "select url from open_product_source where url in ('%s')"
-        res = self.get_cursor().execute(query % "','".join(urls)).fetchall()
+        cursor = self.get_cursor()
+        res = cursor.execute(query % "','".join(urls)).fetchall()
         existed_urls = set([c.url for c in res])
+        cursor.close()
         new_urls = urls - existed_urls
         new_no = len(new_urls)
         all_no = len(urls)
         if new_no:
             self.log(
                 u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
-            if new_no > all_no / 3 or new_no >= 8:
-                max_page += 1.3
-        elif max_page > 30:
+            min_no = all_no / 3
+            if new_no > all_no and all_no > 5:
+                max_page += 2.1
+            elif new_no / 2 > min_no or new_no >= 20:
+                max_page += 1.6
+            elif new_no > min_no or new_no >= 8:
+                max_page += 1.1
+        elif max_page > 10:
             max_page -= 0.7
+        # print new_no, all_no
         self.max_page = max_page
 
         return new_urls
@@ -329,7 +329,7 @@ class GPJBaseSpider(scrapy.Spider):
         优先级: arg/xpath > key/json > default
         """
         nodes = []
-        item_class = import_item(item_rule['class'])
+        item_class = import_item(items_rule['class'])
         if 'xpath' in items_rule:
             nodes = response.xpath(items_rule['xpath'])
             if items_rule['is_json']:
@@ -372,8 +372,9 @@ class GPJBaseSpider(scrapy.Spider):
                     if 'regex' in field:
                         try:
                             value = re.findall(field['regex'], value)[0]
+                            # value = value and value[0] or field.get('regex_not')
                         except:
-                            pass
+                            value = field.get('regex_fail', value)
                     if 'format' in field and not value.startswith('http'):
                         value = field['format'].format(value)
                     item[field_name] = value
@@ -391,10 +392,10 @@ class GPJBaseSpider(scrapy.Spider):
             yield item
 
     item_keys = [
-        'url', 'meta', 'title', 'dmodel', 'city', 'city_slug', 'brand_slug', 'model_slug',
+        'url', 'meta', 'title', 'dmodel', 'description', 'city', 'city_slug', 'brand_slug', 'model_slug',
         'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
         'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
-        'company_name', 'company_url', 'phone', 'contact', 'region', 'description', 'imgurls',
+        'company_name', 'company_url', 'phone', 'contact', 'region', 'imgurls',
         'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
         'time', 'is_certifield_car', 'source_type',
     ]
@@ -413,7 +414,13 @@ class GPJBaseSpider(scrapy.Spider):
                 continue
             values = None
             if 'xpath' in field:
-                values = self.get_xpath(field['xpath'], response)
+                rules = field['xpath']
+                if isinstance(rules, tuple):
+                    values = self.get_xpath(rules, response)
+                else:
+                    values = []
+                    for rule in rules:
+                        values.extend(self.get_xpath([rule], response))
             if not values:
                 if 'json' in field:
                     values = self.get_json(response.body, field['json'])
@@ -439,8 +446,25 @@ class GPJBaseSpider(scrapy.Spider):
                                 if 'default' in field:
                                     value = field['default']
                                     if isinstance(value, str) and '%(' in value:
-                                        value %= item
-                                    item[field_name] = values = value
+                                        try:
+                                            value %= item
+                                        except Exception as e:
+                                            value = field.get('default_fail', value)
+                                        # print e
+                                        values = value
+                                    elif isinstance(value, (list, tuple)):
+                                        values = []
+                                        for v in value:
+                                            if '%(' in v:
+                                                try:
+                                                    v %= item
+                                                except Exception as e:
+                                                    v = field.get('default_fail', v)
+                                            values.append(v)
+                                    else:
+                                        values = value
+
+                                    item[field_name] = values
                                 else:
                                     # 连 default 都没有配置，就没有值了，说明规则不对
                                     m = u'field {0} is NULL: {1}'.format(
@@ -456,7 +480,6 @@ class GPJBaseSpider(scrapy.Spider):
                     it = self.exec_processor(field_name, field, item)
                     if isinstance(it, dict):
                         item = it
-
                 except Exception as e:
                     print e
                     # value = value or None
@@ -465,16 +488,34 @@ class GPJBaseSpider(scrapy.Spider):
                     value = item[field_name]
                 try:
                     if 'regex' in field:
-                        try:
-                            value = re.findall(field['regex'], value)[0]
-                        except Exception as e:
-                            pass
-                            # print e, field_name, value, field['regex']
-                    elif 'after' in field:
+                        regex = field['regex']
+                        if isinstance(regex, list):
+                            flag = False
+                            for reg in regex:
+                                try:
+                                    match = re.findall(reg, value)
+                                    if match:
+                                        value = match[0]
+                                        flag = True
+                                        break
+                                except Exception as e:
+                                    value = field.get('regex_fail', value)
+                                    # flag = True
+                                    break
+                            # if not re.search(regex[-1], value):
+                            if not flag: #re.search(reg, value):
+                                value = field.get('regex_not')
+                        else:
+                            try:
+                                value = re.findall(regex, value)[0]
+                            except Exception as e:
+                                value = field.get('regex_fail', value)
+                                # print value
+                    if 'after' in field:
                         value = after(value, field['after'])
-                    elif 'before' in field:
+                    if 'before' in field:
                         value = before(value, field['before'])
-                    if 'format' in field and not value.startswith('http'):
+                    if 'format' in field and not value.startswith('http') and value.startswith('/'):
                         value = field['format'].format(value)
                 except:
                     pass
@@ -541,7 +582,6 @@ class GPJBaseSpider(scrapy.Spider):
         根据字段规则定义和当前 item，对此字段进行过滤，暂时不支持 processor参数
         """
         if isinstance(field_rule, dict):
-            # processors = field_rule.get('processors', [])
             processors = field_rule.get('processors', ['first'])
         else:
             processors = [field_rule]
@@ -602,13 +642,6 @@ class GPJBaseSpider(scrapy.Spider):
         return step
 
     def format_urls(self, url_rule, urls):
-        """
-        有些时候一个简单地格式化字符串就可以得到最终的 url，有时候需要对 url 进一步处理。
-        比如: 得到的 url 是这样的：
-
-        javascript:window.open('http://bj.haoche51.com/details/20003.html')
-        这种情况下，只能去自定义函数去处理了
-        """
         if urls:
             self.log(u'got {0} urls'.format(urls))
         if 'format' not in url_rule:
