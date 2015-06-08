@@ -24,3 +24,10 @@ def quality_service(value):
             u'通过无事故承诺的好车，无重大事故，无火烧，无水淹',
             u'如若不符，15天全额包退',
         ])
+
+
+def is_certifield_car(value):
+    if value == u'无':
+        return False
+    else:
+        return True
