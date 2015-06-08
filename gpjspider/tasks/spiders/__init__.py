@@ -51,7 +51,9 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
     scrapy_setting.set('LOG_LEVEL', self.log_level.upper(), priority='cmdline')
     jobdir = os.path.join(scrapy_setting.get('JOBDIR'), domain)
     job_queue = os.path.join(jobdir, 'requests.queue')
-    os.system('[ -e {0} ] && rm -rf {0}/*'.format(job_queue))
+    #os.system('[ -e {0} ] && rm -rf {0}/*'.format(job_queue))
+    if os.path.exists(job_queue):
+        os.removedirs(job_queue)
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()
