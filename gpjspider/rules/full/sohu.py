@@ -292,7 +292,6 @@ item_rule = {
         },
         'region': {
             'xpath': (
-                # has(u'地址', prefix='*[@class="address"]//'),
                 u'//*[@class="address"]/text()',
                 # u'//*[contains(@class,"cycsrzbox")]//*[contains(text(), "地址")]/following-sibling::text()',
                 # '//*[@id="carOwnerInfo"]/div[1]/div[last()]/text()',
@@ -376,7 +375,4 @@ rule = {
 
 
 fmt_rule_urls(rule)
-# start_url = rule['start_urls'][0]
-# if ('html' in start_url and len(start_url) > 40) \
-#         or rule['parse']['url']['contains'][0] in start_url:
-#     rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']

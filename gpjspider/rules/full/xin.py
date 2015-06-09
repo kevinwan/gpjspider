@@ -72,24 +72,38 @@ item_rule = {
             ),
         },
         'city': {
-            'xpath': (u'//li/span[contains(text(), "销售城市")]/../em/text()',),
+            'xpath': (
+                has(u'销售城市', '/../em', 'li/span'),
+                u'//li/span[contains(text(), "销售城市")]/../em/text()',
+            ),
         },
         'description': {
-            'xpath': (u'//div[@class="test-report"]/div[@class="test-txt"]/ul/li/text()',),
+            'xpath': (
+                u'//div[@class="test-report"]/div[@class="test-txt"]/ul/li/text()',
+            ),
             'processors': ['join'],
         },
         'imgurls': {
-            'xpath': ('//div[@class="carimg"]/div/img/@src',),
+            'xpath': (
+                '//div[@class="carimg"]/div/img/@src',
+            ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
-            'xpath': (u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',),
+            'xpath': (
+                after_has('保险到期', 'td', 'td'),
+                u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',
+            ),
         },
         'company_name': {
-            'xpath': ('//div[@class="newcompany"]/p/text()',),
+            'xpath': (
+                '//div[@class="newcompany"]/p/text()',
+            ),
         },
         'company_url': {
-            'xpath': ('//div[@class="newcompany"]/a/@href',),
+            'xpath': (
+                '//div[@class="newcompany"]/a/@href',
+            ),
             'format': True,
         },
         'examine_insurance': {

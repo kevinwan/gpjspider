@@ -28,8 +28,8 @@ def full_url(base_url):
     return base_url + '{0}'
 
 
-def has(value, style='', prefix='', get_text=True):
-    node = u'%s*[contains(text(), "%s")]%s' % (prefix, value, style)
+def has(value, subfix='', prefix='*', get_text=True):
+    node = u'%s[contains(text(), "%s")]%s' % (prefix, value, subfix)
     return text(node) if not node.endswith('()') else ('//' + node)
 
 
@@ -75,6 +75,12 @@ u'//*[contains(text(), "t")]/following-sibling::span[1]//text()'
 'boolean(//*[@id="icon_chengxincheshang"])'
 >>> attr(has_id('icon_'), 'id')
 '//*[contains(@id,"icon_")]/@id'
+>>> has('test', '/../em', 'li/span')
+u'//li/span[contains(text(), "test")]/../em/text()'
+>>> after_has('test', 'td', 'td')
+u'//td[contains(text(), "test")]/following-sibling::td/text()'
+>>> img(cls('day-pic'))
+'//*[@class="day-pic"]/img[@src]/@src'
     '''
 
 def main():
