@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 def transfer_owner(value):
     if u'一手车' in value:
         return 0
@@ -31,3 +32,21 @@ def is_certifield_car(value):
         return False
     else:
         return True
+
+
+def volume(value):
+    """
+    例子：
+    1. 二手奥迪 A4L 2013款 2.0T 自动 35TFSI标准型二手车 - 优信二手车
+    """
+    a = value.strip().split(' ')
+    return a[3]
+
+
+def control(value):
+    """
+    例子：
+    1. 二手奥迪 A4L 2013款 2.0T 自动 35TFSI标准型二手车 - 优信二手车
+    """
+    a = value.strip().split(' ')
+    return a[4]

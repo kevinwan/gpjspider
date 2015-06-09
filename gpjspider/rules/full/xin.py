@@ -9,7 +9,9 @@ item_rule = {
     "class": "UsedCarItem",
     "fields": {
         'title': {
-            'xpath': ('//div[@class="tit"]/h1/text()',),
+            'xpath': (
+                text(has_cls("tit", "/h1")),
+            ),
             'required': True,
         },
         'meta': {
@@ -22,14 +24,17 @@ item_rule = {
             'xpath': (u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',),
         },
         'mile': {
-            'xpath': (u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',),
+            'xpath': (
+                u'//div[@class="info"]/ul/li[2]/em//text()',
+                u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',
+            ),
         },
         'volume': {
             'xpath': (u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',),
+            'default': '%(title)s',
         },
         'phone': {
             'xpath': (
-                # '//span[@id="tel_num"]/@tel',
                 text(with_cls('tel', '//span')),
             ),
             'after': ' ',
@@ -39,23 +44,32 @@ item_rule = {
         },
         'control': {
             'xpath': (u'//td[contains(text(), "变速箱")]/following-sibling::td/text()',),
+            'default': '%(title)s',
         },
         'region': {
             'xpath': (
-                '//div[@class="company"]/p[2]/text()',
+                text(cls("company", "/p[2]")),
             ),
         },
         'price': {
-            'xpath': (u'//div[@class="wan_1"]/em/text()',),
+            'xpath': (
+                text(cls("wan_1", "/em")),
+            ),
         },
         'price_bn': {
-            'xpath': (u'//div[@class="wan_2"]/span/del/text()',),
+            'xpath': (
+                text(cls("wan_2", "/span/del")),
+            ),
         },
         'brand_slug': {
-            'xpath': ('//div[@class="tit"]/h1/text()',),
+            'xpath': (
+                text(cls("tit", '/h1')),
+            ),
         },
         'model_slug': {
-            'xpath': ('//div[@class="tit"]/h1/text()',),
+            'xpath': (
+                text(cls("tit", '/h1')),
+            ),
         },
         'city': {
             'xpath': (u'//li/span[contains(text(), "销售城市")]/../em/text()',),
