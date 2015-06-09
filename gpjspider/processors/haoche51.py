@@ -44,6 +44,16 @@ def control(value):
     return de.strip()
 
 
+def region(value):
+    value = [v.strip() for v in value.split('|')][1:]
+
+    return ''.join(value)
+
+
+def contact(value):
+    return value.split('|')[0].strip()
+
+
 def brand_slug(value):
     """
     例子：
