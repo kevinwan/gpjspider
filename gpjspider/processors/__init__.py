@@ -241,7 +241,7 @@ Decimal('31.80')
 Decimal('44.95')
     '''
     # print value
-    v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})万', decimal)
+    v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})万?', decimal)
     if isinstance(v, basestring) and value and not u'万' in value:
         v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})', decimal)
     if isinstance(v, Decimal) and v > 10000:

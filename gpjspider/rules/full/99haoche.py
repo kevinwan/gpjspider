@@ -11,7 +11,7 @@ item_rule = {
         'title': {
             'xpath': (
                 text(has_cls('car-particular-right', '/h2/a')),
-                #'//div[@class="car-particular-right clearfix"]/h2/a/text()',
+                text('//title'),
             ),
             'required': True,
         },
@@ -32,24 +32,20 @@ item_rule = {
         },
         'mile': {
             'xpath': (
-                #u'//li/span[contains(text(), "行驶里程")]/../span[@class="righ"]/text()',
                 u'//div[@class="date"]/ul/li[2]/text()',
             ),
         },
         'volume': {
             'xpath': (
-                #'//div[@class="car-particular-right clearfix"]/h2/a/text()',
             ),
             'default': '%(title)s',
         },
 
         'color': {
             'xpath': (u'//li/span[contains(text(), "车身颜色")]/../text()',),
-            #'processors': ['first', '99haoche.color'],
         },
         'control': {
             'xpath': (
-                #u'//li/span[contains(text(), "变速方式")]/../span[@class="righ"]/text()',
                 u'//*[@id="carDetailDiv"]/ul/li[2]/text()',
             ),
         },
@@ -70,13 +66,11 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
-                #u'//li/span[contains(text(), "品牌车系")]/../span[@class="righ"]/text()',
                 u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
             ),
         },
         'model_slug': {
             'xpath': (
-                #u'//li/span[contains(text(), "品牌车系")]/../span[@class="righ"]/text()',
                 u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
             ),
         },
@@ -85,15 +79,13 @@ item_rule = {
         },
         'region': {
             'xpath': (
-                #u'//span[contains(text(), "看车地址")]/following-sibling::span/text()',
                 u'//p[@class="car-site"]/text()',
             ),
             'processors': ['last'],
         },
         'phone': {
             'xpath': (
-                hidden('carId'),
-                '//a[@name="showPhone2"]/text()',
+                hidden('uploadid'),
             ),
             'processors': ['first', '99haoche.phone']
         },
@@ -161,7 +153,6 @@ item_rule = {
             'xpath': (
                 u'//li/span[contains(text(), "是否一手车")]/../text()',
             ),
-            #'processors': ['first', '99haoche.transfer_owner'],
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
@@ -199,8 +190,8 @@ rule = {
     'name': u'99好车',
     'domain': '99haoche.com',
     'start_urls': [
-        #'http://www.99haoche.com/quanguo/all/?p=v1',
-        'http://www.99haoche.com/car/4486289.html',
+        'http://www.99haoche.com/quanguo/all/?p=v1',
+        #'http://www.99haoche.com/car/4486289.html',
     ],
 
     'parse': parse_rule,
@@ -211,4 +202,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
