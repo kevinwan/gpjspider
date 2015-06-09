@@ -30,7 +30,7 @@ def full_url(base_url):
 
 def has(value, subfix='', prefix='*', get_text=True):
     node = u'%s[contains(text(), "%s")]%s' % (prefix, value, subfix)
-    return text(node) if not node.endswith('()') else ('//' + node)
+    return text(node) if get_text and not node.endswith('()') else ('//' + node)
 
 
 def after_has(value, node='*', *args, **kwargs):
@@ -81,6 +81,8 @@ u'//li/span[contains(text(), "test")]/../em/text()'
 u'//td[contains(text(), "test")]/following-sibling::td/text()'
 >>> img(cls('day-pic'))
 '//*[@class="day-pic"]/img[@src]/@src'
+>>> after_has('t', 'a/@href', get_text=False)
+u'//*[contains(text(), "t")]/following-sibling::a/@href'
     '''
 
 def main():
