@@ -13,10 +13,6 @@ def transfer_owner(value):
     return value
 
 
-def company_url(value):
-    return 'http://www.xin.com' + value
-
-
 def quality_service(value):
     if value == u'无':
         return ''
@@ -28,10 +24,7 @@ def quality_service(value):
 
 
 def is_certifield_car(value):
-    if value == u'无':
-        return False
-    else:
-        return True
+    return value
 
 
 def volume(value):

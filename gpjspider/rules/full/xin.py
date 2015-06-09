@@ -85,29 +85,33 @@ item_rule = {
         },
         'imgurls': {
             'xpath': (
+                img(cls("carimg", "/div/img")),
                 '//div[@class="carimg"]/div/img/@src',
             ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
-                after_has('保险到期', 'td', 'td'),
+                after_has(u'保险到期', 'td', 'td'),
                 u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',
             ),
         },
         'company_name': {
             'xpath': (
+                text(cls("newcompany", "/p")),
                 '//div[@class="newcompany"]/p/text()',
             ),
         },
         'company_url': {
             'xpath': (
+                url(cls("newcompany", "/a")),
                 '//div[@class="newcompany"]/a/@href',
             ),
             'format': True,
         },
         'examine_insurance': {
             'xpath': (
+                after_has(u'年检有效期'),
                 u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
             ),
         },
@@ -126,13 +130,13 @@ item_rule = {
                 after_has(u'保养情况'),
             ),
         },
-        'quality_service': {
-            'xpath': (
-                img(cls('day-pic')),
-            ),
-            'default': u'',
-            'processors': ['first', 'xin.quality_service']
-        },
+        # 'quality_service': {
+        # 'xpath': (
+        #         img(cls('day-pic')),
+        #     ),
+        #     'default': u'',
+        #     'processors': ['first', 'xin.quality_service']
+        # },
         'time': {
             'xpath': (
                 after_has(u'检测时间', 'text()'),
@@ -143,7 +147,7 @@ item_rule = {
         },
         'is_certifield_car': {
             'xpath': (
-                img(cls('day-pic')),
+                exists(img(cls('day-pic'))),
             ),
             'default': False,
             'processors': ['xin.is_certifield_car']
@@ -170,9 +174,6 @@ parse_rule = {
 }
 
 rule = {
-    # ==========================================================================
-    # 基本配置
-    # ==========================================================================
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
@@ -182,13 +183,8 @@ rule = {
     'per_page': 20,
     'pages': 12000,
 
-    # ==========================================================================
-    #  默认步骤  parse
-    #==========================================================================
     'parse': parse_rule,
-    #==========================================================================
-    #  详情页步骤  parse_detail
-    #==========================================================================
+
     'parse_detail': {
         "item": item_rule,
     }
