@@ -15,6 +15,8 @@ def region(region_str):
     车主：张先生 | 公司职员
 地址：二七路轻轨站附近
     """
+    if isinstance(region_str, list):
+        region_str = region_str[0]
     return region_str.split(u'：')[-1]
 
 
