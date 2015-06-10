@@ -156,7 +156,6 @@ item_rule = {
                 after_has(u"过户次数", "span", "span"),
                 #u'//li/span[contains(text(), "过户次数")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['youche.transfer_owner'],
         },
         'condition_level': {
             'xpath': (
