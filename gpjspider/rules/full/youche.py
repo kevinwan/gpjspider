@@ -56,21 +56,18 @@ item_rule = {
                 text(cls("carTextList", "/span[1]")),
                 #'//div[@class="carTextList"]/span[1]/text()',
             ),
-            'processors': ['year'],
         },
         'month': {
             'xpath': (
                 text(cls("carTextList", "/span[1]")),
                 #'//div[@class="carTextList"]/span[1]/text()',
             ),
-            'processors': ['month'],
         },
         'mile': {
             'xpath': (
                 text(cls("carTextList", "/span[2]")),
                 #'//div[@class="carTextList"]/span[2]/text()',
             ),
-            'processors': ['mile', 'decimal'],
         },
         'volume': {
             'xpath': (
@@ -97,7 +94,6 @@ item_rule = {
                 u"//b[contains(text(), '厂家指导价')]/../../td[2]/text()",
                 #'//div[@class="nowPrice"]/b[@class="b0"]/text()',
             ),
-            'processors': ['price', 'decimal'],
         },
         'price_bn': {
             'xpath': (
@@ -105,7 +101,6 @@ item_rule = {
                 #'//div[@class="oldPrice"]/span[@class="sp01"]/s/text()',
             ),
             'regex': u"(\d+\.\d+)",
-            'processors': ['decimal'],
         },
         'brand_slug': {
             'xpath': (
@@ -145,7 +140,6 @@ item_rule = {
                 after_has(u"年检", "span", "span"),
                 #u'//li/span[contains(text(), "年检")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['youche.examine_insurance'],
         },
         # 'business_insurance': {
         # 'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
@@ -156,8 +150,6 @@ item_rule = {
                 after_has(u"交强", "span", "span"),
                 #u'//li/span[contains(text(), "交强")]/../span[@class="fr"]/text()',
             ),
-            # 处理器
-            'processors': ['youche.examine_insurance'],
         },
         'transfer_owner': {
             'xpath': (
