@@ -5,13 +5,14 @@
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from .utils import *
 
+_has = lambda x: has(x, '/..')
+
 item_rule = {
     "class": "UsedCarItem",
     "fields": {
         'title': {
             'xpath': (
                 text(has_cls('car-particular-right', '/h2/a')),
-                text('//title'),
             ),
             'required': True,
         },
@@ -40,15 +41,15 @@ item_rule = {
             ),
         },
         'volume': {
-            'xpath': (
-            ),
+            #'xpath': (
+            #),
             'default': '%(title)s',
         },
 
         'color': {
             'xpath': (
+                _has(u'车身颜色'),
                 #u'//li/span[contains(text(), "车身颜色")]/../text()',
-                has(u'车身颜色', '/..'),
             ),
         },
         'control': {
@@ -74,14 +75,14 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
-                #u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
+                u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
                 text(id_('carDetailDiv', '/div[2]/ul[1]/li[4]')),
             ),
         },
         'model_slug': {
             'xpath': (
+                u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
                 text(id_('carDetailDiv', '/div[2]/ul[1]/li[4]')),
-                #u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
             ),
         },
         'city': {
@@ -111,25 +112,26 @@ item_rule = {
         },
         'company_url': {
             'xpath': (
+                after_has(u'所属商家', 'a/@href', get_text=False),
                 u'//span[contains(text(), "所属商家")]/following-sibling::a/@href',
             ),
         },
         'driving_license': {
             'xpath': (
+                _has(u'行驶证'),
                 #u'//li/span[contains(text(), "行驶证")]/../text()',
-                has(u'行驶证', '/..'),
             ),
         },
         'invoice': {
             'xpath': (
+                _has(u'购车发票'),
                 #u'//li/span[contains(text(), "购车发票")]/../text()',
-                has(u'购车发票', '/..'),
             ),
         },
         'maintenance_record': {
             'xpath': (
+                _has(u'保养记录'),
                 #u'//li/span[contains(text(), "保养记录")]/../text()',
-                has(u'保养记录', '/..'),
             ),
         },
         # 'quality_service': {
@@ -155,14 +157,14 @@ item_rule = {
         },
         'mandatory_insurance': {
             'xpath': (
+                _has(u'交强险'),
                 #u'//li/span[contains(text(), "交强险到期时间")]/../text()',
-                has(u'交强险', '/..'),
             ),
         },
         'business_insurance': {
             'xpath': (
+                _has(u'商业险'),
                 #u'//li/span[contains(text(), "商业险到期时间")]/../text()',
-                has(u'商业险', '/..'),
             ),
         },
         'examine_insurance': {
@@ -173,8 +175,8 @@ item_rule = {
         },
         'transfer_owner': {
             'xpath': (
+                _has(u'是否一手车'),
                 #u'//li/span[contains(text(), "是否一手车")]/../text()',
-                has(u'是否一手车', '/..'),
             ),
         },
         'source_type': {
@@ -182,8 +184,8 @@ item_rule = {
         },
         'car_application': {
             'xpath': (
+                _has(u'使用性质'),
                 #u'//li/span[contains(text(), "使用性质")]/../text()',
-                has(u'使用性质', '/..'),
             ),
         },
         # maintenance_desc
@@ -216,6 +218,7 @@ rule = {
     'start_urls': [
         'http://www.99haoche.com/quanguo/all/?p=v1',
         #'http://www.99haoche.com/car/4486289.html',
+        #'http://www.99haoche.com/car/4173771.html',
     ],
 
     'parse': parse_rule,
