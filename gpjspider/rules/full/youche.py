@@ -44,7 +44,10 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            'default': '%(title)s',
+            'xpath': (
+                text(cls("carTitleInfo", "/h1")),
+                #'//div[@class="carTitleInfo"]/h1/text()',
+            ),
         },
         'meta': {
             'xpath': (
@@ -133,7 +136,7 @@ item_rule = {
                 img(cls("phoneList", "/a/img")),
                 '//div[@class="phoneList"]/a/img/@src',
             ),
-            'processors': ['join', 'strip_imgurls'],
+            'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
