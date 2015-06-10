@@ -307,13 +307,13 @@ class GPJBaseSpider(scrapy.Spider):
             self.log(
                 u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
             min_no = all_no / 3
-            if new_no > all_no and all_no > 5:
+            if new_no > all_no and all_no >= 5:
                 max_page += 2.1
             elif new_no / 2 > min_no or new_no >= 20:
                 max_page += 1.6
             elif new_no > min_no or new_no >= 8:
                 max_page += 1.1
-        elif max_page > 10:
+        elif max_page > 30:
             max_page -= 0.7
         # print new_no, all_no
         self.max_page = max_page

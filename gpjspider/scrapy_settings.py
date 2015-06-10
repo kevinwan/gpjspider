@@ -22,7 +22,7 @@ ITEM_PIPELINES = {
 
 DOWNLOADER_MIDDLEWARES = {
     # 'gpjspider.downloaders.FilterReduplicatedMiddleware': 1,  # 去重
-    'gpjspider.downloaders.ProxyMiddleware': 100,
+    #'gpjspider.downloaders.ProxyMiddleware': 100,
     # 'gpjspider.downloaders.SeleniumDownloader': 110,
     # 'gpjspider.downloaders.CurlDownloader': 119,
     'scrapy.contrib.downloadermiddleware.downloadtimeout.DownloadTimeoutMiddleware': 350,
