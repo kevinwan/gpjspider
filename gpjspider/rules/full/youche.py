@@ -41,42 +41,42 @@ item_rule = {
                 text(cls("carTitleInfo", "/h1")),
                 #'//div[@class="carTitleInfo"]/h1/text()',
             ),
-            'processors': ['first', 'strip'],
             'required': True,
+        },
+        'dmodel': {
+            'default': '%(title)s',
         },
         'meta': {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',
             ),
-            'processors': ['first', 'strip'],
         },
         'year': {
             'xpath': (
                 text(cls("carTextList", "/span[1]")),
                 #'//div[@class="carTextList"]/span[1]/text()',
             ),
-            'processors': ['first', 'strip', 'year'],
+            'processors': ['year'],
         },
         'month': {
             'xpath': (
                 text(cls("carTextList", "/span[1]")),
                 #'//div[@class="carTextList"]/span[1]/text()',
             ),
-            'processors': ['first', 'strip', 'month'],
+            'processors': ['month'],
         },
         'mile': {
             'xpath': (
                 text(cls("carTextList", "/span[2]")),
                 #'//div[@class="carTextList"]/span[2]/text()',
             ),
-            'processors': ['first', 'strip', 'mile', 'decimal'],
+            'processors': ['mile', 'decimal'],
         },
         'volume': {
             'xpath': (
                 after_has(u"排量", "span", "span"),
                 #u'//li/span[contains(text(), "排量")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
 
         'color': {
@@ -84,14 +84,12 @@ item_rule = {
                 after_has(u"颜色", "span", "span"),
                 #u'//li/span[contains(text(), "颜色")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'control': {
             'xpath': (
                 text(cls("carTextList", "/span[4]")),
                 #'//div[@class="carTextList"]/span[4]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'price': {
             'xpath': (
@@ -99,7 +97,7 @@ item_rule = {
                 u"//b[contains(text(), '厂家指导价')]/../../td[2]/text()",
                 #'//div[@class="nowPrice"]/b[@class="b0"]/text()',
             ),
-            'processors': ['first', 'strip', 'price', 'decimal'],
+            'processors': ['price', 'decimal'],
         },
         'price_bn': {
             'xpath': (
@@ -107,28 +105,25 @@ item_rule = {
                 #'//div[@class="oldPrice"]/span[@class="sp01"]/s/text()',
             ),
             'regex': u"(\d+\.\d+)",
-            'processors': ['first', 'strip', 'decimal'],
+            'processors': ['decimal'],
         },
         'brand_slug': {
             'xpath': (
                 after_has(u"品牌", "span[@class='fr']/a", "span"),
                 # u'//li/span[contains(text(), "品牌")]/../span[@class="fr"]/a/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'model_slug': {
             'xpath': (
                 after_has(u"车系", "span[@class='fr']/a", "span"),
                 # u'//li/span[contains(text(), "车系")]/../span[@class="fr"]/a/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'city': {
             'xpath': (
                 after_has(u"归属地", "span", "span"),
                 # u'//li/span[contains(text(), "归属地")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'description': {
             'xpath': (
@@ -137,7 +132,6 @@ item_rule = {
                 # '//div[@class="highlightsEidter"]/div[@class="txt"]/text()',
                 # '//div[@class="ccInfoText"]/div[@class="areaText"]/text()[1]',
             ),
-            'processors': ['join', 'strip'],
         },
         'imgurls': {
             'xpath': (
@@ -151,9 +145,7 @@ item_rule = {
                 after_has(u"年检", "span", "span"),
                 #u'//li/span[contains(text(), "年检")]/../span[@class="fr"]/text()',
             ),
-            'processors': [
-                'first', 'strip', 'youche.examine_insurance'
-            ],
+            'processors': ['youche.examine_insurance'],
         },
         # 'business_insurance': {
         # 'json': '-data$#$-cr$#$-procedureInfo$#$-crCommercialInsurance',
@@ -165,21 +157,20 @@ item_rule = {
                 #u'//li/span[contains(text(), "交强")]/../span[@class="fr"]/text()',
             ),
             # 处理器
-            'processors': ['first', 'strip', 'youche.examine_insurance'],
+            'processors': ['youche.examine_insurance'],
         },
         'transfer_owner': {
             'xpath': (
                 after_has(u"过户次数", "span", "span"),
                 #u'//li/span[contains(text(), "过户次数")]/../span[@class="fr"]/text()',
             ),
-            'processors': ['first', 'strip', 'youche.transfer_owner'],
+            'processors': ['youche.transfer_owner'],
         },
         'condition_level': {
             'xpath': (
                 after_has(u"车况", "span", "span"),
                 #u'//li/span[contains(text(), "车况")]/../span[@class="fr cup"]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         'maintenance_record': {
             'xpath': (
@@ -193,7 +184,6 @@ item_rule = {
                 text(id_("linksCallTel")),
                 '//*[@id="linksCallTel"]/text()',
             ),
-            'processors': ['first', 'strip'],
         },
         # 'contact': {
         # 'default': u'优车诚品客服',
