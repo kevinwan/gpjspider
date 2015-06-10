@@ -28,6 +28,9 @@ item_detail = {
             ),
             'required': True,
         },
+        'dmodel': {
+            'default': '%(title)s',
+        },
         'meta': {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',

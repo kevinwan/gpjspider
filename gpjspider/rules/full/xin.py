@@ -14,6 +14,9 @@ item_rule = {
             ),
             'required': True,
         },
+        'dmodel': {
+            'default': '%(title)s',
+        },
         'meta': {
             'xpath': ('//meta[@name="description"]/@content',),
         },

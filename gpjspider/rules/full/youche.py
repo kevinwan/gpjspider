@@ -44,10 +44,7 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            'xpath': (
-                text(cls("carTitleInfo", "/h1")),
-                #'//div[@class="carTitleInfo"]/h1/text()',
-            ),
+            'default': '%(title)s',
         },
         'meta': {
             'xpath': (
