@@ -101,9 +101,10 @@ item_detail = {
         },
         'region': {
             'xpath': (
-                '//p[@class="own"]/text()',
+                text(id_("kanche_addr")),
+                # '//p[@class="own"]/text()',
             ),
-            'processors': ['first', 'haoche51.region'],
+            # 'processors': ['first', 'haoche51.region'],
         },
         'description': {
             'xpath': (
@@ -159,6 +160,11 @@ item_detail = {
             ),
             'processors': ['first', 'haoche51.transfer_owner'],
             'default': 0,
+        },
+        'quality_service': {
+            'xpath': (
+                text(cls('wyno')),
+            ),
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
