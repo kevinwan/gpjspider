@@ -2,7 +2,7 @@
 """
 优信二手车 优质二手车 规则
 """
-from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from .utils import *
 
 item_rule = {
@@ -133,27 +133,35 @@ item_rule = {
                 after_has(u'保养情况'),
             ),
         },
-        # 'quality_service': {
-        # 'xpath': (
-        #         img(cls('day-pic')),
-        #     ),
-        #     'default': u'',
-        #     'processors': ['first', 'xin.quality_service']
-        # },
+        'quality_service': {
+            'xpath': (
+                u"//div[@class=day][contains(text(), '无火烧')]/text()",
+                img(cls('day-pic')),
+                img(cls("test-txt", "/p")),
+            ),
+            #'default': '',
+            'processors': ['first', 'xin.quality_service']
+        },
         'time': {
             'xpath': (
                 after_has(u'检测时间', 'text()'),
             ),
         },
-        'source_type': {
-            'default': SOURCE_TYPE_SELLER,
-        },
         'is_certifield_car': {
+            # 'xpath': (
+            #     exists(img(cls('day-pic'))),
+            # ),
+            'default': "%(quality_service)s",
+            'default_fail': False,
+            'processors': ['xin.is_certifield_car']
+        },
+        'source_type': {
             'xpath': (
-                exists(img(cls('day-pic'))),
+                img(cls("test-txt", "/p")),
+                img(cls('day-pic')),
             ),
-            'default': False,
-            # 'processors': ['xin.is_certifield_car']
+            'default': SOURCE_TYPE_ODEALER,
+            'processors': ['first', 'xin.source_type']
         },
     },
 }
@@ -180,11 +188,12 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
-        # 'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        'http://www.xin.com/c/10353602.html', # 2
-        'http://www.xin.com/c/10254412.html', # 3
-        'http://www.xin.com/c/10354226.html', # 5
-        'http://www.xin.com/c/10354157.html', # 2
+        'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        # 'http://www.xin.com/c/10353602.html',  # 2
+        # 'http://www.xin.com/c/10254412.html',  # 3
+        # 'http://www.xin.com/c/10354226.html',  # 5
+        # 'http://www.xin.com/c/10354157.html',  # 2
+        # 'http://www.xin.com/c/10358862.html',  # 3
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,

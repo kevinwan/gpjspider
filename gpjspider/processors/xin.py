@@ -14,17 +14,18 @@ def transfer_owner(value):
 
 
 def quality_service(value):
-    if value == u'无':
-        return ''
-    else:
+    if value:
         return u''.join([
-            u'通过无事故承诺的好车，无重大事故，无火烧，无水淹',
+            u'通过无事故承诺的好车，无重大事故，无火烧，无水泡',
             u'如若不符，15天全额包退',
         ])
 
 
 def is_certifield_car(value):
-    return value
+    if value:
+        return True
+
+    return False
 
 
 def volume(value):
@@ -43,3 +44,16 @@ def control(value):
     """
     a = value.strip().split(' ')
     return a[4]
+
+
+def source_type(value):
+    from gpjspider.utils.constants import SOURCE_TYPE_SELLER, SOURCE_TYPE_ODEALER, SOURCE_TYPE_MANUFACTURER
+
+    if isinstance(value, int):
+        return value
+
+    if value.find('sell_ico') != -1 or value.find('promise_ico') != -1:
+        return SOURCE_TYPE_SELLER
+
+    if value.find('presur_ico') != -1:
+        return SOURCE_TYPE_MANUFACTURER
