@@ -229,38 +229,27 @@ parse_rule = {
 }
 
 rule = {
-    # ==========================================================================
-    # 基本配置
-    #==========================================================================
     'name': u'优车诚品',
     'domain': 'youche.com',
-    # start_urls  或者 start_url_template只能设置其一，
-    # start_url_function 配合 start_url_template一起用
-    #  start_url_function 必须返回一个生成器
     'start_urls': [
-        'http://www.youche.com/ershouche/',
-        #'http://www.youche.com/',
-        # 'http://www.youche.com/detail/9719.shtml',
+        # 'http://www.youche.com/ershouche/',
+        'http://www.youche.com/detail/9719.shtml',
+        'http://www.youche.com/detail/9596.shtml',
     ],
 
-    #==========================================================================
-    #  默认步骤  parse
-    #==========================================================================
     # 'parse': {
     #     "url": {
     #         "function": new_requests,
     #         "step": 'parse_list',
     #     },
     # },
-    #==========================================================================
-    #  列表页步骤  parse_list
-    #==========================================================================
     #'parse_list': {
+
     'parse': parse_rule,
-    #==========================================================================
-    #  详情页步骤  parse_detail
-    #==========================================================================
+
     'parse_detail': {
         "item": item_rule
     },
 }
+
+rule['parse'] = rule['parse_detail']

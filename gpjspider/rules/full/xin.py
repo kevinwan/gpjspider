@@ -153,7 +153,7 @@ item_rule = {
                 exists(img(cls('day-pic'))),
             ),
             'default': False,
-            'processors': ['xin.is_certifield_car']
+            # 'processors': ['xin.is_certifield_car']
         },
     },
 }
@@ -180,7 +180,11 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
-        'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        'http://www.xin.com/c/10353602.html', # 2
+        'http://www.xin.com/c/10254412.html', # 3
+        'http://www.xin.com/c/10354226.html', # 5
+        'http://www.xin.com/c/10354157.html', # 2
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,
@@ -194,3 +198,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
+rule['parse'] = rule['parse_detail']
