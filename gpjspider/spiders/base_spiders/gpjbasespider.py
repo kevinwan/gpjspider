@@ -397,7 +397,7 @@ class GPJBaseSpider(scrapy.Spider):
         'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
         'company_name', 'company_url', 'phone', 'contact', 'region', 'imgurls',
         'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
-        'time', 'is_certifield_car', 'source_type', 'condition_level',
+        'time', 'is_certifield_car', 'source_type', 'condition_level', 'condition_detail',
     ]
 
     def get_item(self, item_rule, response):

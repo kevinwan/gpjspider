@@ -95,6 +95,12 @@ item_rule = {
             ),
             'processors': ['first', 'ganjihaoche.city_slug'],
         },
+        'region': {
+            'xpath': (
+                text(id_('base', '/ul/li[1]')),
+            ),
+            'processors': ['last']
+        },
         'description': {
             'xpath': (
                 #'//p[@class="f-type03"]/text()',
@@ -107,6 +113,15 @@ item_rule = {
                 attr(cls('dt-pictype', '/img'), 'data-original'),
             ),
             'processors': ['join', 'strip'],
+        },
+        'condition_detail': {
+            'xpath': [
+                text(id_('accident', '/span[2]')),
+                text(id_('surface', '/span[2]')),
+                text(id_('system', '/span[2]')),
+                text(id_('drive', '/span[2]')),
+            ],
+            'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
