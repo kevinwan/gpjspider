@@ -64,6 +64,9 @@ def fmt_rule_urls(rule):
             fmt_urls(rule['parse_list'], base_url)
         fmt_urls(rule['parse_detail']['item']['fields'], base_url)
 
+def has_attr2(value, subfix='', prefix='*', get_text=True):
+    node = u'%s[contains(text(), "%s")]/@%s' % (prefix, value, subfix)
+    return ('//' + node)
 
 def test():
     u'''

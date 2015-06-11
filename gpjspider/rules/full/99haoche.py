@@ -41,8 +41,8 @@ item_rule = {
             ),
         },
         'volume': {
-            #'xpath': (
-            #),
+            'xpath': (
+            ),
             'default': '%(title)s',
         },
 
@@ -134,12 +134,13 @@ item_rule = {
                 #u'//li/span[contains(text(), "保养记录")]/../text()',
             ),
         },
-        # 'quality_service': {
-        #     'xpath': (
-        #         u'//div[@class="diverse-serve"]/p/a/text()',
-        #     ),
-        #     'processors': ['join', 'strip'],
-        # },
+         'quality_service': {
+             'xpath': [
+                 has_attr2(u'质保承诺', 'title'),
+                 has_attr2(u'退换承诺', 'title'),
+             ],
+             'processors': ['join'],
+         },
         'is_certifield_car': {
             'default': 1,
         },
@@ -188,6 +189,13 @@ item_rule = {
                 #u'//li/span[contains(text(), "使用性质")]/../text()',
             ),
         },
+        'condition_level': {
+            'xpath': [
+                text(cls('rank-ico')),
+                hidden('uploadid'),             # 构造链接请求服务器对应的 level 时，需要carid
+            ],
+            'processors': ['99haoche.condition_level']
+        },
         # maintenance_desc
     },
 }
@@ -219,6 +227,8 @@ rule = {
         'http://www.99haoche.com/quanguo/all/?p=v1',
         #'http://www.99haoche.com/car/4486289.html',
         #'http://www.99haoche.com/car/4173771.html',
+        #'http://www.99haoche.com/car/4483842.html',
+        #'http://www.99haoche.com/car/4473155.html',
     ],
 
     'parse': parse_rule,

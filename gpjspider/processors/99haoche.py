@@ -36,3 +36,34 @@ def phone(value):
         print e
     return ''
 
+def condition_level(value):
+    if not isinstance(value, list):
+        return ''
+    url = "http://www.99haoche.com/ajax/getCarInspectionReport.do?carId={0}".format(value[1])
+    headers = {
+        'Host': 'www.99haoche.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0',
+        'Connection': 'keep-alive',
+    }
+
+    cookies = {
+        'JSESSIONID': 'AF228F614289D944455248AAD376AB4B',
+    }
+
+    level = ''
+
+    try:
+        s = requests.Session()
+        s.headers.update(headers)
+
+        r = s.request('GET', url, cookies=cookies)
+
+        if r and r.status_code == 200 and len(r.content) > 0:
+            jdata = r.json()
+            jdata = jdata.get('generalCheck', {})
+            if jdata:
+                level = jdata.get('level', '')
+    except Exception as e:
+        print e
+
+    return level
