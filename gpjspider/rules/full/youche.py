@@ -44,7 +44,9 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            'default': '%(title)s',
+            'xpath': (
+                after_has(u"车款", "span"),
+            ),
         },
         'meta': {
             'xpath': (
@@ -159,16 +161,16 @@ item_rule = {
         },
         'condition_level': {
             'xpath': (
-                after_has(u"车况", "span", "span"),
-                #u'//li/span[contains(text(), "车况")]/../span[@class="fr cup"]/text()',
+                after_has(u"车况", "span"),
             ),
         },
         'maintenance_record': {
             'xpath': (
+                u'boolean(//meta[@name="description" or @name="Description"][contains(@content, "4S店保养")])',
                 u'boolean(//ul[@class="ccInfoCarList"]/li[contains(text(), "保养记录")]/span[contains(text(), "已查")])',
                 u'boolean(//ul[@class="ccInfoCarList"]/li[contains(text(), "维修记录")]/span[contains(text(), "已查")])',
             ),
-            'processors': ['youche.maintenance_record'],
+            #'processors': ['youche.maintenance_record'],
         },
         'phone': {
             'xpath': (
@@ -232,9 +234,9 @@ rule = {
     'name': u'优车诚品',
     'domain': 'youche.com',
     'start_urls': [
-        # 'http://www.youche.com/ershouche/',
-        'http://www.youche.com/detail/9719.shtml',
-        'http://www.youche.com/detail/9596.shtml',
+        'http://www.youche.com/ershouche/',
+        #'http://www.youche.com/detail/9719.shtml',
+        #'http://www.youche.com/detail/9596.shtml',
     ],
 
     # 'parse': {

@@ -253,6 +253,8 @@ def mile(value):
     u'''
 >>> mile(u'0.1万公里')
 Decimal('0.1')
+>>> mile(u'26.78        万公里')
+Decimal('26.78')
 >>> mile(u'7万公里')
 Decimal('7')
 >>> mile(u'55')
@@ -262,7 +264,7 @@ Decimal('0.06')
 >>> mile(u'600')
 Decimal('0.06')
     '''
-    v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})万公里', decimal)
+    v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})\s*万公里', decimal)
     # print v
     if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
         v = extract(value, ur'(\d+)公里', decimal) / 10000
