@@ -150,10 +150,21 @@ item_rule = {
         'transfer_owner': {
             'xpath': (
                 #u'//p[@class="record-num"]/../table/tbody/tr',
-                cls('record-num', '/../table/tbody/tr'),
+                #cls('record-num', '/../table/tbody/tr'),
             ),
+            'default': '%(url)s',
             'processors': ['souche.transfer_owner'],
-            'default': 0,
+        },
+        'condition_level': {
+            'xpath': (
+                text(cls('zhijian type-item', '/div')),
+            ),
+            'processors': ['souche.condition_level'],
+        },
+        'quality_service': {
+            'xpath': (
+                text(cls('baoxian type-item', '/div')),
+            ),
         },
         'is_certifield_car': {
             'default': '%(quality_service)s',
@@ -207,6 +218,8 @@ rule = {
         #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6NaYXhP2BW',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=73415fbf-31ff-42eb-8df1-b45b347ecfaa',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=8dfddf7f-f4f6-45df-a62c-fd0420082b90',
     ],
 
     'parse': parse_rule,

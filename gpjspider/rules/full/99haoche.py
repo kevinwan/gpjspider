@@ -191,10 +191,10 @@ item_rule = {
         },
         'condition_level': {
             'xpath': [
-                text(cls('rank-ico')),
-                hidden('uploadid'),             # 构造链接请求服务器对应的 level 时，需要carid
+                #text(cls('rank-ico')),
+                #hidden('uploadid'),             # 构造链接请求服务器对应的 level 时，需要carid
             ],
-            'processors': ['99haoche.condition_level']
+            #'processors': ['99haoche.condition_level']
         },
         # maintenance_desc
     },
