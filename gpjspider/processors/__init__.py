@@ -324,6 +324,8 @@ u'2014-8-1'
 '2014-1-1'
 >>> year_month(u'已过期').endswith('-1')
 True
+>>> year_month(u'已到期').endswith('-1')
+True
     '''
     regx = re.compile(ur'(\d{4}).(\d{1,2})')
     a = regx.findall(value)
@@ -332,7 +334,7 @@ True
         # print a
         return u'-'.join(a) + (len(a) == 3 and '' or '-1')
     else:
-        if u'已过期' in value:
+        if u'已过期' in value or u'已到期' in value:
             value = get_overdue_date()
         else:
             value = year(value)
