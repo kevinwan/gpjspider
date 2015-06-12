@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-百姓二手车 规则
-"""
 from .utils import *
 
 item_rule = {
@@ -161,7 +158,7 @@ item_rule = {
 parse_rule = {
     "url": {
         "xpath": (
-            '//li[@data-aid]/a/@href'
+            '//li[@data-aid]/a/@href',
         ),
         'contains': '/ershouqiche/',
         "step": 'parse_detail',
