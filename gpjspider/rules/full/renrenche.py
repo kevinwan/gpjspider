@@ -81,11 +81,11 @@ item_rule = {
         },
         'region': {
             'xpath': (
-                #'//div[@class="text-block bottom-right"]/h3/text()',
+                # '//div[@class="text-block bottom-right"]/h3/text()',
                 #text(cls('text-block bottom-right', '/h3')),
                 #text(cls('text-block bottom-left', '/h3')),
                 #u'//*[@id="gallery"]/div[1]/div[1]/div/div/div/div/h3/text()',  # 其它地方方式不能很好的工作
-                text(id_('gallery', '/div[1]/div[1]/div/div/div/div/h3')), # 其它地方方式不能很好的工作
+                text(id_('gallery', '/div[1]/div[1]/div/div/div/div/h3')),  # 其它地方方式不能很好的工作
             ),
             'processors': ['first', 'renrenche.region'],
         },
@@ -133,7 +133,7 @@ item_rule = {
             'xpath': (
                 # '//div[@class="container detail-gallery"]/div//img/@src',
                 attr(cls('container detail-gallery', '/div//img'), 'src'),
-                #'//div[@class="detail-box-bg"]/img/@src'
+                # '//div[@class="detail-box-bg"]/img/@src'
                 attr(cls('detail-box-bg', '/img'), 'src'),
             ),
             'processors': ['join']
@@ -200,7 +200,7 @@ item_rule = {
             'xpath': (
                 # u'//*[contains(text(), "\u68c0\u6d4b\u65f6\u95f4")]/text()',
                 has(u'检测时间'),
-                #u'//*[contains(text(), "\u53d1\u5e03\u65f6\u95f4")]/text()', 
+                # u'//*[contains(text(), "\u53d1\u5e03\u65f6\u95f4")]/text()',
                 has(u'发布时间'),
                 #u'//*[contains(text(), "\u53d1\u5e03\u65f6\u95f4")]/following-sibling::*/text()',
                 after_has(u'发布时间'),
@@ -228,8 +228,8 @@ parse_rule = {
 rule = {
     'domain': 'renrenche.com',
     'start_urls': [
-        # 'http://www.renrenche.com/cn/ershouche',
-        'http://www.renrenche.com/cn/car/2f50736befc53e8d',
+        'http://www.renrenche.com/cn/ershouche',
+        #'http://www.renrenche.com/cn/car/2f50736befc53e8d',
     ],
     'name': u'人人车',
     'parse_detail': {
