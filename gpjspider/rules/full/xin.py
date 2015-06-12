@@ -135,11 +135,11 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                u"//div[@class=day][contains(text(), '无火烧')]/text()",
+                u"//div[@class=day and contains(text(), '无火烧')]/text()",
                 img(cls('day-pic')),
                 img(cls("test-txt", "/p")),
             ),
-            #'default': '',
+            'default': '',
             'processors': ['first', 'xin.quality_service']
         },
         'time': {
@@ -188,12 +188,12 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
-        'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        # 'http://www.xin.com/c/10353602.html',  # 2
-        # 'http://www.xin.com/c/10254412.html',  # 3
-        # 'http://www.xin.com/c/10354226.html',  # 5
-        # 'http://www.xin.com/c/10354157.html',  # 2
-        # 'http://www.xin.com/c/10358862.html',  # 3
+        # 'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        'http://www.xin.com/c/10353602.html',  # 2
+        'http://www.xin.com/c/10254412.html',  # 3
+        'http://www.xin.com/c/10354226.html',  # 5
+        'http://www.xin.com/c/10354157.html',  # 2
+        'http://www.xin.com/c/10358862.html',  # 3
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,

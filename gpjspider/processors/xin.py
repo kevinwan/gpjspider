@@ -14,11 +14,9 @@ def transfer_owner(value):
 
 
 def quality_service(value):
+    # TODO: 1 qs msg -> 2 exists 无事故 img -> 3. no qs
     if value:
-        return u''.join([
-            u'通过无事故承诺的好车，无重大事故，无火烧，无水泡',
-            u'如若不符，15天全额包退',
-        ])
+        return u'无重大事故，无火烧，无水泡; 如若不符，15天全额包退'
 
 
 def is_certifield_car(value):
