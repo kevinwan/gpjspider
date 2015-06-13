@@ -14,6 +14,9 @@ item_rule = {
             'xpath': (
                 has(u'车型：'),
             ),
+            'default': '',
+            'regex': u'：(\d{2,4}款\s*.*)',
+            'regex_fail': ''
         },
         'meta': {
             'xpath': ('//meta[@name="description"]/@content',),
@@ -22,6 +25,7 @@ item_rule = {
             'xpath': (
                 has(u'上牌年份：'),
             ),
+            'regex': u'：\s*(.*)',
         },
         'month': {
             'xpath': (
@@ -34,13 +38,17 @@ item_rule = {
             ),
         },
         'volume': {
+            'xpath': (
+                has(u'排量：'),
+            ),
+            'regex': u'：(.*)',
             'default': '%(dmodel)s',
         },
         'phone': {
-            'xpath': (
-                text(with_cls('tel', '//span')),
-            ),
-            'after': ' ',
+            'xpath': [
+                text(id_('num')), '//a[@data-contact]/@data-contact'
+            ],
+            'processors': ['baixing.phone']
         },
         'color': {
             'xpath': (
@@ -53,14 +61,13 @@ item_rule = {
                 has(u'变速箱：'),
             ),
             'default': '%(dmodel)s',
-            'regex': u' ([手自]\S*[动体])',
+            'regex': [u'([手自]\S*[动体])', u'变速箱：(\S+)'],
             'regex_fail': None,
         },
         'region': {
             'xpath': (
                 has(u'地区：', '/a/text()'),
             ),
-            'processors': ['join']
         },
         'price': {
             'xpath': (
@@ -79,14 +86,15 @@ item_rule = {
         },
         'model_slug': {
             'xpath': (
-                has(u'车系列：'),
+                has(u'车系列：', '/span'),
             ),
+            'regex': u'：(.*)',
         },
         'city': {
             'xpath': (
                 '//meta[@name="location"]/@content',
             ),
-            'regex': 'city=(.*)',
+            'regex': u'city=(.*)',
         },
         'description': {
             'xpath': (
@@ -108,6 +116,7 @@ item_rule = {
             'xpath': (
                 text(cls("shop-topic", '/a')),
             ),
+            'default': None
         },
         'company_url': {
             'xpath': (
@@ -128,6 +137,7 @@ item_rule = {
             'xpath': (
                 has(u'车辆用途：'),
             ),
+            'regex': u'：(.*)',
         },
         # 'maintenance_desc': {
         #     'xpath': (
@@ -145,11 +155,14 @@ item_rule = {
             ),
             'regex': u'：(.*)',
         },
-        # 'is_certifield_car': {
-        #     'xpath': (),
-        # },
+        'is_certifield_car': {
+            'default': False
+        },
         'source_type': {
-            'default': "%(company_name)s",
+            # 'xpath': (
+            #     text(cls("shop-topic", '/a')),
+            # ),
+            'default': '%(company_name)s',
             'processors': ['baixing.source_type']
         },
     },
@@ -174,12 +187,16 @@ parse_rule = {
 
 rule = {
     'name': u'百姓二手车',
-    'domain': 'baixin.com',
+    'domain': 'baixing.com',
     'start_urls': [
         'http://china.baixing.com/ershouqiche/?imageFlag=1',
         # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
         # 'http://nanning.baixing.com/ershouqiche/a751473084.html',
         # 'http://dalian.baixing.com/ershouqiche/a761320262.html',
+        # 'http://maoming.baixing.com/ershouqiche/a709950299.html',
+        # 'http://chaoyang.baixing.com/ershouqiche/a745332976.html',
+        # 'http://tianjin.baixing.com/ershouqiche/a738758222.html',
+        # 'http://chaoyang.baixing.com/ershouqiche/a753358633.html',
     ],
     # 'base_url': 'http://china.baixin.com',
     # 'per_page': 20,

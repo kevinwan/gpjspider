@@ -2,8 +2,15 @@
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER, SOURCE_TYPE_GONGPINGJIA
 
 
-def source_type(value):
-    if value:
-        SOURCE_TYPE_ODEALER
+def phone(values):
+    if isinstance(values, list):
+        return values[0].replace(4 * '*', values[1])
 
-    return SOURCE_TYPE_GONGPINGJIA
+    return None
+
+
+def source_type(value):
+    if value != 'None':
+        return SOURCE_TYPE_GONGPINGJIA
+
+    return SOURCE_TYPE_ODEALER
