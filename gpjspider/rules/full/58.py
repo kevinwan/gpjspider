@@ -176,7 +176,7 @@ item_rule = {
         # maintenance_desc
         'time': {
             'xpath': (
-                text(with_cls('time')),
+                text(cls('time')),
             ),
         },
         'source_type': {
@@ -228,7 +228,7 @@ parse_rule = {
         ),
         'format': True,
         "step": 'parse',
-        # 'max_pagenum': 15,
+        'max_pagenum': 25,
         'incr_pageno': 5,
         'incr_pageno': 8,
     },

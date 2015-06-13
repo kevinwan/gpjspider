@@ -206,8 +206,6 @@ parse_rule = {
             r'http://www\.99haoche\.com/car/\d+\.html',
         ),
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (

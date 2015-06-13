@@ -273,9 +273,8 @@ class GPJBaseSpider(scrapy.Spider):
                 urls = urls - self.detail_urls
                 for url in urls:
                     self.detail_urls.add(url)
-                if urls and not self.update and self.domain != 'c.cheyipai.com':
+                if urls and not self.update:# and self.domain != 'c.cheyipai.com':
                     max_page = self.get_max_page(url_rule)
-                    # max_page = self.get_max_page()
                     urls = self.clean_detail_urls(urls, _url, max_page)
             for url in urls:
                 request = Request(

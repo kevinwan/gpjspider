@@ -232,8 +232,4 @@ rule = {
     },
 }
 
-
-# start_url = rule['start_urls'][0]
-# if ('html' in start_url and len(start_url) > 40) \
-# or rule['parse']['url']['contains'][0] in start_url:
-# rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']

@@ -254,4 +254,4 @@ rule = {
     },
 }
 
-rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

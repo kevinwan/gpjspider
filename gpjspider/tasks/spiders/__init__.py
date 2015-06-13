@@ -14,7 +14,6 @@ from gpjspider.utils.common import create_update_spider_class
 from gpjspider.utils.common import create_incr_spider_class
 from gpjspider.utils.path import import_rule, import_update_rule
 from gpjspider.utils.path import import_full_rule, import_incr2_rule as import_incr_rule
-import pdb
 
 
 @app.task(name="run_spider", bind=True, base=GPJSpiderTask)
@@ -31,16 +30,14 @@ def run_spider(self, rule_name):
 
 
 def crawl(self, logger, logfile, spider_class, rule, rule_name):
-    # domain = rule.get('domain', 'test')
     domain = rule['domain']
-    # pidfile = self.log_dir + '/pid_' + domain
     pidfile = os.path.join(self.log_dir, domain + '.pid')
+    # pidfile = self.log_dir + '/pid_' + domain
     # pidfile = self.log_dir + '/pid_' + spider_class.name + '.pid'
     if os.path.exists(pidfile):# and not (domain == '58.com' and rule_name.startswith('full')):
         print 'already run..'
         return
     try:
-        #if rule_name.startswith('incr') and os.path.exists(logfile):
         if os.path.exists(logfile):
             os.remove(logfile)
     except:
@@ -51,7 +48,6 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
     scrapy_setting.set('LOG_LEVEL', self.log_level.upper(), priority='cmdline')
     jobdir = os.path.join(scrapy_setting.get('JOBDIR'), domain)
     job_queue = os.path.join(jobdir, 'requests.queue')
-    #os.system('[ -e {0} ] && rm -rf {0}/*'.format(job_queue))
     if os.path.exists(job_queue):
         #os.removedirs(job_queue) """ 不能删除非空目录 """
         import shutil
@@ -81,7 +77,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
 
 @app.task(name="run_full_spider", bind=True, base=GPJSpiderTask)
 def run_full_spider(self, rule_name):
-    logger = None   # get_task_logger('run_full_spider')
+    logger = None
     spider_name = 'full'
     spider_class_name = '{0}AutoSpider'.format(
         spider_name.lower().capitalize())
@@ -95,21 +91,20 @@ def run_full_spider(self, rule_name):
 
 @app.task(name="run_incr_spider", bind=True, base=GPJSpiderTask)
 def run_incr_spider(self, rule_name):
-    logger = None   # get_task_logger('run_incr_spider')
+    logger = None
     spider_name = 'incr'
     spider_class_name = '{0}AutoSpider'.format(
         spider_name.lower().capitalize())
     spider_name = spider_name + '.' + rule_name
     spider_class = create_incr_spider_class(spider_class_name, spider_name)
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
-    # pdb.set_trace()
     rule = import_incr_rule(rule_name)
     crawl(self, logger, logfile, spider_class, rule, rule_name)
 
 
 @app.task(name="run_update_spider", bind=True, base=GPJSpiderTask)
 def run_update_spider(self, rule_name):
-    logger = None   # get_task_logger('run_update_spider')
+    logger = None
     spider_name = 'update'
     spider_class_name = '{0}AutoSpider'.format(
         spider_name.lower().capitalize())
