@@ -161,7 +161,8 @@ item_rule = {
         },
         'condition_level': {
             'xpath': (
-                after_has(u"车况", "span"),
+                has(u'级车况'),
+                #after_has(u"车况", "span"),
             ),
         },
         'maintenance_record': {
@@ -170,7 +171,7 @@ item_rule = {
                 u'boolean(//ul[@class="ccInfoCarList"]/li[contains(text(), "保养记录")]/span[contains(text(), "已查")])',
                 u'boolean(//ul[@class="ccInfoCarList"]/li[contains(text(), "维修记录")]/span[contains(text(), "已查")])',
             ),
-            #'processors': ['youche.maintenance_record'],
+            'processors': ['first', 'youche.maintenance_record'],
         },
         'phone': {
             'xpath': (
@@ -234,9 +235,10 @@ rule = {
     'name': u'优车诚品',
     'domain': 'youche.com',
     'start_urls': [
-        'http://www.youche.com/ershouche/',
-        #'http://www.youche.com/detail/9719.shtml',
-        #'http://www.youche.com/detail/9596.shtml',
+        #'http://www.youche.com/ershouche/',
+        'http://www.youche.com/detail/9719.shtml',
+        'http://www.youche.com/detail/9596.shtml',
+        'http://www.youche.com/detail/10969.shtml',
     ],
 
     # 'parse': {
@@ -254,4 +256,4 @@ rule = {
     },
 }
 
-# rule['parse'] = rule['parse_detail']
+rule['parse'] = rule['parse_detail']

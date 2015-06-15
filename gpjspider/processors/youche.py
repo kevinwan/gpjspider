@@ -4,11 +4,10 @@
 """
 
 
-def maintenance_record(values):
+def maintenance_record(value):
     """
     """
-    values = [int(v) for v in values]
-    return any(values)
+    return u'是' if value == '1' else u'否'
 
 
 def transfer_owner(value):
