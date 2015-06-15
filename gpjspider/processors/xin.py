@@ -14,8 +14,14 @@ def transfer_owner(value):
 
 
 def quality_service(value):
-    # TODO: 1 qs msg -> 2 exists 无事故 img -> 3. no qs
+    import re
+
     if value:
+        if re.search(ur".*[退修换保]+.*", value):
+            return value
+        if value.find('presur_ico') != -1:
+            return u'无重大事故，无火烧，无水泡; 如若不符，15天全额包退，原厂质保'
+
         return u'无重大事故，无火烧，无水泡; 如若不符，15天全额包退'
 
 

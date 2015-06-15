@@ -21,19 +21,29 @@ item_rule = {
             'xpath': ('//meta[@name="description"]/@content',),
         },
         'year': {
-            'xpath': (u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',),
+            'xpath': (
+                text(cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
+                u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
+            ),
         },
         'month': {
-            'xpath': (u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',),
+            'xpath': (
+                text(cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
+                u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
+            ),
         },
         'mile': {
             'xpath': (
+                text(cls('br', u'/span[contains(text(), "行驶里程")]/following-sibling::em')),
                 u'//div[@class="info"]/ul/li[2]/em//text()',
                 u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',
             ),
         },
         'volume': {
-            'xpath': (u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',),
+            'xpath': (
+                text(cls('br', u'/span[contains(text(), "排量")]/following-sibling::em')),
+                u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',
+            ),
             'default': '%(title)s',
         },
         'phone': {
@@ -43,10 +53,16 @@ item_rule = {
             'after': ' ',
         },
         'color': {
-            'xpath': (u'//td[contains(text(), "颜色")]/following-sibling::td/text()',),
+            'xpath': (
+                after_has(u"颜色"),
+                u'//td[contains(text(), "颜色")]/following-sibling::td/text()',
+            ),
         },
         'control': {
-            'xpath': (u'//td[contains(text(), "变速箱")]/following-sibling::td/text()',),
+            'xpath': (
+                after_has(u"变速箱"),
+                u'//td[contains(text(), "变速箱")]/following-sibling::td/text()',
+            ),
             'default': '%(title)s',
         },
         'region': {
@@ -135,9 +151,12 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                u"//div[@class=day and contains(text(), '无火烧')]/text()",
-                img(cls('day-pic')),
+                u"//div[@class='day']/p/span[contains(text(), '退') or contains(text(), '修')  or \
+                contains(text(), '换' or contains(text(), '保'))]/text()",
+                u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or \
+                contains(text(), '换') or contains(text(), '保')]/text()",
                 img(cls("test-txt", "/p")),
+                img(cls('day-pic')),
             ),
             'default': '',
             'processors': ['first', 'xin.quality_service']
@@ -188,12 +207,13 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
-        # 'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        'http://www.xin.com/c/10353602.html',  # 2
-        'http://www.xin.com/c/10254412.html',  # 3
-        'http://www.xin.com/c/10354226.html',  # 5
-        'http://www.xin.com/c/10354157.html',  # 2
-        'http://www.xin.com/c/10358862.html',  # 3
+        'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        # 'http://www.xin.com/c/10353602.html',  # 2
+        # 'http://www.xin.com/c/10254412.html',  # 3
+        # 'http://www.xin.com/c/10354226.html',  # 5
+        # 'http://www.xin.com/c/10354157.html',  # 2
+        # 'http://www.xin.com/c/10358862.html',  # 3
+        # 'http://www.xin.com/c/10376527.html',
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,
@@ -207,4 +227,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
