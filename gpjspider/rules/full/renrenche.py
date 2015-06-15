@@ -129,6 +129,12 @@ item_rule = {
                 after_has(u'交强险'),
             ),
         },
+        'business_insurance': {
+            'xpath': (
+                after_has(u'商业险到期时间'),
+                #u'//li/span[contains(text(), "商业险到期时间")]/../text()',
+            ),
+        },
         'imgurls': {
             'xpath': (
                 # '//div[@class="container detail-gallery"]/div//img/@src',
@@ -229,7 +235,8 @@ rule = {
     'domain': 'renrenche.com',
     'start_urls': [
         'http://www.renrenche.com/cn/ershouche',
-        #'http://www.renrenche.com/cn/car/2f50736befc53e8d',
+        # 'http://www.renrenche.com/cn/car/2f50736befc53e8d',
+        # 'http://www.renrenche.com/cn/car/882c5b51c6a00d6d',
     ],
     'name': u'人人车',
     'parse_detail': {
@@ -240,3 +247,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
+#rule['parse'] = rule['parse_detail']
