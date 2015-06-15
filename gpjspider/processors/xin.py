@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 
 
+def model_slug(values):
+    m_s = values[1][:-1]
+    b_s = values[0][:-1]
+    if b_s in m_s:
+        return m_s.replace(b_s, '').replace(' ', '')
+
+    return values[2]
+
+
 def transfer_owner(value):
     if u'一手车' in value:
         return 0
@@ -26,10 +35,7 @@ def quality_service(value):
 
 
 def is_certifield_car(value):
-    if value:
-        return True
-
-    return False
+    return True if value else False
 
 
 def volume(value):
@@ -51,12 +57,12 @@ def control(value):
 
 
 def source_type(value):
-    from gpjspider.utils.constants import SOURCE_TYPE_SELLER, SOURCE_TYPE_ODEALER, SOURCE_TYPE_MANUFACTURER
+    from gpjspider.utils.constants import SOURCE_TYPE_SELLER, SOURCE_TYPE_MANUFACTURER
 
     if isinstance(value, int):
         return value
 
-    if value.find('sell_ico') != -1 or value.find('promise_ico') != -1:
+    if 'sell_ico' in value or 'promise_ico' in value:
         return SOURCE_TYPE_SELLER
 
     if value.find('presur_ico') != -1:
