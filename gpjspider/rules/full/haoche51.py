@@ -39,57 +39,59 @@ item_detail = {
         'year': {
             'xpath': (
                 text(cls("autotit", "/h2")),
-                '//div[@class="autotit"]/h2/text()',
+                #'//div[@class="autotit"]/h2/text()',
             ),
         },
         'month': {
             'xpath': (
                 text(cls("autotit", "/h2")),
-                '//div[@class="autotit"]/h2/text()',
+                #'//div[@class="autotit"]/h2/text()',
             ),
         },
         'mile': {
             'xpath': (
                 text(cls("autotit", "/h2")),
-                '//div[@class="autotit"]/h2/text()',
+                #'//div[@class="autotit"]/h2/text()',
             ),
         },
         'volume': {
             'xpath': (
                 after_has(u'排量', 'li[1]'),
-                u'//li[contains(text(), "排量")]/following-sibling::li[1]/text()',
+                #u'//li[contains(text(), "排量")]/following-sibling::li[1]/text()',
             ),
         },
         'control': {
             'xpath': (
                 text(cls("autotit", "/h2")),
-                '//div[@class="autotit"]/h2/text()',
+                #'//div[@class="autotit"]/h2/text()',
             ),
             'processors': ['first', 'haoche51.control'],
         },
         'price': {
             'xpath': (
                 text(cls("car-quotation", "/strong")),
-                '//div[@class="car-quotation"]/strong/text()',
+                #'//div[@class="car-quotation"]/strong/text()',
             ),
         },
         'price_bn': {
             'xpath': (
-                text(cls("newcarj")),
-                '//i[@class="newcarj"]/text()',
+                after_has(u'厂商指导价', 'li[1]'),
             ),
+            'regex': u'(.*)万元?'
         },
         'brand_slug': {
             'xpath': (
                 text(cls("autotit", '/strong')),
-                '//div[@class="autotit"]/strong/text()',
+                #'//div[@class="autotit"]/strong/text()',
             ),
         },
         'model_slug': {
             'xpath': (
+                text(cls("crumbs", "/a[4]")),
                 text(cls("autotit", '/strong')),
-                '//div[@class="autotit"]/strong/text()',
+                #'//div[@class="autotit"]/strong/text()',
             ),
+            'regex': u'.*二手(.*)'
         },
         'city': {
             'xpath': (
@@ -110,8 +112,8 @@ item_detail = {
             'xpath': (
                 text(cls("f-type03")),
                 text(cls("ow-sa", "/p[not(@class)]")),
-                '//p[@class="f-type03"]/text()',
-                '//div[@class="ow-sa"]/p[not(@class)]/text()'
+                #'//p[@class="f-type03"]/text()',
+                #'//div[@class="ow-sa"]/p[not(@class)]/text()'
             ),
         },
         'imgurls': {
@@ -122,8 +124,15 @@ item_detail = {
             'processors': ['join', 'raw_imgurls'],
             'processors': ['join', 'strip_imgurls'],
         },
+        'condition_detail': {
+            'xpath': (
+                "//div[@class='cd-pc']/text()[4]",
+            ),
+        },
         'contact': {
-            'xpath': ('//p[@class="own"]/text()',),
+            'xpath': (
+                '//p[@class="own"]/text()',
+            ),
             'processors': ['first', 'haoche51.contact'],
         },
         'phone': {
@@ -152,11 +161,8 @@ item_detail = {
         },
         'transfer_owner': {
             'xpath': (
-                text(cls("guohu", "/h2")),
-                text(cls("ow-sa", "/div/strong")),
-                # '//li[@class="guohu"]/text()',
-                '//div[@class="autotit"]/h2/text()[1]',
-                '//div[@class="ow-sa"]/div/strong/text()',
+                text(cls('autotit', '/h2')),
+                text(cls("ow-sa", "/div[contains(text(), '过户次数')]/strong")),
             ),
             'processors': ['first', 'haoche51.transfer_owner'],
             'default': 0,
@@ -172,14 +178,14 @@ item_detail = {
         'driving_license': {
             'xpath': (
                 has(u"行驶证", prefix="//li"),
-                u'//li[contains(text(), "行驶证")]/text()',
+                #u'//li[contains(text(), "行驶证")]/text()',
             ),
             'processors': ['first', 'haoche51.driving_license'],
         },
         'invoice': {
             'xpath': (
                 has(u"购车发票", prefix="//li"),
-                u'//li[contains(text(), "购车发票")]/text()',
+                #u'//li[contains(text(), "购车发票")]/text()',
             ),
             'processors': ['first', 'haoche51.invoice'],
         },
@@ -214,6 +220,7 @@ rule = {
     'start_urls': [
         'http://bj.haoche51.com/vehicle_list.html',
         # 'http://nj.haoche51.com/details/24703.html',
+        # 'http://sh.haoche51.com/details/29401.html',
     ],
 
     'parse': {

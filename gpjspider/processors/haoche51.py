@@ -136,10 +136,8 @@ def driving_license(value):
     行驶证
     """
     if u'行驶证' in value:
-        if u'有' in value:
-            return 1
-        else:
-            return 0
+        return u'是' if u'有' in value else u'否'
+
     return None
 
 
@@ -147,8 +145,5 @@ def invoice(value):
     """
     """
     if u'购车发票/过户发票' in value:
-        if u'有' in value:
-            return 1
-        else:
-            return 0
+        return u'是' if u'有' in value else u'否'
     return None
