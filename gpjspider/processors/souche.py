@@ -40,3 +40,10 @@ def condition_level(value):
         value = value[0]
     return re.search('\w+[+-]?', value).group()
 
+def strip_and_join(value):
+    if isinstance(value, (list, tuple)):
+        ret = ''
+        for val in value:
+            ret += val.strip().replace('\r\n', '').replace('\n', '').replace('\t', '').replace(' ', '')
+        return ret
+    return value.strip().replace('\r\n', '').replace('\n', '').replace('\t', '').replace(' ', '')

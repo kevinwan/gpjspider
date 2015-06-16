@@ -396,13 +396,14 @@ True
 >>> isinstance(gpjtime_bytimedelta(u'1星期前'), datetime)
 True
 >>> isinstance(gpjtime_bytimedelta(u'1月前'), datetime)
-False
+True
 >>> isinstance(gpjtime_bytimedelta(u'1年前'), datetime)
 False
     """
     time = str_to_unicode(time, encoding)
     tag = [(u'秒前', 'S', 1), (u'分钟前', 'S', 60), (u'小时前', 'S', 3600),
-           (u'天前', 'D', 1),  (u'周前', 'D', 7), (u'星期前', 'D', 7), ]
+           (u'天前', 'D', 1),  (u'周前', 'D', 7), (u'星期前', 'D', 7),
+           (u'个月前', 'D', 30), ]
     delta = None
     for p, u, s in tag:
         if p in time:

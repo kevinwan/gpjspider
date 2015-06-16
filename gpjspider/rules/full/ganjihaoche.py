@@ -88,12 +88,12 @@ item_rule = {
                 text(cls('choose-city', '/span')),
             ),
         },
-        'city_slug': {
-            'xpath': (
+        #'city_slug': {
+            #'xpath': (
                 #'//a[@class="toindex"]/@href',
-                attr(cls('toindex'), 'href'),
-            ),
-            'processors': ['first', 'ganjihaoche.city_slug'],
+                #attr(cls('toindex'), 'href'),
+            #),
+            #'processors': ['first', 'ganjihaoche.city_slug'],
         },
         'region': {
             'xpath': (

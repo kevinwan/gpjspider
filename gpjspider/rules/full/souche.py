@@ -90,7 +90,7 @@ item_rule = {
                 #'//div[@class="sub_title"]/text()',
                 text(cls('sub_title')),
             ),
-            'processors': ['join'],
+            'processors': ['souche.strip_and_join'],
         },
         'imgurls': {
             'xpath': (
@@ -167,7 +167,8 @@ item_rule = {
             ),
         },
         'is_certifield_car': {
-            'default': '%(quality_service)s',
+            #'default': '%(quality_service)s',
+            'default': True,
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
@@ -212,14 +213,16 @@ rule = {
     'domain': 'souche.com',
     'base_url': 'http://www.souche.com',
     'start_urls': [
-        'http://www.souche.com',
-        # 'http://www.souche.com/henan/list-pg4',
+        #'http://www.souche.com',
+         'http://www.souche.com/henan/list-pg4',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=82807b3d-58ee-4ec9-a126-1a9a6a1fe424',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6NaYXhP2BW',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=73415fbf-31ff-42eb-8df1-b45b347ecfaa',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=8dfddf7f-f4f6-45df-a62c-fd0420082b90',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
+        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=c41007ab-baf9-4c06-a787-c71bf48b463a',
     ],
 
     'parse': parse_rule,
@@ -230,4 +233,4 @@ rule = {
     },
 }
 fmt_rule_urls(rule)
-# rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
