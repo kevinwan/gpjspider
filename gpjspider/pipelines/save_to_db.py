@@ -66,9 +66,6 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         session = self.Session()
         o = klass(**item)
         try:
-            session.add(o)
-        except IntegrityError:
-            session.rollback()
             if spider.update:
                 q = session.query(klass).filter(
                     klass.url == url, klass.status.in_(['E', 'P', 'u']))
@@ -76,12 +73,15 @@ class SaveToMySQLBySqlalchemyPipeline(object):
                     q.update(dict(item, status='Y'), synchronize_session=False)
                 spider.log(u'Updated Item: {0}'.format(url))
             else:
-                spider.log(u'Dup Item: {0}'.format(url))
+                session.add(o)
+                item['id'] = o.id
+                spider.log(u'Saved Item: {0}'.format(url))
+        except IntegrityError:
+            session.rollback()
+            spider.log(u'Dup Item: {0}'.format(url))
             # spider.dup_item_amount += 1
         else:
-            item['id'] = o.id
             session.commit()
-            spider.log(u'Saved Item: {0}'.format(url))
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)
         return item

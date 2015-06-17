@@ -85,20 +85,23 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                query = "select id,url from open_product_source where status='u' and domain='%s' limit 250,300;"
+                query = "select id,url from open_product_source where status='u' and domain='%s' limit 50;"
                 # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
                 update = 'update open_product_source set status="n" where id in (%s) and status="u";'
                 while True:
-                    res = self.get_cursor().execute(query % self.domain).fetchall()
+                    q = self.get_cursor().execute(query % self.domain)
+                    res = q.fetchall()
                     ids = []
+                    # for c in q.yield_per(psize):
                     for c in res:
                         start_url = c.url
                         self.detail_urls.add(start_url)
                         self.log(u'start request {0}'.format(start_url), log.INFO)
                         ids.append(str(c.id))
                         yield Request(start_url, callback=self.parse_detail, dont_filter=True)
-                    self.get_cursor().execute(update % ','.join(ids))
-                    if len(res) < 50:
+                    if ids:
+                        self.get_cursor().execute(update % ','.join(ids))
+                    if res.count() < 50:
                         break
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']

@@ -86,6 +86,10 @@ u'//td[contains(text(), "test")]/following-sibling::td/text()'
 '//*[@class="day-pic"]/img[@src]/@src'
 >>> after_has('t', 'a/@href', get_text=False)
 u'//*[contains(text(), "t")]/following-sibling::a/@href'
+>>> url(has_cls('car-box', '//p'))
+'//*[contains(@class,"car-box")]//p/a[@href]/@href'
+>>> attr(cls('car-products'), 'href')
+'//*[@class="car-products"]/@href'
     '''
 
 def main():

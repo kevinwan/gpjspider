@@ -18,7 +18,7 @@ def format_func(url_str):
         return url_str[s:-2]
 
 
-item_detail = {
+item_rule = {
     "class": "UsedCarItem",
     "fields": {
         'title': {
@@ -192,15 +192,14 @@ item_detail = {
     },
 }
 
-parse_list_rule = {
+list_rule = {
     "url": {
         "xpath": (
-            '//div[@class="content"]/div/div/@onclick',
+            attr(cls('car-products'), 'href'),
+            # '//div[@class="content"]/div/div/@onclick',
         ),
-        "format": format_func,
+        # "format": format_func,
         "step": 'parse_detail',
-        # 'update': True,
-        # 'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
@@ -222,6 +221,7 @@ rule = {
         # 'http://nj.haoche51.com/details/24703.html',
         # 'http://sh.haoche51.com/details/29401.html',
     ],
+    'per_page': 20,
 
     'parse': {
         "url": {
@@ -232,10 +232,10 @@ rule = {
             "step": 'parse_list',
         }
     },
-    'parse_list': parse_list_rule,
+    'parse_list': list_rule,
 
     'parse_detail': {
-        "item": item_detail
+        "item": item_rule
     },
 }
 

@@ -287,6 +287,7 @@ class CarSource(Base):
     province = Column(String(32), nullable=True)
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")
+    #car_detail = relationship("CarDetailInfo", uselist=False, backref="car", onupdate="cascade")
     # One to Many
     images = relationship("CarImage", backref="car")
 
@@ -320,7 +321,7 @@ class CarDetailInfo(Base):
     quality_assurance = Column(String(50), nullable=True, doc=u'提供质保的信息')
 
     # One to One
-    car_id = Column(Integer, ForeignKey('car_source.id'))
+    car_id = Column(Integer, ForeignKey('car_source.id'), onupdate="cascade")
 
     def __repr__(self):
         return "<CarDetailInfo {0}>".format(self.id)
@@ -342,7 +343,7 @@ class CarImage(Base):
     )
 
     id = Column(Integer, primary_key=True)
-    car_id = Column(Integer, ForeignKey('car_source.id'))
+    car_id = Column(Integer, ForeignKey('car_source.id'), onupdate="cascade")
     image_name = Column(
         Enum(IMAGE_NAME_CHOICES), default='', nullable=True, doc=u'图片名'
     )
@@ -399,8 +400,6 @@ class City(Base):
 
 
 class ByYearVolume(Base):
-    """
-    """
     __tablename__ = u'open_by_year_volume'
 
     SOURCE_TYPE_CHOICE = (
