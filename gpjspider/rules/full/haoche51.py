@@ -77,13 +77,15 @@ item_rule = {
             'xpath': (
                 after_has(u'厂商指导价', 'li[1]'),
             ),
-            'regex': u'(.*)万元?'
+            'regex': u'(.*)万元?',
         },
         'brand_slug': {
             'xpath': (
+                text(cls("crumbs", "/a[3]")),
                 text(cls("autotit", '/strong')),
                 #'//div[@class="autotit"]/strong/text()',
             ),
+            'after': u'二手',
         },
         'model_slug': {
             'xpath': (
@@ -91,14 +93,16 @@ item_rule = {
                 text(cls("autotit", '/strong')),
                 #'//div[@class="autotit"]/strong/text()',
             ),
-            'regex': u'.*二手(.*)'
+            # 'regex': u'.*二手(.*)'
+            'after': u'二手',
         },
         'city': {
             'xpath': (
+                text(cls("crumbs", "/a[2]")),
                 text(cls("crumbs", "/a[1]")),
                 # '//div[@class="autotit"]/h2/text()',
             ),
-            'regex': u'(.*?)好车无忧',
+            # 'regex': u'(.*?)好车无忧',
             # 'processors': ['first', 'haoche51.city'],
         },
         'region': {
@@ -119,9 +123,9 @@ item_rule = {
         'imgurls': {
             'xpath': (
                 '//ul[@class="mrd_ul"]/li/a/img/@data-original',
-                '//div[@class="dt-pictype"]/img/@data-original',
+                # '//div[@class="dt-pictype"]/img/@data-original',
             ),
-            'processors': ['join', 'raw_imgurls'],
+            # 'processors': ['join', 'raw_imgurls'],
             'processors': ['join', 'strip_imgurls'],
         },
         'condition_detail': {
@@ -143,29 +147,29 @@ item_rule = {
         },
         'mandatory_insurance': {
             'xpath': (
-                has(u"交强险有效期", prefix="/ul/li"),
-                u'//div[@class="ow-sa1"]/ul/li[contains(text(), "交强")]/text()',
+                has(u"交强险有效期", prefix="ul/li"),
+                # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "交强")]/text()',
             ),
         },
         'business_insurance': {
             'xpath': (
-                has(u"商业险有效期", prefix="/ul/li"),
-                u'//div[@class="ow-sa1"]/ul/li[contains(text(), "商业")]/text()',
+                has(u"商业险有效期", prefix="ul/li"),
+                # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "商业")]/text()',
             ),
         },
         'examine_insurance': {
             'xpath': (
-                has(u"年检有效期", prefix="/ul/li"),
-                u'//div[@class="ow-sa1"]/ul/li[contains(text(), "年检")]/text()',
+                has(u"年检有效期", prefix="ul/li"),
+                # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "年检")]/text()',
             ),
         },
         'transfer_owner': {
             'xpath': (
                 text(cls('autotit', '/h2')),
-                text(cls("ow-sa", "/div[contains(text(), '过户次数')]/strong")),
+                # text(cls("ow-sa", "/div[contains(text(), '过户次数')]/strong")),
             ),
             'processors': ['first', 'haoche51.transfer_owner'],
-            'default': 0,
+            # 'default': 1,
         },
         'quality_service': {
             'xpath': (
@@ -177,17 +181,19 @@ item_rule = {
         },
         'driving_license': {
             'xpath': (
-                has(u"行驶证", prefix="//li"),
+                has(u"行驶证", prefix="li"),
                 #u'//li[contains(text(), "行驶证")]/text()',
             ),
-            'processors': ['first', 'haoche51.driving_license'],
+            # 'processors': ['first', 'haoche51.driving_license'],
+            'processors': ['first', 'after_colon'],
         },
         'invoice': {
             'xpath': (
-                has(u"购车发票", prefix="//li"),
+                has(u"购车发票", prefix="li"),
                 #u'//li[contains(text(), "购车发票")]/text()',
             ),
-            'processors': ['first', 'haoche51.invoice'],
+            # 'processors': ['first', 'haoche51.invoice'],
+            'processors': ['first', 'after_colon'],
         },
     },
 }
@@ -217,9 +223,9 @@ rule = {
     'name': u'好车无忧',
     'domain': 'haoche51.com',
     'start_urls': [
-        'http://bj.haoche51.com/vehicle_list.html',
-        # 'http://nj.haoche51.com/details/24703.html',
-        # 'http://sh.haoche51.com/details/29401.html',
+        # 'http://bj.haoche51.com/vehicle_list.html',
+        'http://nj.haoche51.com/details/24703.html',
+        'http://sh.haoche51.com/details/29401.html',
     ],
     'per_page': 20,
 
@@ -239,4 +245,4 @@ rule = {
     },
 }
 
-#rule['parse'] = rule['parse_detail']
+rule['parse'] = rule['parse_detail']
