@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-优信二手车 优质二手车 规则
-"""
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from .utils import *
 
@@ -87,6 +84,7 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
+                text(cls('car-tit', '/p/a[3]')),
                 text(cls("tit", '/h1')),
             ),
         },
@@ -94,9 +92,15 @@ item_rule = {
             'xpath': [
                 text(cls('car-tit', '/p/a[3]')),
                 text(cls('car-tit', '/p/a[4]')),
-                text(cls("tit", '/h1')),
+                # text(cls("tit", '/h1')),
             ],
-            'processors': ['xin.model_slug']
+            'default': '%(title)s',
+            'processors': ['xin.model_slug'],
+        },
+        'model_url': {
+            'xpath': (
+                text(cls('car-tit', '/p/a[4]')),
+            ),
         },
         'city': {
             'xpath': (
@@ -164,8 +168,8 @@ item_rule = {
                 contains(text(), '换' or contains(text(), '保'))]/text()",
                 u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or \
                 contains(text(), '换') or contains(text(), '保')]/text()",
-                img(cls("test-txt", "/p")),
-                img(cls('day-pic')),
+                img(cls("test-txt", '/')),
+                img(cls('day-pic', '/')),
             ),
             'processors': ['first', 'xin.quality_service']
         },
@@ -175,20 +179,20 @@ item_rule = {
             ),
         },
         'is_certifield_car': {
-            # 'xpath': (
-            #     exists(img(cls('day-pic'))),
-            # ),
+            'xpath': (
+                exists(cls('test-txt', '//img')),
+                # img(cls('day-pic', '/')),
+            ),
             'default': "%(quality_service)s",
             'default_fail': False,
-            'processors': ['xin.is_certifield_car']
         },
         'source_type': {
             'xpath': (
-                img(cls("test-txt", "/p")),
-                img(cls('day-pic')),
+                img(cls("test-txt", '/')),
+                img(cls('day-pic', '/')),
             ),
             'default': SOURCE_TYPE_ODEALER,
-            'processors': ['first', 'xin.source_type']
+            'processors': ['first', 'xin.source_type'],
         },
     },
 }
@@ -216,12 +220,12 @@ rule = {
     'domain': 'xin.com',
     'start_urls': [
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        # 'http://www.xin.com/c/10353602.html',  # 2
-        # 'http://www.xin.com/c/10254412.html',  # 3
-        # 'http://www.xin.com/c/10354226.html',  # 5
+        # 'http://www.xin.com/c/10353602.html',  # 5
+        # 'http://www.xin.com/c/10254412.html',  # 2
+        # 'http://www.xin.com/c/10354226.html',  # 3
         # 'http://www.xin.com/c/10354157.html',  # 2
         # 'http://www.xin.com/c/10358862.html',  # 3
-        # 'http://www.xin.com/c/10376527.html',
+        # 'http://www.xin.com/c/10376527.html',  # 3
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,
@@ -235,4 +239,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
