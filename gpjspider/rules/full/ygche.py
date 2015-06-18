@@ -13,7 +13,7 @@ item_rule = {
         },
         'dmodel': {
             'xpath': (
-                has(u'车辆信息：', '/..'),
+                has(u'车辆信息：', '/..'),#
             ),
         },
         'meta': {
@@ -23,7 +23,7 @@ item_rule = {
         },
         'year': {  # 年 YYYY 19/20** int
             'xpath': (
-                has(u'首次上牌时间：', '/..'),
+                has(u'首次上牌时间：', '/..'),#
             ),
         },
         'month': {  # 月 m 1-12 int
@@ -33,7 +33,7 @@ item_rule = {
         },
         'mile': {  # ？万公里
             'xpath': (
-                has(u'表显里程：', '/span'),
+                has(u'表显里程：', '/span'),#
             ),
         },
         'volume': {  # \d.\d 升(L/T)
@@ -49,7 +49,7 @@ item_rule = {
         },
         'control': {  # 手动/自动/手自一体
             'xpath': (
-                has(u'车辆信息：', '/..'),
+                has(u'车辆信息：', '/..'),#
             ),
             'processors':['ygche.control'],
         },
@@ -66,13 +66,13 @@ item_rule = {
         },
         'brand_slug': {  # 网站自己的品牌
             'xpath': (
-                u'//meta[@name="Keywords"]/@content',
+                u'//meta[@name="Keywords"]/@content',#
             ),
             'processors':['ygche.brand_slug'],
         },
         'model_slug': {  # 网站自己的车系
             'xpath': (
-                u'//meta[@name="Keywords"]/@content',
+                u'//meta[@name="Keywords"]/@content',#
             ),
             'processors':['ygche.model_slug'],
         },
@@ -107,7 +107,7 @@ item_rule = {
         'driving_license': {
             'xpath': (
                 #u'//*[contains(text(), "行驶本")]/following-sibling::*/@class',
-                u'//*[contains(text(), "\u884c\u9a76\u672c")]/following-sibling::*/@class',
+                u'//*[contains(text(), "\u884c\u9a76\u672c")]/following-sibling::*/@class',#
             ),
             'processors': ['ygche.driving_license']
         },
@@ -116,7 +116,7 @@ item_rule = {
                 #u'//*[contains(text(), "购车发票")]/following-sibling::*/@class',
                 u'//*[contains(text(), "\u8d2d\u8f66\u53d1\u7968")]/following-sibling::*/@class',
             ),
-            'processors': ['ygche.driving_license']
+            'processors': ['ygche.driving_license']#
         },
         #'maintenance_record': {  # 车辆是否保养: 保养记录 -> True/False
             #'xpath': (
@@ -185,30 +185,31 @@ item_rule = {
             ),
         },
         'quality_service': {  # 质保服务, tag:
-            'xpath': (
+            'xpath': (#
             ),
-            'default': u'此车享受45天或1800公里先行赔付承诺保障',
+            'default': u'此车享受45天或1800公里先行赔付承诺保障',#
         },
         'is_certifield_car': {  # 是否优质车
             # 质保服务 -> 网站提供的类似区分 -> 网站平台所有的车源性质
-            'xpath': (
-            ),
-            'default': True,
+            # 'xpath': (
+            # ),
+            'default': True,#
         },
         'source_type': {  # 来源类型
             # 1老爬虫 2优质车商 3品牌认证车商 4个人车源 5普通车商
             # 从入口爬取的所有类型要全部覆盖且能正确区分
-            'default': SOURCE_TYPE_SELLER,
+            'default': SOURCE_TYPE_SELLER,#
         },
     },
 }
 
-parse_rule = {
+list_rule = {
     "url": {  # 车源详情链接
         "xpath": (
-            u'//a[@onclick="aclick()"]//@href',
+            u'//a[@onclick="aclick()"]//@href',#
         ),
-        'format': 'http://www.ygche.com.cn{0}',
+        'format': 'http://www.ygche.com.cn{0}',#
+        'format': True,
         "step": 'parse_detail',  # 下一步解析车源详情信息
     },
     "next_page_url": {  # 车源列表翻页
@@ -216,7 +217,7 @@ parse_rule = {
             '//a[@class="pl15 forbidden next"]/@href',
         ),
         'format': True,
-        "step": 'parse',
+        "step": 'parse_list',
         'max_pagenum': 120,  # 全量爬取的最大页数
         'incr_pageno': 8,  # 增量爬取的最大页数
     },
@@ -229,30 +230,44 @@ rule = {
     # TODO: update spider for support
     'spider': {
         'domain': 'ygche.com.cn',
-        'download_delay': 2.5,
+        'download_delay': 0.5,
     },
     # 'update': True,
+    'per_page': 0,#
+    'pages': 0,#
 
     'start_urls': [
-        'http://www.ygche.com.cn/chengdu/list/',
-        'http://www.ygche.com.cn/lanzhou/list/',
-        'http://www.ygche.com.cn/wuhan/list/',
-        'http://www.ygche.com.cn/haerbing/list/',
-        'http://www.ygche.com.cn/suzhou/list/',
-        'http://www.ygche.com.cn/zhongshan/list/',
-        'http://www.ygche.com.cn/nanning/list/',
-        'http://www.ygche.com.cn/nanjing/list/',
-        'http://www.ygche.com.cn/xiamen/list/',
-        'http://www.ygche.com.cn/changzhou/list/',
+        'http://www.ygche.com.cn/city.html',
+        # 'http://www.ygche.com.cn/chengdu/list/',
+        # 'http://www.ygche.com.cn/lanzhou/list/',
+        # 'http://www.ygche.com.cn/wuhan/list/',
+        # 'http://www.ygche.com.cn/haerbing/list/',
+        # 'http://www.ygche.com.cn/suzhou/list/',
+        # 'http://www.ygche.com.cn/zhongshan/list/',
+        # 'http://www.ygche.com.cn/nanning/list/',
+        # 'http://www.ygche.com.cn/nanjing/list/',
+        # 'http://www.ygche.com.cn/xiamen/list/',
+        # 'http://www.ygche.com.cn/changzhou/list/',
         #'http://www.ygche.com.cn/detail/cd1032596.html',
         #'http://www.ygche.com.cn/detail/cd1041162.html',
         #'http://www.ygche.com.cn/detail/cd1040994.html',
     ],
 
-    'parse': parse_rule,
+    'parse': {
+        'url': {
+            'xpath': (
+                url(has_cls('select_city', '/')),
+            ),
+            'format': True,
+            'format': 'http://www.ygche.com.cn{0}list/',
+            'step': 'parse_list',
+        },
+    },
+
+    'parse_list': list_rule,
 
     'parse_detail': {
-        "item": item_rule,
+        'item': item_rule,
     }
 }
 
