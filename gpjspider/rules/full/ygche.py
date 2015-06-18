@@ -23,35 +23,35 @@ item_rule = {
         },
         'year': {  # 年 YYYY 19/20** int
             'xpath': (
-                has(u'首次上牌时间：', '/..'),#
+                has(u'首次上牌', '/span'),
             ),
         },
         'month': {  # 月 m 1-12 int
             'xpath': (
-                has(u'首次上牌时间：', '/..'),
+                has(u'首次上牌', '/span'),
             ),
         },
         'mile': {  # ？万公里
             'xpath': (
-                has(u'表显里程：', '/span'),#
+                has(u'里程', '/span'),
             ),
         },
         'volume': {  # \d.\d 升(L/T)
             'xpath': (
-                has(u'排量：', '/..'),
+                has(u'排量', '/..'),
             ),
         },
         'color': {  # 颜色描述：红、蓝色、深内饰。。
-            'xpath': (
-                has(u'车辆信息：', '/..'),
-            ),
+            #'xpath': (
+                ##has(u'车辆信息：', '/..'),
+            #),
+            'default': '%(dmodel)s',
             'processors':['ygche.color'],
         },
         'control': {  # 手动/自动/手自一体
             'xpath': (
-                has(u'车辆信息：', '/..'),#
+                after_has(u'变速器形式'),
             ),
-            'processors':['ygche.control'],
         },
         'price': {  # 车主报价或车源的成交价
             'xpath': (
@@ -66,25 +66,23 @@ item_rule = {
         },
         'brand_slug': {  # 网站自己的品牌
             'xpath': (
-                u'//meta[@name="Keywords"]/@content',#
+                text(cls('w1200 bread-Crumbs', '/a[3]')),
             ),
-            'processors':['ygche.brand_slug'],
         },
         'model_slug': {  # 网站自己的车系
             'xpath': (
-                u'//meta[@name="Keywords"]/@content',#
+                text(cls('w1200 bread-Crumbs', '/a[4]')),
             ),
-            'processors':['ygche.model_slug'],
         },
         'city': {  # 车源归属地、所在城市
             'xpath': (
-                has(u'车辆所在：', '/..'),
+                has(u'车辆所在', '/..'),
             ),
         },
-        'contact': {  # 联系人
-            'xpath': (
-            ),
-        },
+        #'contact': {  # 联系人
+            #'xpath': (
+            #),
+        #},
         'region': {  # 看车地点
             'xpath': (
                 attr(id_('aaddress'), 'data-address'),
@@ -106,17 +104,15 @@ item_rule = {
         # 行驶证、发票 有/无/齐全/..
         'driving_license': {
             'xpath': (
-                #u'//*[contains(text(), "行驶本")]/following-sibling::*/@class',
-                u'//*[contains(text(), "\u884c\u9a76\u672c")]/following-sibling::*/@class',#
+                u'//*[contains(text(), "行驶本")]/following-sibling::*/@class',
             ),
-            'processors': ['ygche.driving_license']
+            'processors': ['ygche.has_or_not'],
         },
         'invoice': {
             'xpath': (
-                #u'//*[contains(text(), "购车发票")]/following-sibling::*/@class',
-                u'//*[contains(text(), "\u8d2d\u8f66\u53d1\u7968")]/following-sibling::*/@class',
+                u'//*[contains(text(), "购车发票")]/following-sibling::*/@class',
             ),
-            'processors': ['ygche.driving_license']#
+            'processors': ['ygche.has_or_not'],
         },
         #'maintenance_record': {  # 车辆是否保养: 保养记录 -> True/False
             #'xpath': (
@@ -125,7 +121,7 @@ item_rule = {
         #},
         'maintenance_desc': { # 车辆保养记录描述
             'xpath': (
-                has(u'保养记录：', '/..'),
+                has(u'保养记录', '/..'),
             ),
         },
         # (有|无|全程|部分)?4S保养、不?齐全、有保养..
@@ -165,40 +161,41 @@ item_rule = {
         # },
         'examine_insurance': {
             'xpath': (
-                has(u'年审有效期：', '/..'),
+                has(u'年审有效期', '/..'),
             ),
         },
         'transfer_owner': {# 过户次数 int
             'xpath': (
-                has(u'过户记录：', '/..'),
+                has(u'过户记录', '/..'),
             ),
-            'processors': ['ygche.transfer_owner'],
+            #'processors': ['ygche.transfer_owner'],
         },
         'car_application': {# 家用/非营运/..
             'xpath': (
-                has(u'车辆用途：', '/..'),
+                has(u'车辆用途', '/..'),
             ),
         },
         'time': {  # 最真实的发布时间
             'xpath': (
-                has(u'上架时间：', '/span'),
+                has(u'上架时间', '/span'),
             ),
         },
         'quality_service': {  # 质保服务, tag:
-            'xpath': (#
+            'xpath': (
+                u'//*[contains(text(), "天赔付")]/parent::*/@title',
             ),
-            'default': u'此车享受45天或1800公里先行赔付承诺保障',#
         },
         'is_certifield_car': {  # 是否优质车
             # 质保服务 -> 网站提供的类似区分 -> 网站平台所有的车源性质
             # 'xpath': (
             # ),
-            'default': True,#
+            'default': '%(quality_service)s',
+            'default': False,
         },
         'source_type': {  # 来源类型
             # 1老爬虫 2优质车商 3品牌认证车商 4个人车源 5普通车商
             # 从入口爬取的所有类型要全部覆盖且能正确区分
-            'default': SOURCE_TYPE_SELLER,#
+            'default': SOURCE_TYPE_SELLER,
         },
     },
 }
@@ -206,9 +203,9 @@ item_rule = {
 list_rule = {
     "url": {  # 车源详情链接
         "xpath": (
-            u'//a[@onclick="aclick()"]//@href',#
+            attr(cls('carInfo', '/h3/a'), 'href'),
         ),
-        'format': 'http://www.ygche.com.cn{0}',#
+        #'format': 'http://www.ygche.com.cn{0}',#
         'format': True,
         "step": 'parse_detail',  # 下一步解析车源详情信息
     },
@@ -238,19 +235,11 @@ rule = {
 
     'start_urls': [
         'http://www.ygche.com.cn/city.html',
-        # 'http://www.ygche.com.cn/chengdu/list/',
-        # 'http://www.ygche.com.cn/lanzhou/list/',
-        # 'http://www.ygche.com.cn/wuhan/list/',
-        # 'http://www.ygche.com.cn/haerbing/list/',
-        # 'http://www.ygche.com.cn/suzhou/list/',
-        # 'http://www.ygche.com.cn/zhongshan/list/',
-        # 'http://www.ygche.com.cn/nanning/list/',
-        # 'http://www.ygche.com.cn/nanjing/list/',
-        # 'http://www.ygche.com.cn/xiamen/list/',
-        # 'http://www.ygche.com.cn/changzhou/list/',
         #'http://www.ygche.com.cn/detail/cd1032596.html',
         #'http://www.ygche.com.cn/detail/cd1041162.html',
         #'http://www.ygche.com.cn/detail/cd1040994.html',
+        #'http://www.ygche.com.cn/detail/zs1041021.html', # 变速器关键词多
+        #'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
     ],
 
     'parse': {

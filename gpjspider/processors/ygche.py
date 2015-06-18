@@ -38,12 +38,12 @@ def model_slug(value):
         value = value[0]
     return value.split()[-1]
 
-def driving_license(value):
+def has_or_not(value):
     if isinstance(value, (list, tuple)) and len(value) >= 1:
         value = value[0]
     if value.strip().lower() == 'yes':
-        return u'是'
-    return u'否'
+        return u'有'
+    return u'无'
 
 def condition_level(value):
     """
