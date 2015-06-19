@@ -46,7 +46,7 @@ item_rule = {
                 ##has(u'车辆信息：', '/..'),
             #),
             'default': '%(dmodel)s',
-            'processors':['ygche.color'],
+            'processors':['first', 'ygche.color'],
         },
         'control': {  # 手动/自动/手自一体
             'xpath': (
@@ -62,7 +62,7 @@ item_rule = {
             'xpath' : (
                 text(cls('price-color-gray')),
             ),
-            'processors': ['ygche.price_bn'],
+            'processors': ['first', 'ygche.price_bn'],
         },
         'brand_slug': {  # 网站自己的品牌
             'xpath': (
@@ -106,13 +106,13 @@ item_rule = {
             'xpath': (
                 u'//*[contains(text(), "行驶本")]/following-sibling::*/@class',
             ),
-            'processors': ['ygche.has_or_not'],
+            'processors': ['first', 'ygche.has_or_not'],
         },
         'invoice': {
             'xpath': (
                 u'//*[contains(text(), "购车发票")]/following-sibling::*/@class',
             ),
-            'processors': ['ygche.has_or_not'],
+            'processors': ['first', 'ygche.has_or_not'],
         },
         #'maintenance_record': {  # 车辆是否保养: 保养记录 -> True/False
             #'xpath': (
@@ -129,7 +129,7 @@ item_rule = {
             'xpath': (
                 attr(cls('rate pr', '/a'), 'class'),
             ),
-            'processors': ['ygche.condition_level'],
+            'processors': ['first', 'ygche.condition_level'],
         },
         'condition_detail': { # 车况介绍/检测报告
             'xpath': (
@@ -190,7 +190,7 @@ item_rule = {
             # 'xpath': (
             # ),
             'default': '%(quality_service)s',
-            'default': False,
+            'default': True,
         },
         'source_type': {  # 来源类型
             # 1老爬虫 2优质车商 3品牌认证车商 4个人车源 5普通车商

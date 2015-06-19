@@ -4,9 +4,6 @@ import re
 
 def color(value):
     """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
-    if isinstance(value, (list, tuple)):
-        value = value[0]
-
     return  value.split()[-1]
 
 def control(value):
@@ -18,29 +15,10 @@ def control(value):
 
 def price_bn(value):
     """ ￥24.62万（含￥1.94万购置税）"""
-    if isinstance(value, (list, tuple)):
-        value = value[0]
     price = re.findall('\d+\.?\d*', value)
     return str(float(price[0]) - float(price[1]))
 
-def brand_slug(value):
-    """ 成都二手丰田凯美瑞，成都二手 凯美瑞 """
-    if isinstance(value, (list, tuple)):
-        value = value[0]
-    value = value.split()
-    model = value[-1]
-    brand = value[0].split(u'，')[0].split(u'二手')[-1].split(model)[0]
-    return brand
-
-def model_slug(value):
-    """ 成都二手丰田凯美瑞，成都二手 凯美瑞 """
-    if isinstance(value, (list, tuple)):
-        value = value[0]
-    return value.split()[-1]
-
 def has_or_not(value):
-    if isinstance(value, (list, tuple)) and len(value) >= 1:
-        value = value[0]
     if value.strip().lower() == 'yes':
         return u'有'
     return u'无'
@@ -52,16 +30,15 @@ def condition_level(value):
         良 -> well -> B
         中 -> fair -> C
     """
-    if isinstance(value, (list, tuple)):
-        value = value[0]
+    value = value.strip().lower()
 
-    if value.strip().lower() == 'excellent':
+    if value == 'excellent':
         return  'A+'
-    elif value.strip().lower() == 'good':
+    elif value == 'good':
         return 'A'
-    elif value.strip().lower() == 'well':
+    elif value == 'well':
         return 'B'
-    elif value.strip().lower() == 'fair':
+    elif value == 'fair':
         return 'C'
     else:
         return None

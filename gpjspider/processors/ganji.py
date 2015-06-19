@@ -12,9 +12,6 @@ def transfer_owner(value):
     return int(value)
 
 def phone(value):
-    if isinstance(value, (list, tuple)):
-        value = value[0]
-
     return value.replace(' ', '')
 
 def source_type(value):
@@ -25,20 +22,9 @@ def source_type(value):
     return SOURCE_TYPE_GONGPINGJIA
 
 def contact(value):
-    if isinstance(value, (list, tuple)):
-        value = value[0]
-
     return value.strip().replace(' ', '')
 
-def price_bn(val):
-    if isinstance(val, (list, tuple)) and len(val) >= 1:
-        return Decimal(val[0])
-    return 0
-
 def mile(val):
-    if isinstance(val, (list, tuple)) and len(val) >= 1:
-        val = val[0]
-
     return val + u'万公里'
 
 def brand_slug(val):
@@ -67,6 +53,9 @@ def model_slug(val):
         if model != title:
             return model
         else:
-            model = re.search(r'\w+', model).group()
-        return model
+            model = re.search(r'\w+', model)
+            if model:
+                return model.group()
+            else:
+                return ''
     return val
