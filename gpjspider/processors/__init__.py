@@ -220,13 +220,19 @@ Decimal('12.36')
 Decimal('6.5')
 >>> price(u'¥ 65')
 Decimal('65')
+>>> price(u'面议万元')
+Decimal('0.0')
     '''
     v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})万', decimal)
     if isinstance(v, basestring) and value and not u'万' in value:
         v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})', decimal)
     if isinstance(v, Decimal) and v > 10000:
         v /= 10000
-    return v
+    if isinstance(v, Decimal):
+        return v
+    else:
+        return Decimal('0.0')
+    #return v
 
 
 def price_bn(value):
@@ -308,7 +314,7 @@ def month(value):
 >>> month(u'2012年')
     '''
     m = extract(value, ur'\d{4}.(\d{1,2})', gpjint)
-    return m if isinstance(m, int) else None
+    return m if isinstance(m, int) and m < 13 else None
 
 
 def get_overdue_date():
