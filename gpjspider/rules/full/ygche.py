@@ -96,6 +96,13 @@ item_rule = {
                 text(id_('em400')),
             ),
         },
+        'status': {
+            'xpath': (
+                text(id_('btnseecar')),
+                text(cls('already-buy')),
+            ),
+            'processors': ['first', 'ygche.status'],
+        },
         # 'company_name': {  # 商家名称
         #     'xpath': (
         #     ),
@@ -236,12 +243,14 @@ rule = {
 
     'start_urls': [
         # 'http://www.ygche.com.cn/city.html',
-        'http://www.ygche.com.cn/nanning/list/',
+        #'http://www.ygche.com.cn/nanning/list/',
         #'http://www.ygche.com.cn/detail/cd1032596.html',
         #'http://www.ygche.com.cn/detail/cd1041162.html',
         #'http://www.ygche.com.cn/detail/cd1040994.html',
         # 'http://www.ygche.com.cn/detail/zs1041021.html', # 变速器关键词多
         # 'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
+        'http://www.ygche.com.cn/detail/cd1042422.html', # 在售
+        'http://www.ygche.com.cn/detail/cd1019953.html', # 已售
     ],
 
     'parse': {
@@ -264,4 +273,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-# rule['parse'] = rule['parse_detail']
+rule['parse'] = rule['parse_detail']

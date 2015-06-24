@@ -48,6 +48,10 @@ def condition_level(value):
     else:
         return None
 
+def status(value):
+    if u'看车' in value:
+        return 'Y'
+    return 'Q'
 # def transfer_owner(value):
 #     if isinstance(value, (list, tuple)):
 #         value = value[0]

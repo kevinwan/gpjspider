@@ -34,10 +34,18 @@ class UsedCar(Base):
         ('E', u'(E)清理失败'),
     )
     STATUS_CHOICE = (
-        'Y',  # initial status once crawled
-        'N',  # unknown
-        'A',  # Active
-        'I',  # Inactive
+        #'Y',  # initial status once crawled
+        #'N',  # unknown
+        #'A',  # Active
+        #'I',  # Inactive
+        'M', #'(M)新加入的产品或在后台被修改过'),
+        'N', #'(N)不在前台呈现'),
+        'Q', #'(Q)已售出'),
+        'T', #'(T)重复记录'),
+        'W', #'(W)没有缩略图'),
+        'X', #'(X)没有联系方式'),
+        'Y', #'(Y)信息完整，优先呈现'),
+        'E', #'(E)清理失败'),
     )
 
     __tablename__ = u'open_product_source'

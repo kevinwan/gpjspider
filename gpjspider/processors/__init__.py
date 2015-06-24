@@ -200,12 +200,12 @@ def strip_imgurls(urls_with_query):
     return ' '.join(new_urls)
 
 
-def status(value):
-    if value == '1':
-        return True
-    elif value == '0':
-        return False
-    return bool(value)
+#def status(value):
+    #if value == '1':
+        #return True
+    #elif value == '0':
+        #return False
+    #return bool(value)
 
 
 def price(value):

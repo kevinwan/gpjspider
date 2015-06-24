@@ -69,6 +69,9 @@ def has_attr2(value, subfix='', prefix='*', get_text=True):
     node = u'%s[contains(text(), "%s")]/@%s' % (prefix, value, subfix)
     return ('//' + node)
 
+def before_has(value, node='*', *args, **kwargs):
+    return has(value, '/preceding-sibling::' + node, *args, **kwargs)
+
 def test():
     u'''
 >>> has(u't')

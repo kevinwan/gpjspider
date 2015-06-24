@@ -65,6 +65,7 @@ class UsedCarItem(GpjspiderItem):
     phone = Field()
     company_name = Field()
     company_url = Field()
+    status = Field()
     mandatory_insurance = Field()
     business_insurance = Field()
     examine_insurance = Field()
