@@ -9,7 +9,6 @@ __ALL__ = (
     'get_gpj_category', 'get_gpj_detail_model', 'process_detail_model_string'
 )
 Session = get_mysql_connect()
-import pdb
 
 
 def get_average_price(brand, model, year, volume):
@@ -27,9 +26,18 @@ def get_gpj_category(brand, model, domain):
 >>> get_gpj_category(u'凯迪拉克', u'凯雷德ESCALADE', 'souche.com')
     """
     session = Session()
-    query = session.query(CategoryDict).filter_by(
-        domain=domain, name=model, parent=brand).first()
-    return query and query.category or None
+    query = session.query(CategoryDict)
+    # if domain == 'xin.com':
+    if brand is None:
+        query = query.filter_by(domain=domain, url=model)
+    else:
+        query = query.filter_by(domain=domain, name=model, parent=brand)
+    amount = query.count()
+    if amount == 1:
+        query = query.first()
+        return query and query.category or None
+    else:
+        print amount, domain, brand, model
 
 
 def get_gpj_detail_model(gpj_slug, detail_model_str, domain):

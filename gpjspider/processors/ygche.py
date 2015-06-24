@@ -2,26 +2,31 @@
 #-*-coding:utf-8-*-
 import re
 
+
 def color(value):
     """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
-    return  value.split()[-1]
+    return value.split()[-1]
 
-def control(value):
-    """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
-    if isinstance(value, (list, tuple)):
-        value = value[0]
 
-    return  value.split()[-2]
+# def control(value):
+#     """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
+#     if isinstance(value, (list, tuple)):
+#         value = value[0]
+
+#     return value.split()[-2]
+
 
 def price_bn(value):
     """ ￥24.62万（含￥1.94万购置税）"""
     price = re.findall('\d+\.?\d*', value)
     return str(float(price[0]) - float(price[1]))
 
+
 def has_or_not(value):
     if value.strip().lower() == 'yes':
         return u'有'
     return u'无'
+
 
 def condition_level(value):
     """
@@ -33,7 +38,7 @@ def condition_level(value):
     value = value.strip().lower()
 
     if value == 'excellent':
-        return  'A+'
+        return 'A+'
     elif value == 'good':
         return 'A'
     elif value == 'well':
@@ -43,11 +48,11 @@ def condition_level(value):
     else:
         return None
 
-def transfer_owner(value):
-    if isinstance(value, (list, tuple)):
-        value = value[0]
+# def transfer_owner(value):
+#     if isinstance(value, (list, tuple)):
+#         value = value[0]
 
-    if  value.strip() == u'一手车':
-        return 0
-    else:
-        return 1
+#     if  value.strip() == u'一手车':
+#         return 0
+#     else:
+#         return 1

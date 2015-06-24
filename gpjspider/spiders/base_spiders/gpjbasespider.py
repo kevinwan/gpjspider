@@ -30,7 +30,9 @@ def debug():
 
 class GPJBaseSpider(scrapy.Spider):
     default_max_page = 10000
-    full_page = 20
+    full_page = 600
+    # full_page = 30
+    # full_page = 20
     full_page = 12
     incr_page = 5
     incr_page = 3
@@ -38,6 +40,7 @@ class GPJBaseSpider(scrapy.Spider):
     # full_page = 60
     # incr_page = 30
     _incr_enabled = False
+    _is_export = False
 
     def __init__(self, rule_name, checker_name=None, *args, **kwargs):
         super(GPJBaseSpider, self).__init__(*args, **kwargs)
@@ -62,8 +65,15 @@ class GPJBaseSpider(scrapy.Spider):
             raise ValueError('TODO')
         for attr in 'domain update'.split():
             setattr(self, attr, rule.get(attr))
+        self._is_export and self.export_incr_rule(rule_name)
         # pp(self.website_rule['parse'])
-        # print self.__dict__
+        # debug()
+
+    def export_incr_rule(self, rule_name):
+        rule_name = rule_name.split('.')[-1]
+        with open('gpjspider/rules/incr/%s.json' % rule_name, 'w') as fp:
+            data = json.dumps(self.website_rule)
+            fp.write(data)
 
     def setup_rule(self, rule_name):
         pass
@@ -208,8 +218,10 @@ class GPJBaseSpider(scrapy.Spider):
         #             break
         tmp_urls = set()
         if 'contains' in url_rule:
+            contains = url_rule['contains']
+            contains = [contains] if isinstance(contains, str) else contains
             for url in urls:
-                if not any([info in url for info in url_rule['contains']]):
+                if not any([info in url for info in contains]):
                     tmp_urls.add(url)
         if 'excluded' in url_rule:
             for url in urls:
@@ -219,7 +231,7 @@ class GPJBaseSpider(scrapy.Spider):
                         break
         if tmp_urls:
             self.log(u'Dups URL:{0}'.format(tmp_urls), log.INFO)
-        urls = urls - tmp_urls
+        urls -= tmp_urls
 
         urls = self.format_urls(url_rule, urls)
 
@@ -261,7 +273,7 @@ class GPJBaseSpider(scrapy.Spider):
         else:
             urls = set([self.exec_processor(None, url_rule, url) for url in urls])
             if dont_filter:
-                urls = urls - self.page_urls
+                urls -= self.page_urls
                 for url in urls:
                     self.page_urls.add(url)
                 if step_rule:
@@ -273,7 +285,7 @@ class GPJBaseSpider(scrapy.Spider):
                             'visit {0}/{1} pages before {2}'.format(pages, max_page, _url))
                         return []
             else:
-                urls = urls - self.detail_urls
+                urls -= self.detail_urls
                 for url in urls:
                     self.detail_urls.add(url)
                 if urls and not self.update:# and self.domain != 'c.cheyipai.com':
@@ -315,11 +327,9 @@ class GPJBaseSpider(scrapy.Spider):
                 max_page += 1.6
             elif new_no > min_no or new_no >= 8:
                 max_page += 1.1
-        elif max_page > 30:
+        elif max_page > 50:
             max_page -= 0.7
-        # print new_no, all_no
         self.max_page = max_page
-
         return new_urls
 
     def get_cursor(self):
@@ -337,7 +347,7 @@ class GPJBaseSpider(scrapy.Spider):
             if items_rule['is_json']:
                 nodes = self.load_json(nodes.extract()[0])
         elif 'json' in items_rule:
-            json_str = response.body    # .encode('utf-8')
+            json_str = response.body
             nodes = self.get_json(json_str, items_rule['json'])
         res_url = response.url
         for item_node in nodes:
@@ -394,7 +404,7 @@ class GPJBaseSpider(scrapy.Spider):
             yield item
 
     item_keys = [
-        'url', 'meta', 'title', 'dmodel', 'description', 'city', 'city_slug', 'brand_slug', 'model_slug',
+        'url', 'meta', 'title', 'dmodel', 'description', 'city', 'city_slug', 'brand_slug', 'model_slug', 'model_url',
         'volume', 'year', 'month', 'mile', 'control', 'color', 'price_bn',
         'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
         'company_name', 'company_url', 'phone', 'contact', 'region', 'imgurls',
@@ -447,12 +457,11 @@ class GPJBaseSpider(scrapy.Spider):
                             if not values:
                                 if 'default' in field:
                                     value = field['default']
-                                    if isinstance(value, str) and '%(' in value:
+                                    if isinstance(value, basestring) and '%(' in value:
                                         try:
                                             value %= item
                                         except Exception as e:
                                             value = field.get('default_fail', value)
-                                        # print e
                                         values = value
                                     elif isinstance(value, (list, tuple)):
                                         values = []
@@ -504,8 +513,7 @@ class GPJBaseSpider(scrapy.Spider):
                                     value = field.get('regex_fail', value)
                                     # flag = True
                                     break
-                            # if not re.search(regex[-1], value):
-                            if not flag: #re.search(reg, value):
+                            if not flag:
                                 value = field.get('regex_not')
                         else:
                             try:
@@ -535,9 +543,13 @@ class GPJBaseSpider(scrapy.Spider):
 
     def get_xpath(self, xpath_rules, response):
         for xpath_rule in xpath_rules:
-            values = response.xpath(xpath_rule).extract()
-            if values:
-                return values
+            try:
+                values = response.xpath(xpath_rule).extract()
+                if values:
+                    return values
+            except Exception as e:
+                print locals()
+                print e
         return []
 
     def get_json(self, json_unicode, json_path):
@@ -556,8 +568,6 @@ class GPJBaseSpider(scrapy.Spider):
         return json.loads(json_unicode)
 
     def get_css(self, css_rules, response):
-        """
-        """
         for css_rule in css_rules:
             values = response.css(css_rule).extract()
             if values:
@@ -565,8 +575,6 @@ class GPJBaseSpider(scrapy.Spider):
         return []
 
     def get_str(self, str_rules, response):
-        """
-        """
         for str_rule in str_rules:
             assert len(str_rule) == 2, 'str guize  error'
             start_index = response.body.find(str_rule[0])
@@ -651,8 +659,9 @@ class GPJBaseSpider(scrapy.Spider):
         format_rule = url_rule['format']
         new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
+            need_format = not format_rule.startswith('http')
             for url in urls:
-                if not url.startswith('http'):
+                if not url.startswith('http') or need_format:
                     url = format_rule.format(url)
                 new_urls.add(url)
         elif inspect.isfunction(format_rule):

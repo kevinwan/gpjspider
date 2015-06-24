@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-99好车 优质二手车 规则
-"""
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from .utils import *
 
@@ -23,26 +20,26 @@ item_rule = {
         },
         'year': {
             'xpath': (
-                #u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                 text(cls('date', '/ul/li[1]')),
+                #u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
             ),
         },
         'month': {
             'xpath': (
-                #u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
                 text(cls('date', '/ul/li[1]')),
+                #u'//li/span[contains(text(), "首次上牌")]/../span[@class="righ"]/text()',
             ),
             #'default': '%(year)s',
         },
         'mile': {
             'xpath': (
-                #u'//div[@class="date"]/ul/li[2]/text()',
                 text(cls('date', '/ul/li[2]')),
+                # u'//div[@class="date"]/ul/li[2]/text()',
             ),
         },
         'volume': {
-            'xpath': (
-            ),
+            # 'xpath': (
+            # ),
             'default': '%(title)s',
         },
 
@@ -54,47 +51,47 @@ item_rule = {
         },
         'control': {
             'xpath': (
-                #u'//*[@id="carDetailDiv"]/ul/li[2]/text()',
                 text(id_('carDetailDiv', '/ul/li[2]')),
+                # u'//*[@id="carDetailDiv"]/ul/li[2]/text()',
             ),
         },
         'price': {
             'xpath': (
-                #text(cls('num')),
+                # text(cls('num')),
                 text(cls('price', '/span[1]')),
-                #u'//div[@class="price"]/span[1]/text()',
+                # u'//div[@class="price"]/span[1]/text()',
             ),
             'processors': ['join'],
         },
         'price_bn': {
             'xpath': (
-                #text(cls('txt')),
+                # text(cls('txt')),
                 text(cls('price', '/span[2]')),
                 #'//p[@class="market-price"]/del/text()',
             ),
         },
         'brand_slug': {
             'xpath': (
-                u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
                 text(id_('carDetailDiv', '/div[2]/ul[1]/li[4]')),
+                # u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
             ),
         },
         'model_slug': {
             'xpath': (
-                u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
                 text(id_('carDetailDiv', '/div[2]/ul[1]/li[4]')),
+                # u'//*[@id="carDetailDiv"]/div[2]/ul[1]/li[4]/text()',
             ),
         },
         'city': {
             'xpath': (
-                #u'//h2[@name="location"]/a[2]/text()',
                 text('h2[@name="location"]/a[2]'),
+                # u'//h2[@name="location"]/a[2]/text()',
             ),
         },
         'region': {
             'xpath': (
-                #u'//p[@class="car-site"]/text()',
                 text(cls('car-site')),
+                # u'//p[@class="car-site"]/text()',
             ),
             'processors': ['last'],
         },
@@ -106,14 +103,14 @@ item_rule = {
         },
         'company_name': {
             'xpath': (
-                #u'//span[contains(text(), "所属商家")]/following-sibling::a/text()',
                 after_has(u'所属商家'),
+                #u'//span[contains(text(), "所属商家")]/following-sibling::a/text()',
             ),
         },
         'company_url': {
             'xpath': (
                 after_has(u'所属商家', 'a/@href', get_text=False),
-                u'//span[contains(text(), "所属商家")]/following-sibling::a/@href',
+                # u'//span[contains(text(), "所属商家")]/following-sibling::a/@href',
             ),
         },
         'driving_license': {
@@ -134,15 +131,15 @@ item_rule = {
                 #u'//li/span[contains(text(), "保养记录")]/../text()',
             ),
         },
-         'quality_service': {
-             'xpath': [
-                 has_attr2(u'质保承诺', 'title'),
-                 has_attr2(u'退换承诺', 'title'),
-             ],
-             'processors': ['join'],
-         },
+        'quality_service': {
+            'xpath': [
+                has_attr2(u'质保承诺', 'title'),
+                has_attr2(u'退换承诺', 'title'),
+            ],
+            'processors': ['join'],
+        },
         'is_certifield_car': {
-            'default': 1,
+            'default': True,
         },
         'description': {
             'xpath': (
@@ -189,14 +186,14 @@ item_rule = {
                 #u'//li/span[contains(text(), "使用性质")]/../text()',
             ),
         },
-        'condition_level': {
-            'xpath': [
-                #text(cls('rank-ico')),
-                #hidden('uploadid'),             # 构造链接请求服务器对应的 level 时，需要carid
-            ],
-            #'processors': ['99haoche.condition_level']
-        },
-        # maintenance_desc
+        # 'condition_level': {
+        #     'xpath': [
+        # text(cls('rank-ico')),
+        # 构造链接请求服务器对应的 level 时，需要carid
+        #         hidden('uploadid'),
+        #     ],
+        # 'processors': ['99haoche.condition_level']
+        # },
     },
 }
 
@@ -211,7 +208,7 @@ parse_rule = {
         "xpath": (
             '//a[@id="pagenow"]/following-sibling::a[1]/@href',
         ),
-        'format': 'http://www.99haoche.com{0}',
+        'format': True,
         "step": 'parse',
         # 'incr_pageno': 3,
     },
@@ -223,11 +220,13 @@ rule = {
     'domain': '99haoche.com',
     'start_urls': [
         'http://www.99haoche.com/quanguo/all/?p=v1',
-        #'http://www.99haoche.com/car/4486289.html',
+        # 'http://www.99haoche.com/car/4486289.html',
         #'http://www.99haoche.com/car/4173771.html',
         #'http://www.99haoche.com/car/4483842.html',
         #'http://www.99haoche.com/car/4473155.html',
     ],
+    'base_url': 'http://www.99haoche.com',
+    # 'update': True,
 
     'parse': parse_rule,
 

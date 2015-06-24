@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-人人车 优质二手车 规则
-"""
 from .utils import *
 
 item_rule = {
@@ -169,15 +166,15 @@ item_rule = {
         },
         'dmodel': {
             'default': '%(title)s',
-            'after': '-',
+            # 'after': '-',
         },
-        'condition_level': {
-            'xpath': (
-                # '//span[@class="desc"]/text()',
-                text(cls('desc')),
-            ),
-            'processors': ['renrenche.cond_level'],
-        },
+        # 'condition_level': {
+        #     'xpath': (
+        #         # '//span[@class="desc"]/text()',
+        #         text(cls('desc')),
+        #     ),
+        #     'processors': ['renrenche.cond_level'],
+        # },
         'contact': {
             'xpath': (
                 text(cls('owner-info', '/strong')),
@@ -196,12 +193,12 @@ item_rule = {
                 after_has(u'过户次数'),
             ),
         },
-        'condition_detail': {
-            'xpath': (
-                # '//span[@class="desc"]/text()',
-                text(cls('desc')),
-            ),
-        },
+        # 'condition_detail': {
+        #     'xpath': (
+        #         # '//span[@class="desc"]/text()',
+        #         text(cls('desc')),
+        #     ),
+        # },
         'time': {
             'xpath': (
                 # u'//*[contains(text(), "\u68c0\u6d4b\u65f6\u95f4")]/text()',
@@ -216,35 +213,38 @@ item_rule = {
     },
 }
 
-parse_rule = {
+list_rule = {
     'url': {
         'xpath': ('//*[contains(@class,"list-item")]/a[@href]/@href',),
         'step': 'parse_detail',
         'contains': ['/cn/car'],
-        'format': 'http://www.renrenche.com{0}'
+        'format': True,
     },
     'next_page_url': {
         'xpath': ('//a[text()=">"]/@href',),
         'step': 'parse',
-        'format': 'http://www.renrenche.com{0}',
+        'format': True,
         # 'incr_pageno': 3,
     }
 }
 
 rule = {
     'domain': 'renrenche.com',
+    'name': u'人人车',
+    'base_url': 'http://www.renrenche.com',
+    'per_page': 40,
+    'pages': 300,
     'start_urls': [
         'http://www.renrenche.com/cn/ershouche',
+        # 'http://www.renrenche.com/cn/car/824a070287b5e14f',
         # 'http://www.renrenche.com/cn/car/2f50736befc53e8d',
         # 'http://www.renrenche.com/cn/car/882c5b51c6a00d6d',
     ],
-    'name': u'人人车',
+    'parse': list_rule,
     'parse_detail': {
         'item': item_rule,
     },
-    'base_url': 'http://www.renrenche.com',
-    'parse': parse_rule,
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

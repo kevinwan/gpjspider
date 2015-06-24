@@ -39,7 +39,7 @@ item_rule = {
         'volume': {
             'xpath': (
                 has(u"排量", '/../td[not(@class)]'),
-                u'//th[contains(text(), "排量")]/../td[not(@class)]/text()',
+                # u'//th[contains(text(), "排量")]/../td[not(@class)]/text()',
             ),
             'default': '%(title)s',
         },
@@ -78,6 +78,13 @@ item_rule = {
                 #'//div[@class="detail-map"]/a[last()-1]/text()',
                 text(cls('detail-map', '/a[last()]')),
             ),
+            'processors': ['first', 'clean_space'],
+        },
+        'model_url': {
+            'xpath': (
+                href(cls('detail-map', '/a[last()]')),
+            ),
+            'format': True,
         },
         'city': {
             'xpath': (
@@ -102,7 +109,7 @@ item_rule = {
         'contact': {
             'xpath': (
                 #'//a[@class="shop-name"]/text()[1]',
-                #text(cls('shop-name')),
+                # text(cls('shop-name')),
             ),
             #'processors': ['souche.second'],
             #'default': '%(company_name)s',
@@ -144,12 +151,12 @@ item_rule = {
         'time': {
             'xpath': (
                 text(cls('push-time')),
-                has(u'质检时间'),
+                # has(u'质检时间'),
             ),
         },
         'transfer_owner': {
             'xpath': (
-                #u'//p[@class="record-num"]/../table/tbody/tr',
+                # u'//p[@class="record-num"]/../table/tbody/tr',
                 #cls('record-num', '/../table/tbody/tr'),
             ),
             'default': '%(url)s',
@@ -157,13 +164,13 @@ item_rule = {
         },
         'condition_level': {
             'xpath': (
-                text(cls('zhijian type-item', '/div')),
+                text(has_cls('zhijian', '/div')),
             ),
             'processors': ['souche.condition_level'],
         },
         'quality_service': {
             'xpath': (
-                text(cls('baoxian type-item', '/div')),
+                text(has_cls('baoxian', '/div')),
             ),
         },
         'is_certifield_car': {
@@ -176,20 +183,7 @@ item_rule = {
     },
 }
 
-parse_rule = {
-        "url": {
-            "xpath": (
-                '//div[@class="area-line"]/a/@data-pinyin',
-            ),
-            "format": "http://www.souche.com/{0}/list",
-            # "format": "http://www.souche.com/{0}/list-mx2014-styishou",
-            "step": 'parse_list',
-            # 'default': ['http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6e4acb6b-7182-4e5a-97ff-2123138ea1d8'],
-            # "step": 'parse_detail',
-        }
-}
-
-parse_list_rule = {
+list_rule = {
     "url": {
         "xpath": (
             url(has_cls('carItem')),
@@ -204,7 +198,7 @@ parse_list_rule = {
         "format": True,
         "step": 'parse_list',
         # 'max_pagenum': 10,
-        # 'incr_pageno': 0,
+        'incr_pageno': 2,
     },
 }
 
@@ -213,24 +207,39 @@ rule = {
     'domain': 'souche.com',
     'base_url': 'http://www.souche.com',
     'start_urls': [
-        #'http://www.souche.com',
-         'http://www.souche.com/henan/list-pg4',
+        'http://www.souche.com',
+        # 'http://www.souche.com/henan/list-pg4',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=f1441335-97a3-418f-abed-f5d9c1cedfaf',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=1e7072d8-c8fc-422c-bcbc-2b0dd011ade4',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=82807b3d-58ee-4ec9-a126-1a9a6a1fe424',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6qrVlpwIIY',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6NaYXhP2BW',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=73415fbf-31ff-42eb-8df1-b45b347ecfaa',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=8dfddf7f-f4f6-45df-a62c-fd0420082b90',
-        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
-        #'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=c41007ab-baf9-4c06-a787-c71bf48b463a',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=353aa97a-6559-48ab-b9e3-f4342a51778e',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=c41007ab-baf9-4c06-a787-c71bf48b463a',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=2f38de4f-d180-498a-8092-8a977bde9f51',
     ],
 
-    'parse': parse_rule,
-    'parse_list': parse_list_rule,
+    'parse': {
+        "url": {
+            "xpath": (
+                '//div[@class="area-line"]/a/@data-pinyin',
+            ),
+            "format": "http://www.souche.com/{0}/list",
+            # "format": "http://www.souche.com/{0}/list-mx2014-styishou",
+            "step": 'parse_list',
+            # 'default': ['http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6e4acb6b-7182-4e5a-97ff-2123138ea1d8'],
+            # "step": 'parse_detail',
+        }
+    },
+    'parse_list': list_rule,
+    # 'parse': list_rule,
 
     'parse_detail': {
         "item": item_rule,
     },
 }
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

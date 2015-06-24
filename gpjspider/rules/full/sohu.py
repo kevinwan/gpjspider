@@ -336,7 +336,8 @@ parse_rule = {
             # '//a[@class="next_on"]/@href',
         ),
         'format': True,
-        # 'incr_pageno': 6,
+        # 'max_pagenum': 150,  # 全量爬取的最大页数
+        'incr_pageno': 6,
         # 'match': '/pg\d+.shtml',
         'step': 'parse',
     },
@@ -346,6 +347,8 @@ rule = {
     'name': u'搜狐二手车',
     'domain': '2sc.sohu.com',
     'base_url': 'http://2sc.sohu.com',
+    'per_page': 15,
+    'pages': 200,
 
     'start_urls': [
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/',

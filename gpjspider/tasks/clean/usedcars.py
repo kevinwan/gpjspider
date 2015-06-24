@@ -69,33 +69,33 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     cursor = get_cursor()
     domains = domain and [domain] or \
         ['haoche51.com', '99haoche.com', 'haoche.ganji.com', 'souche.com',
-            'xin.com', 'youche.com', 'c.cheyipai.com', 'renrenche.com']
-    # status!='C';"
+        # 'xin.com',
+        'youche.com', 'c.cheyipai.com', 'renrenche.com',
+        '58.com', '2sc.sohu.com', 'taoche.com']
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
-    # update = "update open_product_source set status='C' where created_on<=curdate() and source_id=1 \
-    update = "update open_product_source set status='C' where source_id=1 \
-        and url in (SELECT url from car_source) and status='I';"
+    # update = "update open_product_source set status='C' where source_id=1 \
+    update = "update open_product_source set status='C' where created_on<=curdate() and source_id=1 \
+        and url in (SELECT url from car_source) and status in ('I', 'E');"
     if sync:
         cursor.execute(update.format("','".join(domains)))
-    # items = session.query(UsedCar).filter_by(source=1, is_certifield_car=True, id=18842029) \
-    query = session.query(UsedCar.id).filter_by(source=1, is_certifield_car=True, status='Y',
-        #url='http://www.xin.com/c/10306858.html'
-        #id=19338093#, 243410
+    query = session.query(UsedCar.id).filter_by(source=1, is_certifield_car=True,
+        status='Y',
+        #id=19688565#, 243410
         ).filter(
             # UsedCar.status.in_(['i', 'I', 'Y']),
             UsedCar.created_on >= str(datetime.now())[:10],
+            # UsedCar.created_on >= '2015-06-18',
+            # UsedCar.created_on < str(datetime.now())[:10],
             # UsedCar.created_on <= '2015-05-18',
             # UsedCar.created_on >= '2015-05-1',
             # UsedCar.created_on >= '2015-05-15',
             # UsedCar.status!='C',
-            # UsedCar.domain.in_(domains),
+            # UsedCar.status.in_(['i', 'I']),
+            UsedCar.domain.in_(domains),
             UsedCar.phone != None, UsedCar.model_slug != None, UsedCar.imgurls != None, UsedCar.control != None,
                   UsedCar.price > 0, UsedCar.volume > 0, UsedCar.year > 2007, UsedCar.mile < 30
-                  )#.values('id')
+                  )
     remain = query.count()
-    # remain = ''
-    # print remain
-    # return
     index = 0
     psize = 10
     # psize = 30
@@ -111,7 +111,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         if index % psize == 0:
             ids = items
             log(amount, '%s - %s' % (min(ids), max(ids)))
-            #cursor.execute('update open_product_source set status="I" where id in (%s)' % ','.join(ids))
+            cursor.execute('update open_product_source set status="I" where id in (%s)' % ','.join(ids))
             async_clean(clean_usedcar, items)
             amount -= 1
             sleep(3 if WORKER < 5 else 2)
@@ -123,9 +123,10 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         log(amount, '%s - %s' % (min(ids), max(ids)))
         # clean_usedcar(items)
         sync_clean(clean_usedcar, items)
+        # session.commit()
         log('Done')
 
-WORKER = 40
+WORKER = 20
 
 @async
 def async_clean(func, items, *args, **kwargs):
@@ -143,7 +144,6 @@ def sync_clean(func, items, *args, **kwargs):
         session.close()
     func(items, *args, **kwargs)
     WORKER += 1
-    # func.delay(*args, **kwargs)
 
 
 def update_item(item, **kwargs):
@@ -188,7 +188,8 @@ def clean_usedcar(self, items, *args, **kwargs):
             if not item.get('time'):
                 item['time'] = item['created_on']
             # control 要么是手动，要么是自动
-            if u'手动' in item['control']:
+            control = item['control']
+            if any([u'手动' in control, 'MT' in control, 'mt' in control]):
                 item['control'] = u'手动'
             else:
                 item['control'] = u'自动'
@@ -206,17 +207,14 @@ def clean_usedcar(self, items, *args, **kwargs):
                 update_item(item, quality_service=u'1年/2万公里放心质保 14天可退车',
                     company_name=u'好车无忧', company_url='http://www.haoche51.com',
                     contact=u'好车无忧客服', phone='400-801-9151')
-            elif 'souche.com' == domain:
-                update_item(item, quality_service=u'6年以内，12万公里以下 非营运车',
-                    car_application=u'非营运')
             elif 'haoche.ganji.com' == domain:
                 update_item(item,
                     company_name=u'赶集好车', company_url='http://haoche.ganji.com',
                     contact=u'赶集好车客服', phone='400-733-6622')
-            elif 'c.cheyipai.com' == domain:
-                update_item(item,
-                    company_name=u'车易拍', company_url='http://c.cheyipai.com',
-                    contact=u'车易拍客服', phone='4000-690-555')
+            #elif 'c.cheyipai.com' == domain:
+            #    update_item(item,
+            #        company_name=u'车易拍客服', company_url='http://c.cheyipai.com',
+            #        contact=u'车易拍客服', phone='400-733-6622')
 
             # 业务判断通过，后续处理
             upload_img(item, logger)
@@ -245,8 +243,9 @@ def clean_usedcar(self, items, *args, **kwargs):
             #     'update open_product_source set status="%s" where id in (%s) and status="%s";' % (k.lower(), ','.join(v), k))
             cursor.execute(
                 'update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
+    #pdb.set_trace()
     session.commit()
-    session.close()
+    # session.close()
 
 def get_province_by_city(city, session=None):
     res = get_cursor(session).execute(
@@ -268,6 +267,9 @@ def preprocess_item(item, session, logger):
     if domain in ['58.com']:
         if item['source_type'] in (2, 3):
             item['is_certifield_car'] = True
+    elif domain == 'xin.com' and item.get('model_url'):
+        item['brand_slug'] = None
+        item['model_slug'] = item.get('model_url')
 
     if item['source_type'] == 2:
         item['source_type'] = 'dealer'
@@ -388,8 +390,6 @@ def volume(item, logger):
 
 
 def control(item, logger):
-    """
-    """
     return item.get('control')
 
 
@@ -421,16 +421,10 @@ def price(item, logger):
 
 
 def brand_slug(item, logger):
-    """
-    没有品牌不行
-    """
     return item.get('brand_slug')
 
 
 def model_slug(item, logger):
-    """
-    没有款型不行
-    """
     return item.get('model_slug')
 
 
@@ -448,7 +442,7 @@ def phone(item, logger):
 
 
 def phone_validate(phone):
-    """ 判断电话号码是否有效 """
+    u""" 判断电话号码是否有效 """
     if (phone[:2] in ('13', '15', '18') or phone[:3] == '147') and len(phone) in (10, 11):
         return True
     else:
@@ -500,6 +494,9 @@ def insert_to_carsource(item, session, logger):
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         car_source = session.query(CarSource).filter_by(url=car_source.url).first()
     except Exception as e:
+        # session.rollback()
+        raise
+        # pdb.set_trace()
         logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
         return
     else:
@@ -530,7 +527,7 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
         # with session.begin_nested():
             # session.merge(car_detail_info)
         session.add(car_detail_info)
-        session.commit()
+        # session.commit()
     except IntegrityError:
         session.rollback()
         msg = u'Dup car_detail_info for car_source: {0}'.format(car_source.id)
@@ -539,7 +536,7 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
         logger.error(u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
     else:
         logger.info(u'Add car_detail_info: {0}'.format(car_detail_info.id))
-    return car_detail_info
+    #return car_detail_info
 
 
 def insert_to_carimage(item, car_source, session, logger):

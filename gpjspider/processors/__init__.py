@@ -176,7 +176,7 @@ u'A\\u57ce'
         value = re.sub(u'[二手车]{2,}.*$', '', value.lstrip(u'二手'))
         # value = re.sub(ur'车.*$', '', value.strip(u'二手'))
         # value = value.strip(u'二手车商市> ')
-    return value
+    return value.rstrip(u'市')
 
 
 def strip_url(url_with_query):
@@ -512,6 +512,10 @@ def clean_param(url):
     return url.split('?')[0]
 
 
+def clean_space(value):
+    return value.replace(' ', '')
+
+
 def after_space(value):
     u'''
 >>> after_space(u'维修保养： 定期4S保养')
@@ -562,7 +566,8 @@ True
 >>> is_certifield_car(True)
 True
     '''
-    return any([value == '1', u'质保' in value, u'保障' in value, u'认证' in value, u'7天可退' in value, u'原厂联保' in value]) \
+    return any([value == '1', u'质保' in value, u'保障' in value, u'认证' in value,
+                u'7天可退' in value, u'原厂联保' in value, u'包退' in value, u'保修' in value]) \
         if isinstance(value, basestring) else bool(value)
 is_certified = is_certifield_car
 
@@ -572,7 +577,8 @@ def transfer_owner(value):
 >>> transfer_owner(u'一手车')
 0
     '''
-    return (1 if (u'否' in value or u'二手' in value) else 0 if (u'是' in value or u'一手' in value) else value.rstrip(u'次')) if isinstance(value, basestring) else value
+    return (1 if any([u'否' in value, u'二手' in value]) else 0 if any([u'是' in value, u'一手' in value]) else int(value.rstrip(u'次'))) \
+        if isinstance(value, basestring) else value
 
 
 def description(value):

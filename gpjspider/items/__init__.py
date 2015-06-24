@@ -53,6 +53,7 @@ class UsedCarItem(GpjspiderItem):
     price_bn = Field()
     brand_slug = Field()
     model_slug = Field()
+    model_url = Field()
     city = Field()
     city_slug = Field()
     region = Field()

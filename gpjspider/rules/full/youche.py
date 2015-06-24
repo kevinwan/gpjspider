@@ -106,15 +106,23 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
+                text(has_cls('crumbs', '/a[2]')),
                 after_has(u"品牌", "span[@class='fr']/a", "span"),
                 # u'//li/span[contains(text(), "品牌")]/../span[@class="fr"]/a/text()',
             ),
         },
         'model_slug': {
             'xpath': (
+                text(has_cls('crumbs', '/a[last()]')),
                 after_has(u"车系", "span[@class='fr']/a", "span"),
                 # u'//li/span[contains(text(), "车系")]/../span[@class="fr"]/a/text()',
             ),
+        },
+        'model_url': {
+            'xpath': (
+                href(has_cls('crumbs', '/a[last()]')),
+            ),
+            'format': True
         },
         'city': {
             'xpath': (
@@ -164,6 +172,7 @@ item_rule = {
                 has(u'级车况'),
                 #after_has(u"车况", "span"),
             ),
+            'before': u'级车况',
         },
         'maintenance_record': {
             'xpath': (
@@ -205,6 +214,10 @@ item_rule = {
             ),
             'processors': ['join'],
         },
+        'is_certifield_car': {  # 是否优质车
+            'default': '%(quality_service)s',
+            'default_fail': True
+        },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
         },
@@ -217,17 +230,15 @@ parse_rule = {
             '//ul[@class="ulConListPro"]/li/div/a/@href',
         ),
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
             u'//a[text()="下一页"]/@href',
         ),
         "excluded": ('javascript',),
-        "format": "http://www.youche.com{0}",
+        "format": True,
         "step": 'parse',
-        'incr_pageno': 1,
+        # 'incr_pageno': 1,
     },
 }
 
@@ -235,11 +246,13 @@ rule = {
     'name': u'优车诚品',
     'domain': 'youche.com',
     'start_urls': [
-        #'http://www.youche.com/ershouche/',
-        'http://www.youche.com/detail/9719.shtml',
-        'http://www.youche.com/detail/9596.shtml',
-        'http://www.youche.com/detail/10969.shtml',
+        'http://www.youche.com/ershouche/',
+        # 'http://www.youche.com/detail/9719.shtml',
+        # 'http://www.youche.com/detail/9596.shtml',
+        # 'http://www.youche.com/detail/10969.shtml',
     ],
+    # 'start_urls': [u'http://www.youche.com/detail/11316.shtml', u'http://www.youche.com/detail/11293.shtml', u'http://www.youche.com/detail/11336.shtml', u'http://www.youche.com/detail/11294.shtml', u'http://www.youche.com/detail/11335.shtml', u'http://www.youche.com/detail/11315.shtml', u'http://www.youche.com/detail/11285.shtml', u'http://www.youche.com/detail/11303.shtml', u'http://www.youche.com/detail/11343.shtml', u'http://www.youche.com/detail/11284.shtml', u'http://www.youche.com/detail/11341.shtml', u'http://www.youche.com/detail/11295.shtml', u'http://www.youche.com/detail/11311.shtml', u'http://www.youche.com/detail/11345.shtml', u'http://www.youche.com/detail/11314.shtml', u'http://www.youche.com/detail/11287.shtml', u'http://www.youche.com/detail/11275.shtml', u'http://www.youche.com/detail/11321.shtml', u'http://www.youche.com/detail/11273.shtml', u'http://www.youche.com/detail/11300.shtml'],
+    'base_url': 'http://www.youche.com',
 
     # 'parse': {
     #     "url": {
@@ -256,4 +269,5 @@ rule = {
     },
 }
 
-rule['parse'] = rule['parse_detail']
+fmt_rule_urls(rule)
+# rule['parse'] = rule['parse_detail']

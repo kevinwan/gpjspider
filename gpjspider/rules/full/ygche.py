@@ -2,6 +2,8 @@
 from .utils import *
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 
+_has = lambda x: has(x, '/..')
+
 item_rule = {
     "class": "UsedCarItem",
     "fields": {
@@ -13,7 +15,7 @@ item_rule = {
         },
         'dmodel': {
             'xpath': (
-                has(u'车辆信息：', '/..'),#
+                _has(u'车辆信息'),
             ),
         },
         'meta': {
@@ -38,20 +40,21 @@ item_rule = {
         },
         'volume': {  # \d.\d 升(L/T)
             'xpath': (
-                has(u'排量', '/..'),
+                _has(u'排量'),
             ),
         },
         'color': {  # 颜色描述：红、蓝色、深内饰。。
             #'xpath': (
-                ##has(u'车辆信息：', '/..'),
+            # _has(u'车辆信息：'),
             #),
             'default': '%(dmodel)s',
-            'processors':['first', 'ygche.color'],
+            'processors': ['first', 'ygche.color'],
         },
         'control': {  # 手动/自动/手自一体
             'xpath': (
                 after_has(u'变速器形式'),
             ),
+            'default': '%(title)s',
         },
         'price': {  # 车主报价或车源的成交价
             'xpath': (
@@ -59,7 +62,7 @@ item_rule = {
             ),
         },
         'price_bn': {  # 新车/厂商指导价，不含过户税之类的
-            'xpath' : (
+            'xpath': (
                 text(cls('price-color-gray')),
             ),
             'processors': ['first', 'ygche.price_bn'],
@@ -76,13 +79,13 @@ item_rule = {
         },
         'city': {  # 车源归属地、所在城市
             'xpath': (
-                has(u'车辆所在', '/..'),
+                _has(u'车辆所在'),
             ),
         },
-        #'contact': {  # 联系人
-            #'xpath': (
-            #),
-        #},
+        # 'contact': {  # 联系人
+        #     'xpath': (
+        #     ),
+        # },
         'region': {  # 看车地点
             'xpath': (
                 attr(id_('aaddress'), 'data-address'),
@@ -93,14 +96,14 @@ item_rule = {
                 text(id_('em400')),
             ),
         },
-        #'company_name': {  # 商家名称
-            #'xpath': (
-            #),
-        #},
-        #'company_url': {  # 商家地址
-            #'xpath': (
-            #),
-        #},
+        # 'company_name': {  # 商家名称
+        #     'xpath': (
+        #     ),
+        # },
+        # 'company_url': {  # 商家地址
+        #     'xpath': (
+        #     ),
+        # },
         # 行驶证、发票 有/无/齐全/..
         'driving_license': {
             'xpath': (
@@ -114,33 +117,33 @@ item_rule = {
             ),
             'processors': ['first', 'ygche.has_or_not'],
         },
-        #'maintenance_record': {  # 车辆是否保养: 保养记录 -> True/False
-            #'xpath': (
-                #has(u'保养记录：', '/..'),
-            #),
-        #},
-        'maintenance_desc': { # 车辆保养记录描述
+        # 'maintenance_record': {  # 车辆是否保养: 保养记录 -> True/False
+        #     'xpath': (
+        #     _has(u'保养记录：'),
+        #     ),
+        # },
+        'maintenance_desc': {  # 车辆保养记录描述
             'xpath': (
-                has(u'保养记录', '/..'),
+                _has(u'保养记录'),
             ),
         },
         # (有|无|全程|部分)?4S保养、不?齐全、有保养..
-        'condition_level': { # 车况等级 123 > ABC > 优良
+        'condition_level': {  # 车况等级 123 > ABC > 优良
             'xpath': (
                 attr(cls('rate pr', '/a'), 'class'),
             ),
             'processors': ['first', 'ygche.condition_level'],
         },
-        'condition_detail': { # 车况介绍/检测报告
+        'condition_detail': {  # 车况介绍/检测报告
             'xpath': (
                 text(cls('explain')),
             ),
         },
-        #'description': {  # 车源描述，酌情去掉无用信息
-            #'xpath': (
-                #text(with_cls('benchepeizhi', '/')),
-            #),
-        #},
+        # 'description': {  # 车源描述，酌情去掉无用信息
+        #     'xpath': (
+        #     text(with_cls('benchepeizhi', '/')),
+        #     ),
+        # },
         'imgurls': {
             'xpath': (
                 attr(cls('lazy'), 'data-original'),
@@ -148,12 +151,12 @@ item_rule = {
             'processors': ['join'],
         },
         # 交强险、商业险、年检 YYYY-MM-1，需处理过期/到期之类的情况
-        #'mandatory_insurance': {
-            #'xpath': (
-                #has(u'交强险有效期：', '/..'),
-            #),
-            #'processors': ['ygche.mandatory_insurance'],
-        #},
+        # 'mandatory_insurance': {
+        #     'xpath': (
+        #     _has(u'交强险有效期：'),
+        #     ),
+        #     'processors': ['ygche.mandatory_insurance'],
+        # },
         # 'business_insurance': {
         #     'xpath': (
         #         u'//li/span[contains(text(), "商业险到期时间")]/../text()',
@@ -161,18 +164,17 @@ item_rule = {
         # },
         'examine_insurance': {
             'xpath': (
-                has(u'年审有效期', '/..'),
+                _has(u'年审有效期'),
             ),
         },
-        'transfer_owner': {# 过户次数 int
+        'transfer_owner': {  # 过户次数 int
             'xpath': (
-                has(u'过户记录', '/..'),
+                _has(u'过户记录'),
             ),
-            #'processors': ['ygche.transfer_owner'],
         },
-        'car_application': {# 家用/非营运/..
+        'car_application': {  # 家用/非营运/..
             'xpath': (
-                has(u'车辆用途', '/..'),
+                _has(u'车辆用途'),
             ),
         },
         'time': {  # 最真实的发布时间
@@ -205,7 +207,6 @@ list_rule = {
         "xpath": (
             attr(cls('carInfo', '/h3/a'), 'href'),
         ),
-        #'format': 'http://www.ygche.com.cn{0}',#
         'format': True,
         "step": 'parse_detail',  # 下一步解析车源详情信息
     },
@@ -230,16 +231,17 @@ rule = {
         'download_delay': 0.5,
     },
     # 'update': True,
-    'per_page': 0,#
-    'pages': 0,#
+    'per_page': 20,
+    'pages': 2000,
 
     'start_urls': [
-        'http://www.ygche.com.cn/city.html',
+        # 'http://www.ygche.com.cn/city.html',
+        'http://www.ygche.com.cn/nanning/list/',
         #'http://www.ygche.com.cn/detail/cd1032596.html',
         #'http://www.ygche.com.cn/detail/cd1041162.html',
         #'http://www.ygche.com.cn/detail/cd1040994.html',
-        #'http://www.ygche.com.cn/detail/zs1041021.html', # 变速器关键词多
-        #'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
+        # 'http://www.ygche.com.cn/detail/zs1041021.html', # 变速器关键词多
+        # 'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
     ],
 
     'parse': {
@@ -254,6 +256,7 @@ rule = {
     },
 
     'parse_list': list_rule,
+    # 'parse': list_rule,
 
     'parse_detail': {
         'item': item_rule,
@@ -261,4 +264,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

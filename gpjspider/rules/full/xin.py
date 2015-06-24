@@ -24,26 +24,30 @@ item_rule = {
         },
         'year': {
             'xpath': (
-                text(cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
+                text(
+                    cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
                 #u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
             ),
         },
         'month': {
             'xpath': (
-                text(cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
+                text(
+                    cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
                 #u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
             ),
         },
         'mile': {
             'xpath': (
-                text(cls('br', u'/span[contains(text(), "行驶里程")]/following-sibling::em')),
+                text(
+                    cls('br', u'/span[contains(text(), "行驶里程")]/following-sibling::em')),
                 u'//div[@class="info"]/ul/li[2]/em//text()',
                 #u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',
             ),
         },
         'volume': {
             'xpath': (
-                text(cls('br', u'/span[contains(text(), "排量")]/following-sibling::em')),
+                text(
+                    cls('br', u'/span[contains(text(), "排量")]/following-sibling::em')),
                 #u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',
             ),
             'default': '%(title)s',
@@ -99,8 +103,9 @@ item_rule = {
         },
         'model_url': {
             'xpath': (
-                text(cls('car-tit', '/p/a[4]')),
+                href(cls('car-tit', '/p/a[4]')),
             ),
+            'format': True,
         },
         'city': {
             'xpath': (
@@ -111,7 +116,7 @@ item_rule = {
         'description': {
             'xpath': (
                 text(cls('test-txt', '/ul/li')),
-                #u'//div[@class="test-txt"]/ul/li/text()',
+                # u'//div[@class="test-txt"]/ul/li/text()',
             ),
             'processors': ['join'],
         },
@@ -164,10 +169,9 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                u"//div[@class='day']/p/span[contains(text(), '退') or contains(text(), '修')  or \
-                contains(text(), '换' or contains(text(), '保'))]/text()",
-                u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or \
-                contains(text(), '换') or contains(text(), '保')]/text()",
+                u"//div[@class='day']//span[contains(text(), '退') or contains(text(), '修')  or contains(text(), '换' or contains(text(), '保'))]/text()",
+                u"//div[@class='msg']//li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
+                # u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
                 img(cls("test-txt", '/')),
                 img(cls('day-pic', '/')),
             ),
@@ -197,7 +201,7 @@ item_rule = {
     },
 }
 
-parse_rule = {
+list_rule = {
     "url": {
         "xpath": (
             url(has_cls('car-box', '//p')),
@@ -205,6 +209,8 @@ parse_rule = {
         "format": "http://www.xin.com{0}",
         'contains': '/c/',
         "step": 'parse_detail',
+        'max_pagenum': 50,
+        # 'incr_pageno': 10,
     },
     "next_page_url": {
         "xpath": (
@@ -220,6 +226,7 @@ rule = {
     'domain': 'xin.com',
     'start_urls': [
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        # 'http://www.xin.com/c/10424705.html',  # 5
         # 'http://www.xin.com/c/10353602.html',  # 5
         # 'http://www.xin.com/c/10254412.html',  # 2
         # 'http://www.xin.com/c/10354226.html',  # 3
@@ -231,7 +238,7 @@ rule = {
     'per_page': 20,
     'pages': 12000,
 
-    'parse': parse_rule,
+    'parse': list_rule,
 
     'parse_detail': {
         "item": item_rule,

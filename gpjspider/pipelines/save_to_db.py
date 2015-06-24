@@ -72,16 +72,18 @@ class SaveToMySQLBySqlalchemyPipeline(object):
                 if q.count():
                     q.update(dict(item, status='Y'), synchronize_session=False)
                 spider.log(u'Updated Item: {0}'.format(url))
+                return
             else:
                 session.add(o)
-                item['id'] = o.id
-                spider.log(u'Saved Item: {0}'.format(url))
+            session.commit()
         except IntegrityError:
             session.rollback()
             spider.log(u'Dup Item: {0}'.format(url))
             # spider.dup_item_amount += 1
         else:
-            session.commit()
+            item['id'] = o.id
+            spider.log(u'Saved Item: {0}'.format(url))
+        # TODO: clean fields
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)
         return item

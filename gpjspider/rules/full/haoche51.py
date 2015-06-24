@@ -23,8 +23,7 @@ item_rule = {
     "fields": {
         'title': {
             'xpath': (
-                text(cls("autotit", "/strong")),
-                '//div[@class="autotit"]/strong/text()',
+                text(cls("autotit", "//strong")),
             ),
             'required': True,
         },
@@ -214,8 +213,10 @@ list_rule = {
         "excluded": ("javascript:void()",),
         # "format": "http://haoche.ganji.com{0}",
         "step": 'parse_list',
-        # 'max_pagenum': 50,
-        # 'incr_pageno': 1,
+        # "step": 'parse',
+        'max_pagenum': 15,
+        # 'max_pagenum': 80,
+        'incr_pageno': 2,
     },
 }
 
@@ -223,11 +224,15 @@ rule = {
     'name': u'好车无忧',
     'domain': 'haoche51.com',
     'start_urls': [
-        # 'http://bj.haoche51.com/vehicle_list.html',
-        'http://nj.haoche51.com/details/24703.html',
-        'http://sh.haoche51.com/details/29401.html',
+        'http://bj.haoche51.com',
+        # 'http://bj.haoche51.com/vehicle_list/p66.html',
+        # 'http://cd.haoche51.com/vehicle_list/p80.html',
+        # 'http://nj.haoche51.com/details/24703.html',
+        # 'http://sh.haoche51.com/details/29401.html',
+        # 'http://bj.haoche51.com/details/20936.html',
     ],
     'per_page': 20,
+    'pages': 250,
 
     'parse': {
         "url": {
@@ -235,14 +240,16 @@ rule = {
                 url(has_cls('city-cs')),
                 # '//div[@id="layer_follow1"]/ul/li/div/a/@href',
             ),
+            'format': '{0}vehicle_list.html',
             "step": 'parse_list',
         }
     },
     'parse_list': list_rule,
+    # 'parse': list_rule,
 
     'parse_detail': {
         "item": item_rule
     },
 }
 
-rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

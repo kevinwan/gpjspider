@@ -11,6 +11,7 @@ from . import Base
 
 
 class UsedCar(Base):
+
     """
     UsedCar模型默认过滤掉status为N和T的记录，默认排序为status字段逆序，
             详情见ProductManager,注意查询时无需再过滤status，
@@ -47,7 +48,7 @@ class UsedCar(Base):
     meta = Column(Text, nullable=True)
     year = Column(Integer, nullable=True, default=0, doc=u'购置年份')
     month = Column(Integer, nullable=True, default=6, doc=u'购置月份')
-    url = Column(String(500), default='', nullable=True)
+    url = Column(String(500), default='', index=True, nullable=True)
     time = Column(DateTime, nullable=True, doc=u'发布时间')
     # 爬虫中均已万为单位
     mile = Column(DECIMAL(precision=5, scale=2), doc=u'行驶里程')
@@ -60,6 +61,7 @@ class UsedCar(Base):
     price_bn = Column(DECIMAL(precision=10, scale=2), doc=u'新车购买价格')
     brand_slug = Column('brand_slug', String(32), index=True, doc=u'品牌')
     model_slug = Column('model_slug', String(32), index=True, doc=u'型号')
+    model_url = Column('model_url', String(500), nullable=True)
     city = Column(String(50), doc=u'城市')
     city_slug = Column(String(32), index=True, doc=u'城市slug')
     region = Column(String(50), index=True, doc=u'地址')
@@ -75,14 +77,15 @@ class UsedCar(Base):
     phone = Column(String(128), index=True, nullable=True, doc=u'联系电话')
     company_name = Column(String(128), index=True, nullable=True)
     company_url = Column(String(500), index=True, nullable=True)
-    status = Column(Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
+    status = Column(
+        Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
     # status = Column(index=True, default='Y', nullable=True, doc=u'状态')
     mandatory_insurance = Column(
-        DateTime,  default=None, nullable=True, doc=u'交强险到期时间')
+        DateTime, default=None, nullable=True, doc=u'交强险到期时间')
     business_insurance = Column(
         DateTime, default=None, nullable=True, doc=u'商业险到期时间')
     examine_insurance = Column(
-        DateTime,  default=None, nullable=True, doc=u'年审到期时间')
+        DateTime, default=None, nullable=True, doc=u'年审到期时间')
     is_certifield_car = Column(Boolean, default=True, doc=u'是否为认证二手车')
     # u'0表示买的新车，1以上表示买的二手车'
     transfer_owner = Column(Integer, default=0, doc=u'过户次数')

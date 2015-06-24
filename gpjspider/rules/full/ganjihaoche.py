@@ -14,8 +14,7 @@ item_rule = {
         },
         'meta': {
             'xpath': (
-                '//meta[@name="description"]/@content',
-                '//meta[@name="Description"]/@content',
+                '//meta[@name="description" or @name="Description"]/@content',
             ),
         },
         'year': {
@@ -33,19 +32,19 @@ item_rule = {
         },
         'mile': {
             'xpath': (
-                #u'//li[contains(text(), "里程")]/b/text()',
+                # u'//li[contains(text(), "里程")]/b/text()',
                 has(u'里程', '/b'),
             ),
         },
         'volume': {
             'xpath': (
-                #u'//li[contains(text(), "排量")]/b/text()',
+                # u'//li[contains(text(), "排量")]/b/text()',
                 has(u'排量', '/b'),
             ),
         },
         'control': {
             'xpath': (
-                #u'//li[contains(text(), "变速箱")]/b/text()',
+                # u'//li[contains(text(), "变速箱")]/b/text()',
                 has(u'变速箱', '/b'),
             ),
         },
@@ -70,14 +69,14 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
-                #u'//span[contains(text(), "检测车型")]/text()',
+                # u'//span[contains(text(), "检测车型")]/text()',
                 has(u'检测车型'),
             ),
             'processors': ['first', 'ganjihaoche.brand_slug'],
         },
         'model_slug': {
             'xpath': (
-                #u'//span[contains(text(), "检测车型")]/text()',
+                # u'//span[contains(text(), "检测车型")]/text()',
                 has(u'检测车型'),
             ),
             'processors': ['first', 'ganjihaoche.model_slug'],
@@ -91,10 +90,10 @@ item_rule = {
         #'city_slug': {
             #'xpath': (
                 #'//a[@class="toindex"]/@href',
-                #attr(cls('toindex'), 'href'),
+                # attr(cls('toindex'), 'href'),
             #),
             #'processors': ['first', 'ganjihaoche.city_slug'],
-        },
+        # },
         'region': {
             'xpath': (
                 text(id_('base', '/ul/li[1]')),
@@ -144,8 +143,14 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                '//ul[@class="indem-ul"]/li/p[@class]/text()',
+                has(u'质保', prefix=cls('f-type01', '')),
+                # has(u'质保', prefix=cls('f-type01', '//')),
+                # '//ul[@class="indem-ul"]/li/p[@class]/text()',
             ),
+        },
+        'is_certifield_car': {
+            'default': 1,
+            'default': '%(quality_service)s',
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
@@ -161,7 +166,7 @@ parse_rule = {
         "format": "http://haoche.ganji.com{0}",
         "step": 'parse_detail',
         'update': True,
-        'category': 'usedcar'
+        'category': 'usedcar',
     },
     "next_page_url": {
         "xpath": (
@@ -177,9 +182,9 @@ rule = {
     'name': u'赶集好车',
     'domain': 'haoche.ganji.com',
     'start_urls': [
-        #'http://haoche.ganji.com/cn/buy/',
         'http://haoche.ganji.com/www/buy/',
         # 'http://haoche.ganji.com/cn/buy/o2/',
+        # 'http://haoche.ganji.com/cc/1713365366x.htm',
     ],
 
     'parse': parse_rule,
@@ -188,3 +193,4 @@ rule = {
         "item": item_rule,
     },
 }
+# rule['parse'] = rule['parse_detail']

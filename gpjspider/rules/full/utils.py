@@ -7,6 +7,7 @@ except ImportError:
 attr = lambda x, e: '//%s/@%s' % (x, e)
 url = lambda x: attr(x + '/a[@href]', 'href')
 img = lambda x: attr(x + '/img[@src]', 'src')
+href = lambda x: attr(x, 'href')
 text = lambda x: '//%s/text()' % x
 value = lambda x: '//%s/@value' % x
 string = lambda x: text(x + '/')
@@ -90,6 +91,8 @@ u'//*[contains(text(), "t")]/following-sibling::a/@href'
 '//*[contains(@class,"car-box")]//p/a[@href]/@href'
 >>> attr(cls('car-products'), 'href')
 '//*[@class="car-products"]/@href'
+>>> has('t', prefix=cls('f-type01', '//'))
+u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
     '''
 
 def main():
