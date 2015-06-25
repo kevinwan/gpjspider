@@ -577,8 +577,19 @@ def transfer_owner(value):
 >>> transfer_owner(u'一手车')
 0
     '''
-    return (1 if any([u'否' in value, u'二手' in value]) else 0 if any([u'是' in value, u'一手' in value]) else int(value.rstrip(u'次'))) \
-        if isinstance(value, basestring) else value
+    if isinstance(value, basestring):
+        if any([u'否' in value, u'二手' in value]):
+            return 1
+        elif any([u'是' in value, u'一手' in value]):
+            return 0
+        elif re.match('^[1-9]+', value):
+            return int(re.match('^[1-9]+', value).group())
+        else:
+            return 0
+    return value
+    #return (1 if any([u'否' in value, u'二手' in value]) else 0 if any([u'是' in value, u'一手' in value]) \
+              #else int(value.rstrip(u'次')) \
+           #)  if isinstance(value, basestring) else value
 
 
 def description(value):
