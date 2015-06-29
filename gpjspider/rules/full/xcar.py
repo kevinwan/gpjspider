@@ -38,7 +38,7 @@ item_rule = {
             'xpath': (
                 has(u'首次上牌', '/..'),
             ),
-            'regex': u'(\d{1, 2})月',
+            'regex': u'(\d{1,2})月',
         },
         'time': {
             'xpath': (

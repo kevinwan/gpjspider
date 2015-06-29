@@ -37,7 +37,7 @@ item_rule = {
             'xpath': (
                 before_has(u'上牌时间'),
             ),
-            'regex': u'(\d{1, 2})月',
+            'regex': u'(\d{1,2})月',
         },
         #'time': {
             #'xpath': (
