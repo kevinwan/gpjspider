@@ -216,19 +216,20 @@ item_rule = {
 parse_rule = {
     "url": {
         'xpath': (
-            url('*[@id="infolist"]//*[@sortid]/'),
+            url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
         ),
-        'contains': ['/ershouche/'],
+        'contains': ['/ershouche/', 'shtml'],
         "step": 'parse_detail',
     },
     "next_page_url": {
         "xpath": (
-            # url(cls('list-tabs')),
+            url(cls('list-tabs')),
             '//a[@class="next"]/@href',
         ),
         'format': True,
         "step": 'parse',
         'max_pagenum': 25,
+        # 'max_pagenum': 65,
         'incr_pageno': 5,
         'incr_pageno': 8,
     },
@@ -247,13 +248,13 @@ rule = {
 
     'start_urls': [
         'http://quanguo.58.com/ershouche/',
-        'http://quanguo.58.com/ershouche/0/',
-        'http://quanguo.58.com/ershouche/1/',
-        'http://quanguo.58.com/ershouche/?xbsx=1',
-        # 'http://quanguo.58.com/ershouche/pn15/',
-        # 'http://quanguo.58.com/ershouche/0/pn15/',
-        # 'http://quanguo.58.com/ershouche/1/pn15/',
-        # 'http://quanguo.58.com/ershouche/pn15/?xbsx=1',
+        # 'http://quanguo.58.com/ershouche/0/',
+        # 'http://quanguo.58.com/ershouche/1/',
+        # 'http://quanguo.58.com/ershouche/?xbsx=1',
+        # 'http://quanguo.58.com/ershouche/pn10/',
+        # 'http://quanguo.58.com/ershouche/0/pn10/',
+        # 'http://quanguo.58.com/ershouche/1/pn10/',
+        # 'http://quanguo.58.com/ershouche/pn10/?xbsx=1',
         # 'http://bj.58.com/ershouche/21942816658953x.shtml', # 2
         # 'http://bj.58.com/ershouche/22095630730144x.shtml', # 2
         # 'http://bj.58.com/ershouche/19417891266819x.shtml', # 2

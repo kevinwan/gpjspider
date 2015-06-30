@@ -200,12 +200,12 @@ def strip_imgurls(urls_with_query):
     return ' '.join(new_urls)
 
 
-#def status(value):
-    #if value == '1':
-        #return True
-    #elif value == '0':
-        #return False
-    #return bool(value)
+# def status(value):
+    # if value == '1':
+    # return True
+    # elif value == '0':
+    # return False
+    # return bool(value)
 
 
 def price(value):
@@ -232,7 +232,7 @@ Decimal('0.0')
         return v
     else:
         return Decimal('0.0')
-    #return v
+    # return v
 
 
 def price_bn(value):
@@ -263,6 +263,8 @@ Decimal('0.1')
 Decimal('26.78')
 >>> mile(u'7万公里')
 Decimal('7')
+>>> mile(u'3000万公里')
+Decimal('0.3')
 >>> mile(u'55')
 Decimal('0.0055')
 >>> mile(u'600公里')
@@ -270,10 +272,24 @@ Decimal('0.06')
 >>> mile(u'600')
 Decimal('0.06')
     '''
-    v = extract(value, ur'[^\d]*(\d*\.?\d{1,2})\s*万公里', decimal)
+
     # print v
-    if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
-        v = extract(value, ur'(\d+)公里', decimal) / 10000
+    # if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
+    if isinstance(value, basestring):
+        if not u'万' in value:
+            v = extract(value, ur'(\d+|[\d\.]{3,})公里', decimal)
+            v /= 10000
+        else:
+            v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', decimal)
+    else:
+        v = value
+    try:
+        v = decimal(v)
+        # v = extract(value, ur'(\d+)公里', decimal)
+        if v > 1000:
+            v /= 10000
+    except Exception as e:
+        print e, v
     return v
 
 
@@ -587,9 +603,9 @@ def transfer_owner(value):
         else:
             return 0
     return value
-    #return (1 if any([u'否' in value, u'二手' in value]) else 0 if any([u'是' in value, u'一手' in value]) \
-              #else int(value.rstrip(u'次')) \
-           #)  if isinstance(value, basestring) else value
+    # return (1 if any([u'否' in value, u'二手' in value]) else 0 if any([u'是' in value, u'一手' in value]) \
+    # else int(value.rstrip(u'次')) \
+    #)  if isinstance(value, basestring) else value
 
 
 def description(value):

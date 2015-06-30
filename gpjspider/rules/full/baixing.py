@@ -203,7 +203,9 @@ rule = {
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
     'start_urls': [
-        'http://china.baixing.com/ershouqiche/?imageFlag=1',
+        # 'http://china.baixing.com/ershouqiche/?imageFlag=1',
+        'http://china.baixing.com/ershouqiche/?imageFlag=1&todayOnly=1',
+        # 'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
         # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
         # 'http://nanning.baixing.com/ershouqiche/a751473084.html',
         # 'http://dalian.baixing.com/ershouqiche/a761320262.html',

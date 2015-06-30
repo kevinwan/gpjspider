@@ -6,7 +6,7 @@ item_rule = {
     'fields': {
         'title': {
             'xpath': (
-                # '//*[@id="car_info"]/@value',
+                text(cls('title', prefix=id_('basic') + '//')),
                 attr(id_('car_info'), 'value'),
             ),
             'required': True,
@@ -217,7 +217,8 @@ list_rule = {
     'url': {
         'xpath': ('//*[contains(@class,"list-item")]/a[@href]/@href',),
         'step': 'parse_detail',
-        'contains': ['/cn/car'],
+        # 'contains': ['/cn/car'],
+        # 'contains': '/cn/car',
         'format': True,
     },
     'next_page_url': {

@@ -221,6 +221,8 @@ rule = {
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=c41007ab-baf9-4c06-a787-c71bf48b463a',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=2f38de4f-d180-498a-8092-8a977bde9f51',
     ],
+    'per_page': 24,
+    'pages': 200,
 
     'parse': {
         "url": {
@@ -228,6 +230,7 @@ rule = {
                 '//div[@class="area-line"]/a/@data-pinyin',
             ),
             "format": "http://www.souche.com/{0}/list",
+            "format": "http://www.souche.com/{0}/list-pg4",
             # "format": "http://www.souche.com/{0}/list-mx2014-styishou",
             "step": 'parse_list',
             # 'default': ['http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6e4acb6b-7182-4e5a-97ff-2123138ea1d8'],

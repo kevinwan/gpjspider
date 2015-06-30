@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-51汽车
-"""
 from gpjspider.utils.constants import *
 from .utils import *
 
@@ -221,8 +218,6 @@ parse_rule = {
             r'http://www\.51auto\.com/buycar/\d+\.html',
         ),
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
@@ -237,14 +232,18 @@ parse_rule = {
 
 rule = {
     'name': u'51汽车',
-    'domain': 'www.51auto.com',
+    'domain': '51auto.com',
     'base_url': 'http://www.51auto.com',
     'spider': {
-        'domain': 'www.51auto.com',
+        'domain': '51auto.com',
         'download_delay': 2.5,
     },
     'start_urls': [
         'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2', # 在售、有图、按发布时间降序排列
+        'http://www.51auto.com/quanguo/pabmdcig2f/?img=y&onsale=y&ordering=publishTime&direction=2',
+        'http://www.51auto.com/quanguo/pabmdcig3f/?img=y&onsale=y&ordering=publishTime&direction=2',
+        'http://www.51auto.com/quanguo/pabmdcig4f/?img=y&onsale=y&ordering=publishTime&direction=2',
+        # 'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2&page=10',
         #'http://www.51auto.com/buycar/2618559.html',
         #'http://www.51auto.com/buycar/2622130.html', # 准新车，有商家检测
         #'http://www.51auto.com/buycar/2645362.html', # 无相关检测

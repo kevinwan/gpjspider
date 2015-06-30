@@ -223,8 +223,8 @@ list_rule = {
         ),
         'format': True,
         "step": 'parse_list',
-        'max_pagenum': 120,  # 全量爬取的最大页数
-        'incr_pageno': 8,  # 增量爬取的最大页数
+        # 'max_pagenum': 120,  # 全量爬取的最大页数
+        # 'incr_pageno': 8,  # 增量爬取的最大页数
     },
 }
 
@@ -242,15 +242,15 @@ rule = {
     'pages': 2000,
 
     'start_urls': [
-        # 'http://www.ygche.com.cn/city.html',
-        #'http://www.ygche.com.cn/nanning/list/',
-        #'http://www.ygche.com.cn/detail/cd1032596.html',
-        #'http://www.ygche.com.cn/detail/cd1041162.html',
-        #'http://www.ygche.com.cn/detail/cd1040994.html',
+        'http://www.ygche.com.cn/city.html',
+        # 'http://www.ygche.com.cn/nanning/list/',
+        # 'http://www.ygche.com.cn/detail/cd1032596.html',
+        # 'http://www.ygche.com.cn/detail/cd1041162.html',
+        # 'http://www.ygche.com.cn/detail/cd1040994.html',
         # 'http://www.ygche.com.cn/detail/zs1041021.html', # 变速器关键词多
         # 'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
-        'http://www.ygche.com.cn/detail/cd1042422.html', # 在售
-        'http://www.ygche.com.cn/detail/cd1019953.html', # 已售
+        # 'http://www.ygche.com.cn/detail/cd1042422.html', # 在售
+        # 'http://www.ygche.com.cn/detail/cd1019953.html', # 已售
     ],
 
     'parse': {
@@ -260,6 +260,7 @@ rule = {
             ),
             'format': True,
             'format': 'http://www.ygche.com.cn{0}list/',
+            # 'format': 'http://www.ygche.com.cn{0}list/68.html',
             'step': 'parse_list',
         },
     },
@@ -273,4 +274,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

@@ -69,7 +69,7 @@ class UsedCar(Base):
     price_bn = Column(DECIMAL(precision=10, scale=2), doc=u'新车购买价格')
     brand_slug = Column('brand_slug', String(32), index=True, doc=u'品牌')
     model_slug = Column('model_slug', String(32), index=True, doc=u'型号')
-    model_url = Column('model_url', String(500), nullable=True)
+    model_url = Column(String(500), nullable=True)
     city = Column(String(50), doc=u'城市')
     city_slug = Column(String(32), index=True, doc=u'城市slug')
     region = Column(String(50), index=True, doc=u'地址')

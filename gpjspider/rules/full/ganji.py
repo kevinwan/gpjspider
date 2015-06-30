@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-赶集二手车
-"""
-from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from .utils import *
 
 _has = lambda x: has(x, '/..')
@@ -189,11 +185,10 @@ parse_rule = {
             r'http://\w+\.ganji\.com/ershouche/\d+x\.htm',
         ),
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
+            url(has_cls('listtab', '/')),
             '//*[@class="next"]/@href',
         ),
         #'format': 'http://www.ganji.com{0}',
@@ -206,15 +201,15 @@ parse_rule = {
 
 rule = {
     'name': u'赶集二手车',
-    'domain': 'www.ganji.com',
+    'domain': 'ganji.com',
     'base_url': 'http://www.ganji.com',
     'spider': {
-        'domain': 'www.ganji.com',
+        'domain': 'ganji.com',
         'download_delay': 2.5,
     },
     'start_urls': [
         'http://www.ganji.com/ershouche/',
-        #'http://www.ganji.com/ershouche/o2/',
+        # 'http://www.ganji.com/ershouche/o10/',
         #'http://su.ganji.com/ershouche/1466078402x.htm', # 无新车价
         #'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
         #'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人

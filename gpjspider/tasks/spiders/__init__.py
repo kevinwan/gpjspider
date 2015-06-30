@@ -14,6 +14,7 @@ from gpjspider.utils.common import create_update_spider_class
 from gpjspider.utils.common import create_incr_spider_class
 from gpjspider.utils.path import import_rule, import_update_rule
 from gpjspider.utils.path import import_full_rule, import_incr2_rule as import_incr_rule
+import shutil
 
 
 @app.task(name="run_spider", bind=True, base=GPJSpiderTask)
@@ -48,10 +49,13 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
     scrapy_setting.set('LOG_LEVEL', self.log_level.upper(), priority='cmdline')
     jobdir = os.path.join(scrapy_setting.get('JOBDIR'), domain)
     job_queue = os.path.join(jobdir, 'requests.queue')
+    # if rule_name.startswith('full'):
+    #     shutil.rmtree(jobdir)
+    # elif os.path.exists(job_queue):
     if os.path.exists(job_queue):
-        #os.removedirs(job_queue) """ 不能删除非空目录 """
-        import shutil
         shutil.rmtree(job_queue)
+    # if os.path.exists(jobdir):
+    #     shutil.rmtree(jobdir)
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()

@@ -181,13 +181,16 @@ rule = {
     'domain': 'taoche.com',
     'base_url': 'http://www.taoche.com',
     'start_urls': [
-        'http://www.taoche.com/all/',
-        # 'http://www.taoche.com/all/?page=2',
-        # 'http://www.taoche.com/buycar/pges5bxcdza/',
-        # 'http://www.taoche.com/buycar/pges3bxcdza/',
-        # 'http://www.taoche.com/buycar/pges2bxcdza/',
-        # 'http://www.taoche.com/buycar/pges1bxcdza/',
+        'http://www.taoche.com/all/?orderid=5&direction=2&onsale=1',
+        # 'http://www.taoche.com/all/?page=36',
+        # 'http://www.taoche.com/all/?page=216',
+        # 'http://www.taoche.com/buycar/pges5bxcdza/?page=216',
+        # 'http://www.taoche.com/buycar/pges3bxcdza/?page=216',
+        # 'http://www.taoche.com/buycar/pges2bxcdza/?page=216',
+        # 'http://www.taoche.com/buycar/pges1bxcdza/?page=216',
         # Debug details
+        # 'http://www.taoche.com/buycar/b-DealerYQDZ1166107S.html',
+        # 'http://www.taoche.com/buycar/b-Dealer15060815359.html',
         # 'http://www.taoche.com/buycar/p-5860783.html',
         # 'http://www.taoche.com/buycar/b-DealerAUDI1080088S.html',
         # 'http://www.taoche.com/buycar/b-Dealer15032612396.html',
@@ -195,6 +198,9 @@ rule = {
         # 'http://www.taoche.com/buycar/b-Dealer15041113418.html',
         # 'http://www.taoche.com/buycar/b-Dealer15041214906.html',
     ],
+    'per_page': 50,
+    'pages': 2000,
+    'pages': 9000,
 
     # ==========================================================================
     #  默认步骤  parse
@@ -202,11 +208,13 @@ rule = {
     'parse': {
         'url': {
             'xpath': (
-                '//*[@id="logwtCarList"]//div[contains(@class,"cary-infor")]/h3/a[@href]/@href',
+                url(has_cls('cary-infor', '/h3')),
+                '//*[@id="logwtCarList"]//div[@class="cary-infor"]/h3/a[@href]/@href',
             ),
             'step': 'parse_detail',
-            'update': True,
-            'category': 'usedcar',
+            # 'format': '{0}?page=72',
+            # 'update': True,
+            # 'category': 'usedcar',
         },
         'next_page_url': {
             'xpath': (
@@ -230,3 +238,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
+# rule['parse'] = rule['parse_detail']

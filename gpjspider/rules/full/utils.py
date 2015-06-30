@@ -96,6 +96,8 @@ u'//*[contains(text(), "t")]/following-sibling::a/@href'
 '//*[@class="car-products"]/@href'
 >>> has('t', prefix=cls('f-type01', '//'))
 u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
+>>> url(has_cls('listtab', '/'))
+'//*[contains(@class,"listtab")]//a[@href]/@href'
     '''
 
 def main():

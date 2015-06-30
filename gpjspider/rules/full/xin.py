@@ -206,7 +206,7 @@ list_rule = {
         "xpath": (
             url(has_cls('car-box', '//p')),
         ),
-        "format": "http://www.xin.com{0}",
+        "format": True,
         'contains': '/c/',
         "step": 'parse_detail',
         'max_pagenum': 50,
@@ -225,7 +225,24 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'start_urls': [
+        # 'http://www.xin.com/quanguo/s/o2a10i600v1/',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i108v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i10v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i40v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i80v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i160v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i240v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i2694v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i2566v1/',
+        #'http://www.xin.com/quanguo/s/o2a10i1862v1/',
+        #'http://www.xin.com/quanguo/s/o2a10i1650v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i851v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i899v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i1163v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i1263v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i1298v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i1370v1/',
         # 'http://www.xin.com/c/10424705.html',  # 5
         # 'http://www.xin.com/c/10353602.html',  # 5
         # 'http://www.xin.com/c/10254412.html',  # 2
@@ -236,7 +253,7 @@ rule = {
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,
-    'pages': 12000,
+    'pages': 18489,
 
     'parse': list_rule,
 

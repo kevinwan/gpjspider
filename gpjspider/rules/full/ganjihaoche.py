@@ -186,6 +186,8 @@ rule = {
         # 'http://haoche.ganji.com/cn/buy/o2/',
         # 'http://haoche.ganji.com/cc/1713365366x.htm',
     ],
+    'per_page': 20,
+    'pages': 600,
 
     'parse': parse_rule,
 

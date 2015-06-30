@@ -22,6 +22,7 @@ import json
 from .utils import *
 from gpjspider.utils import get_mysql_cursor
 import pdb
+import math
 
 
 def debug():
@@ -67,7 +68,6 @@ class GPJBaseSpider(scrapy.Spider):
             setattr(self, attr, rule.get(attr))
         self._is_export and self.export_incr_rule(rule_name)
         # pp(self.website_rule['parse'])
-        # debug()
 
     def export_incr_rule(self, rule_name):
         rule_name = rule_name.split('.')[-1]
@@ -111,7 +111,9 @@ class GPJBaseSpider(scrapy.Spider):
                         yield Request(start_url, callback=self.parse_detail, dont_filter=True)
                     if ids:
                         self.get_cursor().execute(update % ','.join(ids))
-                    if res.count() < 50:
+
+                    # if res.count() < 50:
+                    if len(ids) < 50:
                         break
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
@@ -125,24 +127,51 @@ class GPJBaseSpider(scrapy.Spider):
 
     def parse(self, response, my_name='parse'):
         step_rule = self.website_rule[my_name]
-
+        # self.test(response)
+        detail_amount = 0
+        delta = 0
+        # delta = 0
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
             requests = self.get_requests(step_rule['url'], response)
+            size = len(requests)
+            if size > 0:
+                response.meta['depth'] -= 1
+                if size > 3:
+                    delta -= 1
+            # print response.meta['depth'], len(requests)
             for request in requests:
-                url = request.url
-                self.log('start --request {0}'.format(url))
+                self.log('start request {0}'.format(request.url))
                 yield request
-
+                detail_amount += 1
+        if detail_amount > 0:
+            # delta = int(math.ceil((detail_amount-1) / 6.0))# - 1
+            delta += int(math.ceil(detail_amount / 6.0))
+            # delta = int(math.ceil(detail_amount / 6.0)) - 1
+            # delta = int(math.floor(detail_amount / 7.0))# - 1
+            if detail_amount == size:
+                if size > self.website_rule.get('per_page', 15)/3:
+                    delta += 1
+                    if delta > 4:
+                        delta = 4
+            elif self._incr_enabled:
+                delta += 1
+        depth = response.meta.get('depth', 0) - delta
+        _min = -12
+        depth = depth if depth > _min else _min
+        # print depth
+        response.meta['depth'] = depth
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg)
-            requests = self.get_requests(page_rule, response, step_rule)
+            requests = self.get_requests(page_rule, response, detail_amount or step_rule)
+            # if len(requests) > 10:
+            #     response.meta['depth'] += 1 #depth if  else depth
             for request in requests:
                 url = request.url
-                self.log(u'start request next page: {0}.'.format(url))
+                self.log(u'start next request: {0}'.format(url))
                 yield request
 
         if 'item' in step_rule:
@@ -153,8 +182,7 @@ class GPJBaseSpider(scrapy.Spider):
 
     def get_page_rule(self, step_rule):
         if self.page_rule is None:
-            self.page_rule = step_rule.get(
-                'incr_page_url', step_rule.get('next_page_url'))
+            self.page_rule = step_rule.get('incr_page_url', step_rule.get('next_page_url'))
         return self.page_rule
 
     def get_max_page(self, page_rule=None):
@@ -163,9 +191,7 @@ class GPJBaseSpider(scrapy.Spider):
             page_rule = self.get_page_rule(rule.get('parse_list', rule.get('parse')))
             url_no = len(self.page_urls)
             if self._incr_enabled:
-                page = page_rule.get('incr_pageno', 
-                    url_no > 8 and 1 or url_no > 1 and 3 or \
-                    self.incr_page)
+                page = page_rule.get('incr_pageno', url_no > 8 and 1 or url_no > 1 and 3 or self.incr_page)
                 # url_no = url_no > 40 and 40 or url_no
             else:
                 page = page_rule.get('max_pagenum', self.full_page)
@@ -175,9 +201,14 @@ class GPJBaseSpider(scrapy.Spider):
         return self.max_page
 
     def parse_list(self, response):
+        # self.test(response)
         return self.parse(response, 'parse_list')
 
+    def test(self, response):
+        print response.request._meta['depth'], response.url
+
     def parse_detail(self, response):
+        # self.test(response)
         import sys
         my_name = sys._getframe().f_code.co_name
         step_rule = self.website_rule[my_name]
@@ -276,14 +307,14 @@ class GPJBaseSpider(scrapy.Spider):
                 urls -= self.page_urls
                 for url in urls:
                     self.page_urls.add(url)
-                if step_rule:
-                    max_page = self.max_page
-                    pages = len(self.page_urls)
-                    # TODO: need opt
-                    if pages > max_page:
-                        self.log(
-                            'visit {0}/{1} pages before {2}'.format(pages, max_page, _url))
-                        return []
+                # if step_rule:
+                #     max_page = self.max_page
+                #     pages = len(self.page_urls)
+                #     # TODO: need opt
+                #     if pages > max_page:
+                #         self.log(
+                #             'visit {0}/{1} pages before {2}'.format(pages, max_page, _url))
+                #         return []
             else:
                 urls -= self.detail_urls
                 for url in urls:
@@ -291,6 +322,7 @@ class GPJBaseSpider(scrapy.Spider):
                 if urls and not self.update:# and self.domain != 'c.cheyipai.com':
                     max_page = self.get_max_page(url_rule)
                     urls = self.clean_detail_urls(urls, _url, max_page)
+                    # dont_filter = not self._incr_enabled
             for url in urls:
                 request = Request(
                     url, callback=step_function, dont_filter=dont_filter)
@@ -320,16 +352,16 @@ class GPJBaseSpider(scrapy.Spider):
         if new_no:
             self.log(
                 u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
-            min_no = all_no / 3
-            if new_no > all_no and all_no >= 5:
-                max_page += 2.1
-            elif new_no / 2 > min_no or new_no >= 20:
-                max_page += 1.6
-            elif new_no > min_no or new_no >= 8:
-                max_page += 1.1
-        elif max_page > 50:
-            max_page -= 0.7
-        self.max_page = max_page
+        #     min_no = all_no / 3
+        #     if new_no > all_no and all_no >= 5:
+        #         max_page += 2.1
+        #     elif new_no / 2 > min_no or new_no >= 20:
+        #         max_page += 1.6
+        #     elif new_no > min_no or new_no >= 8:
+        #         max_page += 1.1
+        # elif max_page > 30:
+        #     max_page -= 0.7
+        # self.max_page = max_page
         return new_urls
 
     def get_cursor(self):
@@ -652,8 +684,8 @@ class GPJBaseSpider(scrapy.Spider):
         return step
 
     def format_urls(self, url_rule, urls):
-        if urls:
-            self.log(u'got {0} urls'.format(urls))
+        # if urls:
+        #     self.log(u'got {0} urls'.format(urls))
         if 'format' not in url_rule:
             return urls
         format_rule = url_rule['format']

@@ -29,7 +29,7 @@ def get_mysql_engine():
     global __engine
     if not __engine:
         # timeout = MYSQL_SQLALCHEMY_URL.pop('pool_recycle', 300)
-        timeout = 5
+        timeout = 4
         url = URL(**MYSQL_SQLALCHEMY_URL)
         __engine = create_engine(
             # url, pool_recycle=timeout, pool_size=20, max_overflow=100, echo_pool=False, echo=False)
