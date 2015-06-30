@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #-*-coding:utf-8-*-
-""" 51auto 处理器 """
+""" hx2car 处理器 """
 import re
 from gpjspider.utils.constants import *
 
