@@ -15,8 +15,9 @@ item_rule = {
         },
         'dmodel': {
             'xpath': (
-                _has(u'车辆信息'),
+                text(cls('info-ul', '/li[1]')),
             ),
+            'default': '%(title)s',
         },
         'meta': {
             'xpath': (
@@ -42,6 +43,7 @@ item_rule = {
             'xpath': (
                 _has(u'排量'),
             ),
+            'default': '%(title)s',
         },
         'color': {  # 颜色描述：红、蓝色、深内饰。。
             #'xpath': (
@@ -53,8 +55,9 @@ item_rule = {
         'control': {  # 手动/自动/手自一体
             'xpath': (
                 after_has(u'变速器形式'),
+                has(u'变', '/span'),
             ),
-            'default': '%(title)s',
+            #'default': '%(title)s',
         },
         'price': {  # 车主报价或车源的成交价
             'xpath': (
@@ -76,6 +79,12 @@ item_rule = {
             'xpath': (
                 text(cls('w1200 bread-Crumbs', '/a[4]')),
             ),
+        },
+        'model_url': {
+            'xpath': (
+                href(cls('w1200 bread-Crumbs', '/a[4]')),
+            ),
+            'format': True,
         },
         'city': {  # 车源归属地、所在城市
             'xpath': (
@@ -251,6 +260,9 @@ rule = {
         # 'http://www.ygche.com.cn/detail/sz1040382.html', # 无新车价、无排量
         # 'http://www.ygche.com.cn/detail/cd1042422.html', # 在售
         # 'http://www.ygche.com.cn/detail/cd1019953.html', # 已售
+        #'http://www.ygche.com.cn/detail/cd1001107.html',
+        #'http://www.ygche.com.cn/detail/nn1025954.html',
+        #'http://www.ygche.com.cn/detail/gz1044279.html', # 变速器
     ],
 
     'parse': {
@@ -274,4 +286,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-# rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']

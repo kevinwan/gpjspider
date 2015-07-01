@@ -5,7 +5,10 @@ import re
 
 def color(value):
     """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
-    return value.split()[-1]
+    val = value.split()[-1]
+    if u'色' in val:
+        return val
+    return ''
 
 
 # def control(value):
