@@ -39,6 +39,7 @@ item_rule = {
             'xpath': (
                 after_has(u'排量'),
             ),
+            'default': '%(title)s',
         },
         'color': {
             'xpath': (
@@ -46,15 +47,14 @@ item_rule = {
             ),
         },
         'control': {
-            # 'xpath': (
-            #     after_has(u'变速箱'),
-            # ),
+            'xpath': (
+                after_has(u'变速箱'),
+            ),
             'default': '%(description)s %(dmodel)s',
             'default': '%(dmodel)s',
             'regex': u'变速箱：(\S+)| ([手自]\S+)',
             'regex': [u'变速箱：(\S+)', '\s?([手自]\S+)'],
-            'regex': u' ([手自]\S*[动体])',
-            # 'regex': u' [手自]\S+',
+            'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
             'regex_not': None,
             # 'processors': ['concat'],
@@ -75,7 +75,9 @@ item_rule = {
         'model_slug': {
             'xpath': (
                 text(id_('carseriess')),
+                text(cls('chexingpeizhi', '/a/../')),
             ),
+            'processors': ['58.model_slug'],
         },
         'city': {
             'xpath': (
@@ -260,6 +262,11 @@ rule = {
         # 'http://bj.58.com/ershouche/19417891266819x.shtml', # 2
         # 'http://sh.58.com/ershouche/21667174258462x.shtml', # 3
         # 'http://sy.58.com/ershouche/21851847601184x.shtml', # 4
+        #'http://cq.58.com/ershouche/22547675100938x.shtml', # control
+        #'http://cq.58.com/ershouche/22505663203337x.shtml', # control
+        #'http://cq.58.com/ershouche/22548469757449x.shtml', # volume
+        #'http://cq.58.com/ershouche/22548421513886x.shtml', # model_slug
+        #'http://cd.58.com/ershouche/22449249479817x.shtml', # phone, region
     ],
 
     'parse': parse_rule,

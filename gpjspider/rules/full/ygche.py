@@ -14,9 +14,9 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            'xpath': (
-                text(cls('info-ul', '/li[1]')),
-            ),
+            #'xpath': (
+                #text(cls('info-ul', '/li[1]')),
+            #),
             'default': '%(title)s',
         },
         'meta': {

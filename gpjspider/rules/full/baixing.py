@@ -40,7 +40,7 @@ item_rule = {
             'xpath': (
                 has(u'排量', '/..'),
             ),
-            #'default': '%(dmodel)s',
+            'default': '%(dmodel)s',
         },
         'phone': {
             'xpath': [
@@ -59,13 +59,15 @@ item_rule = {
             'xpath': (
                 has(u'变速箱', '/..'),
             ),
-            'default': '%(dmodel)s',
-            'regex': [u'([手自]\S*[动体])', u'变速箱：(\S+)'],
+            'default': '%(title)s',
+            #'regex': [u'([手自]\S*[动体])', u'变速箱：(\S+)'],
+            'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
         },
         'region': {
             'xpath': (
                 attr(id_('view-map'), 'href'),
+                after_has(u'地区'),
             ),
             'processors': ['first', 'baixing.region'],
         },
@@ -91,6 +93,12 @@ item_rule = {
             ],
             'processors': ['baixing.model_slug'],
             'default': '%(dmodel)s',
+        },
+        'model_url': {
+            'xpath': (
+                href(cls('head-nav head-bread', '/small[5]/a')),
+            ),
+            'format': True,
         },
         'city': {
             'xpath': (
@@ -218,6 +226,11 @@ rule = {
         #'http://xian.baixing.com/ershouqiche/a634046170.html',
         #'http://nanning.baixing.com/ershouqiche/a765382531.html',
         #'http://qiandongnan.baixing.com/ershouqiche/a770089764.html', # 里程、价格是错误的
+        #'http://shangqiu.baixing.com/ershouqiche/a781066618.html', # 有地图、地区
+        #'http://tongling.baixing.com/ershouqiche/a781067063.html', # 无地图、地区
+        #'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
+        #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volumn
+        #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volumn
     ],
     # 'per_page': 20,
     # 'pages': 100,

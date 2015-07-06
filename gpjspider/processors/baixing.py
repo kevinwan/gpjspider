@@ -26,12 +26,14 @@ def model_slug(value):
     return ''
 
 def region(value):
-    value = value.encode('ASCII')
-    MAGIC = 's%26wd%3D'
-    reg = value.split(MAGIC)[-1]
-    if reg:
-        return unquote(reg).decode('utf-8')
-    return ''
+    if 'http' in value:
+        value = value.encode('ASCII')
+        MAGIC = 's%26wd%3D'
+        reg = value.split(MAGIC)[-1]
+        if reg:
+            return unquote(reg).decode('utf-8')
+    else:
+        return value
 
 def car_application(value):
     if u'家用' in value:

@@ -271,6 +271,8 @@ Decimal('0.0055')
 Decimal('0.06')
 >>> mile(u'600')
 Decimal('0.06')
+>>> mile(u'三十二万公里')
+unsupported operand type(s) for /=: 'unicode' and 'int' 三十二万公里
     '''
 
     # print v
@@ -290,6 +292,7 @@ Decimal('0.06')
             v /= 10000
     except Exception as e:
         print e, v
+        return None
     return v
 
 

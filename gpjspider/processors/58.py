@@ -55,3 +55,12 @@ def source_type(values):
     # if is_certifield_car(_v):
     #     st = SOURCE_TYPE_SELLER
     return st
+
+def model_slug(value):
+    if isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            return value[0]
+        else:
+            value = ''.join([v.strip() for v in value])
+            return value[value.find(u'-')+1: ].strip()
+    return value
