@@ -20,24 +20,37 @@ def get_average_price(brand, model, year, volume):
                                               year=year, volume=volume)
     return q.first()
 
+xin_model_url = lambda x: re.sub(r'/\w+/s', '/quanguo/s', x)
 
-def get_gpj_category(brand, model, domain):
+def get_gpj_category(brand, model, domain, model_url=None):
     u"""
 >>> get_gpj_category(u'凯迪拉克', u'凯雷德ESCALADE', 'souche.com')
     """
     session = Session()
     query = session.query(CategoryDict)
     # if domain == 'xin.com':
-    if brand is None:
-        query = query.filter_by(domain=domain, url=model)
-    else:
-        query = query.filter_by(domain=domain, name=model, parent=brand)
+    # if brand is None:
+    #     query = query.filter_by(domain=domain, url=model)
+    # else:
+    query = query.filter_by(domain=domain, name=model, parent=brand)
     amount = query.count()
     if amount == 1:
         query = query.first()
-        return query and query.category or None
-    else:
-        print amount, domain, brand, model
+        return query.category or None
+    elif model_url:
+        info = dict(url=model_url)
+        if domain in ['xin.com']:
+            match = re.findall('/s(\d+)/', model_url)
+            if match:
+                info = dict(slug=match[0])
+            # model_url = xin_model_url(model_url)
+        query = query.filter_by(domain=domain, **info)
+        amount = query.count()
+        if amount == 1:
+            query = query.first()
+            return query and query.category or None
+        # print amount, domain, brand, model, model_url
+        return amount
 
 
 def get_gpj_detail_model(gpj_slug, detail_model_str, domain):
@@ -62,14 +75,8 @@ def process_detail_model_string(detail_model_string, domain):
     进行调整，以便在数据库中能匹配上。
     """
     domains = {
-        'renrenche.com': __process_renrenche,
         'haoche51.com': __process_haoche51,
-        'haoche.ganji.com': __process_ganjihaoche,
         'c.cheyipai.com': __process_cheyipai,
-        'xin.com': __process_xin,
-        'souche.com': __process_souche,
-        'youche.com': __process_youche,
-        # '99haoche.iautos.cn': __process_99haoche,
     }
     process_func = domains.get(domain)
     #  没有函数处理 detail_model_string，返回原样，看能否匹配到
@@ -77,10 +84,6 @@ def process_detail_model_string(detail_model_string, domain):
         return detail_model_string
     else:
         return process_func(detail_model_string)
-
-
-def __process_renrenche(detail_model_string):
-    return detail_model_string
 
 
 def __process_haoche51(detail_model_string):
@@ -91,37 +94,12 @@ def __process_haoche51(detail_model_string):
     """
     return detail_model_string.split(' ', 3)[-1]
 
-
-def __process_ganjihaoche(detail_model_string):
-    return detail_model_string
-
-
 def __process_cheyipai(detail_model_string):
     u"""
     cheyipai 的前两部分是品牌和型号，剩下是款型
     """
     ss = re.split(ur'\s+', detail_model_string)
     return u' '.join(ss[2:])
-
-
-def __process_xin(detail_model_string):
-    return detail_model_string
-
-
-def __process_souche(detail_model_string):
-    u"""
-    大搜车  标题就是款型
-    """
-    return detail_model_string
-
-
-def __process_youche(detail_model_string):
-    return detail_model_string
-
-
-def __process_99haoche(detail_model_string):
-    return detail_model_string
-
 
 def get_price():
     pass

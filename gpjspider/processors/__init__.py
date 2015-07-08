@@ -428,7 +428,9 @@ False
     time = str_to_unicode(time, encoding)
     tag = [(u'秒前', 'S', 1), (u'分钟前', 'S', 60), (u'小时前', 'S', 3600),
            (u'天前', 'D', 1),  (u'周前', 'D', 7), (u'星期前', 'D', 7),
-           (u'个月前', 'D', 30), ]
+           # (u'个月前', 'D', 30), (u'月前', 'D', 30),
+           (u'个月前', 'M', 1), (u'月前', 'M', 1),
+           ]
     delta = None
     for p, u, s in tag:
         if p in time:
@@ -631,8 +633,16 @@ def phone(value):
 '4000802020'
 >>> phone('181-1715-1473')
 '18117151473'
+>>> phone('4000802020-530867')
+'4000802020-530867'
     '''
-    return re.sub('\(.+\)', ' ', value.replace('-', '')).strip() if value and len(value) >= 10 else None
+    if value and len(value) >= 10:
+        if len(value.split('-')) > 2:
+            value = value.replace('-', '')
+        value = re.sub('\(.+\)', ' ', value).strip()
+    else:
+        value = None
+    return value
 
 
 if __name__ == '__main__':

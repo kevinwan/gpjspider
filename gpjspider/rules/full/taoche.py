@@ -150,7 +150,7 @@ item_rule = {
             'xpath': (
                 text(cls('chyxx_text')),
             ),
-            'processors': ['taoche.description'],
+            'processors': ['first', 'taoche.description'],
         },
         'imgurls': {
             'xpath': (
@@ -266,4 +266,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

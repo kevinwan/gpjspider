@@ -134,7 +134,7 @@ item_rule = {
             'xpath': (
                 text(cls('font-c-type', '/p')),
             ),
-            'processors': ['souche.strip_and_join'],
+            'processors': ['join', 'souche.strip_and_join'],
         },
         'imgurls': {
             'xpath': (

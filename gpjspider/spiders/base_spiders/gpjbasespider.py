@@ -137,7 +137,7 @@ class GPJBaseSpider(scrapy.Spider):
             requests = self.get_requests(step_rule['url'], response)
             size = len(requests)
             if size > 0:
-                response.meta['depth'] -= 1
+                response.meta['depth'] = response.meta.get('depth', 0) - 1
                 if size > 3:
                     delta -= 1
             # print response.meta['depth'], len(requests)
@@ -260,11 +260,42 @@ class GPJBaseSpider(scrapy.Spider):
                     if ex_url in url:
                         tmp_urls.add(url)
                         break
+        # pdb.set_trace()
+        try:
+            if 'regex' in url_rule:
+                regex = url_rule['regex']
+                if isinstance(regex, list):
+                    flag = False
+                    for reg in regex:
+                        try:
+                            match = re.findall(reg, value)
+                            if match:
+                                value = match[0]
+                                flag = True
+                                break
+                        except Exception as e:
+                            value = url_rule.get('regex_fail', value)
+                            # flag = True
+                            break
+                    if not flag:
+                        # value = url_rule.get('regex_not', value)
+                        value = url_rule.get('regex_not')
+                else:
+                    try:
+                        urls = [re.findall(regex, url)[0] for url in urls]
+                    except Exception as e:
+                        urls = url_rule.get('regex_fail', urls)
+                        # print value
+        except Exception as e:
+            # print e
+            pass
+        finally:
+            urls = set(urls)
         if tmp_urls:
             self.log(u'Dups URL:{0}'.format(tmp_urls), log.INFO)
         urls -= tmp_urls
 
-        urls = self.format_urls(url_rule, urls)
+        urls = self.format_urls(url_rule, urls, response.url)
 
         # 设置dont_filter比使用默认值优先级要高
         # 默认值是：如果 step 规则中有 item，则False；如果 step 规则中没有 item，则 True
@@ -546,6 +577,7 @@ class GPJBaseSpider(scrapy.Spider):
                                     # flag = True
                                     break
                             if not flag:
+                                # value = field.get('regex_not', value)
                                 value = field.get('regex_not')
                         else:
                             try:
@@ -683,12 +715,18 @@ class GPJBaseSpider(scrapy.Spider):
             return None
         return step
 
-    def format_urls(self, url_rule, urls):
+    def format_urls(self, url_rule, urls, _url=None):
         # if urls:
         #     self.log(u'got {0} urls'.format(urls))
         if 'format' not in url_rule:
             return urls
-        format_rule = url_rule['format']
+        # format_rule = url_rule['format'].replace('%(url)s', _url)
+        format_rule = url_rule['format'] % dict(url=_url)
+        update = url_rule.get('replace')
+        if update:
+            a, b = update
+            format_rule = re.sub(a, b, format_rule)
+        # pdb.set_trace()
         new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
             need_format = not format_rule.startswith('http')

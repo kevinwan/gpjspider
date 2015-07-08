@@ -240,11 +240,14 @@ rule = {
         'download_delay': 2.5,
     },
     'start_urls': [
+        # 'http://www.273.cn/os1_otd/?page=119',
         'http://www.273.cn/os1_otd/', # 全国、时间倒序
         #'http://fz.273.cn/car/15986010.html', # 门店验车、车况检测
         #'http://yx.273.cn/car/16094479.html', # 行驶证已审核
         #'http://lps.273.cn/car/16094464.html', # 普通车源
     ],
+    'per_page': 20,
+    'pages': 300,
 
     'parse': parse_rule,
 

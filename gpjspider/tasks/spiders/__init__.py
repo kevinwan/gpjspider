@@ -14,6 +14,7 @@ from gpjspider.utils.common import create_update_spider_class
 from gpjspider.utils.common import create_incr_spider_class
 from gpjspider.utils.path import import_rule, import_update_rule
 from gpjspider.utils.path import import_full_rule, import_incr2_rule as import_incr_rule
+import time
 import shutil
 
 
@@ -33,33 +34,40 @@ def run_spider(self, rule_name):
 def crawl(self, logger, logfile, spider_class, rule, rule_name):
     domain = rule['domain']
     pidfile = os.path.join(self.log_dir, domain + '.pid')
+    pid = str(os.getpid())
     # pidfile = self.log_dir + '/pid_' + domain
     # pidfile = self.log_dir + '/pid_' + spider_class.name + '.pid'
-    if os.path.exists(pidfile):# and not (domain == '58.com' and rule_name.startswith('full')):
-        print 'already run..'
-        return
-    try:
-        if os.path.exists(logfile):
-            os.remove(logfile)
-    except:
-        logger.error(u'Delete {0} failed'.format(logfile))
+
     scrapy_setting = get_project_settings()
     scrapy_setting.set('LOG_ENABLED', True, priority='cmdline')
     scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
     scrapy_setting.set('LOG_LEVEL', self.log_level.upper(), priority='cmdline')
     jobdir = os.path.join(scrapy_setting.get('JOBDIR'), domain)
-    job_queue = os.path.join(jobdir, 'requests.queue')
-    # if rule_name.startswith('full'):
-    #     shutil.rmtree(jobdir)
-    # elif os.path.exists(job_queue):
-    if os.path.exists(job_queue):
-        shutil.rmtree(job_queue)
+    # job_queue = os.path.join(jobdir, 'requests.queue')
+    is_full = rule_name.startswith('full')
+    # if has one process run..
+    has_run = os.path.exists(pidfile)
+    jobdir2 = None
+    if has_run:
+        if is_full:
+            time.sleep(30)
+        if domain in ('ganji.com', '58.com', 'taoche.com'): # 58.com 'baixing.com', 
+            print 'already run..'
+            return
+        if os.path.exists(jobdir):
+            jobdir2 = '%s.%s' % (jobdir, pid)
+            # jobdir2 = jobdir + pid
+            os.makedirs(jobdir2)
+            os.system('ln -s %s{,.%s}/requests.seen' % (jobdir, pid))
+            jobdir = jobdir2
+    # if os.path.exists(job_queue):
+    #     shutil.rmtree(job_queue)
     # if os.path.exists(jobdir):
     #     shutil.rmtree(jobdir)
+
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
     crawler_process = CrawlerProcess(scrapy_setting)
     crawler = crawler_process.create_crawler()
-    pid = str(os.getpid())
     name = '%s.%s' % (spider_class.name, pid)
     spider_class.name = name
     crawler.spiders._spiders[name] = spider_class
@@ -76,7 +84,10 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
         del spider
         del crawler
         del crawler_process
-        os.remove(pidfile)
+        if not has_run:
+            os.remove(pidfile)
+        elif jobdir2:
+            shutil.rmtree(jobdir2)
 
 
 @app.task(name="run_full_spider", bind=True, base=GPJSpiderTask)

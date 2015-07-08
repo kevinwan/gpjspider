@@ -12,7 +12,6 @@ def phone(value):
     '''
     return value
 
-
 #def source_type(value):
     #u'''
 #>>> source_type('http://dealer.che168.com/login.html?backurl=http://www.che168.com/personal/4323708.html#pvareaid=100522#pos=2')
@@ -54,7 +53,7 @@ def source_type(value):
 def description(value):
     if isinstance(value, (list, tuple)):
         for val in value[:]:
-            if  u'易车二手车' in val:
+            if u'易车二手车' in val:
                 value.remove(val)
         return ' '.join([val.strip() for val in value])
     return value

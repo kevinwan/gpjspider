@@ -55,6 +55,10 @@ class SaveToMySQLBySqlalchemyPipeline(object):
             klass = UsedCar
             if item.get('dmodel') is None:
                 item['dmodel'] = item['title']
+            # if 'status' not in item:
+            if item.get('status') is None:
+                item['status'] = 'Y'
+                # item.status = 'Y'
         else:
             cls_name = item.__class__.__name__
             try:
@@ -70,7 +74,8 @@ class SaveToMySQLBySqlalchemyPipeline(object):
                 q = session.query(klass).filter(
                     klass.url == url, klass.status.in_(['E', 'P', 'u']))
                 if q.count():
-                    q.update(dict(item, status='Y'), synchronize_session=False)
+                    q.update(item, synchronize_session=False)
+                    # q.update(dict(item, status='Y'), synchronize_session=False)
                 spider.log(u'Updated Item: {0}'.format(url))
                 return
             else:

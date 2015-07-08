@@ -224,6 +224,10 @@ parse_rule = {
             has_attr2(u'下一页', 'href'),
         ),
         'format': True,
+        'format': '{url}',
+        'format': '%(url)s',
+        'regex': '(\d+)',
+        'replace': ['(curentPage=\d+)', 'curentPage={0}'],
         "step": 'parse',
         # 'incr_pageno': 3,
     },
@@ -239,11 +243,13 @@ rule = {
         'download_delay': 2.5,
     },
     'start_urls': [
-        'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2', # 在售、有图、按发布时间降序排列
-        'http://www.51auto.com/quanguo/pabmdcig2f/?img=y&onsale=y&ordering=publishTime&direction=2',
-        'http://www.51auto.com/quanguo/pabmdcig3f/?img=y&onsale=y&ordering=publishTime&direction=2',
-        'http://www.51auto.com/quanguo/pabmdcig4f/?img=y&onsale=y&ordering=publishTime&direction=2',
-        # 'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2&page=10',
+        # 'http://www.51auto.com/quanguo/pabmdcig0f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=2',
+        'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig1f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig2f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig0f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
+        # # 'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2&page=10',
+        # 'http://hx2car.com/car/search.htm?carFlag=essence&more=f0010000ytdzsejckbmgl100000',
         #'http://www.51auto.com/buycar/2618559.html',
         #'http://www.51auto.com/buycar/2622130.html', # 准新车，有商家检测
         #'http://www.51auto.com/buycar/2645362.html', # 无相关检测
@@ -252,6 +258,8 @@ rule = {
         #'http://www.51auto.com/buycar/2646898.html', # 商家车源
         #'http://www.51auto.com/buycar/2482736.html', # 品牌车商
     ],
+    'per_page': 24,
+    'pages': 3000,
 
     'parse': parse_rule,
 

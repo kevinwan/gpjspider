@@ -10,7 +10,7 @@
 """
 
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Enum, Text, DECIMAL
+from sqlalchemy import Column, Integer, String, DateTime, Enum, Text, DECIMAL, Boolean
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import object_session
@@ -19,6 +19,7 @@ from . import Base
 
 
 class CategoryDict(Base):
+
     """
     各个网站汽车品牌，型号库
     """
@@ -72,6 +73,7 @@ class CategoryDict(Base):
 
 
 class Category(Base):
+
     """
     公平价汽车品牌、型号库(产品级)
     """
@@ -116,9 +118,9 @@ class Category(Base):
     url = Column(String(256), nullable=True, default='')
     #  forign key
     # parent = models.ForeignKey('Category', to_field='slug', db_column='parent',
-    #                            max_length=32, blank=True, null=True,
+    #                            max_length=32, nullable=True, null=True,
     #                            related_name='models',
-    #                            verbose_name=u'品牌（英文简写）')
+    #                            doc=u'品牌（英文简写）')
     parent = Column(String(32), nullable=True)
     mum = Column(String(32), nullable=True, doc=u'生产车商')
     classified = Column(Enum(CLASSIFIED_CHOICE), nullable=True, doc=u'级别')
@@ -157,6 +159,7 @@ class Category(Base):
 
 
 class ModelDetail(Base):
+
     """
     公平价款型
     """
@@ -190,10 +193,12 @@ class ModelDetail(Base):
         String(20), nullable=True, index=True, doc=u'排放标准')
 
     global_slug = Column(Integer, ForeignKey('open_category.slug'))
-    normal_model_details = relationship("NormalModelDetail", backref="obj_model_detail")
+    normal_model_details = relationship(
+        "NormalModelDetail", backref="obj_model_detail")
 
 
 class NormalModelDetail(Base):
+
     """
     保存第三方网站款型和公平价款型的映射信息
     """
@@ -226,13 +231,14 @@ class NormalModelDetail(Base):
     # One To Many
     global_slug = Column(String(32), ForeignKey('open_category.slug'))
     model_detail_slug_id = Column(Integer, ForeignKey('open_model_detail.id'))
-    # global_slug = models.ForeignKey('Category', to_field='slug', 
-    # null=True, db_column='global_slug', verbose_name=u'公平价型号slug')
+    # global_slug = models.ForeignKey('Category', to_field='slug',
+    # null=True, db_column='global_slug', doc=u'公平价型号slug')
 
-    # model_detail_slug = models.ForeignKey('Model_detail', null=True, verbose_name=u'公平价款型id')
+    # model_detail_slug = models.ForeignKey('Model_detail', null=True, doc=u'公平价款型id')
 
 
 class CarSource(Base):
+
     """
     优质二手车基本信息
     """
@@ -298,6 +304,7 @@ class CarSource(Base):
 
 
 class CarDetailInfo(Base):
+
     """
     优质二手车详细信息
     """
@@ -316,7 +323,8 @@ class CarDetailInfo(Base):
     examine_insurance = Column(DateTime, nullable=True, doc=u'年检到期时间')
     transfer_owner = Column(String(10), nullable=True, doc=u'过户次数')
     maintenance = Column(String(100), nullable=True, doc=u'保养情况')
-    insurance_money = Column(DECIMAL(precision=5, scale=2), index=True, nullable=True, doc=u'最高维修费(万元)')
+    insurance_money = Column(
+        DECIMAL(precision=5, scale=2), index=True, nullable=True, doc=u'最高维修费(万元)')
     car_key = Column(String(10), nullable=True, doc=u'车钥匙数量')
     quality_assurance = Column(String(50), nullable=True, doc=u'提供质保的信息')
 
@@ -333,6 +341,7 @@ class CarDetailInfo(Base):
 
 
 class CarImage(Base):
+
     """
     优质二手车图片信息
     """
@@ -360,6 +369,7 @@ class CarImage(Base):
 
 
 class City(Base):
+
     """
     公平价 City 库
     """
@@ -432,3 +442,113 @@ class ByYearVolume(Base):
             self.brand_slug, self.model_slug, self.year, self.volume)
 
     __repr__ = __unicode__
+
+
+class TradeCar(Base):
+
+    __tablename__ = 'open_sell_car'
+
+    TRADE_CAR_STATUS_CHOICES = (
+        ('A', u'原始数据'),
+        ('N', u'新添加'),
+        ('F', u'无效'),
+        ('C', u'已联系上车主'),
+        ('W', u'已清洗确认'),
+        ('D', u'已对接商家'),
+        ('S', u'已出售'),
+    )
+    TRADE_CAR_SOURCE_CHOICE = (
+        ('web_pc', u'来自网站'),
+        ('web_responsive', u'来自响应式网站'),
+        ('android', u'来自Android客户端'),
+        ('ios', u'来自IOS客户端'),
+        ('crawler', u'来自推送'),
+    )
+    INTENT_CHOICES = (
+        ('sell', u'卖车'),
+        ('buy', u'买车')
+    )
+    CONDITION_CHOICE = (
+        ('fair', u'一般'),
+        ('good', u'较好'),
+        ('excellent', u'优秀')
+    )
+
+    id = Column(Integer, primary_key=True)
+    contact = Column(String(20), default='', nullable=True,
+                     doc=u'联系人')
+    email = Column(String(30), default='', doc=u'邮箱地址')
+    phone = Column(String(20), nullable=True, doc=u'联系电话')
+    brand = Column(String(32), doc=u'品牌slug')
+    model = Column(String(32), doc=u'型号slug')
+    model_detail = Column(String(32), doc=u'款型slug')
+    year = Column(Integer, default=0, doc=u'上牌年份')
+    month = Column(Integer, default=6, doc=u'上牌月份')
+    mile = Column(Integer, default=0, doc=u'行驶里程(公里)')
+    condition = Column(Enum(CONDITION_CHOICE), default='good', doc=u'车况')
+    condition_detail = Column(String(50), default='',
+                              doc=u'具体车况分数')
+    color = Column(String(20), default='', nullable=True, doc=u'颜色')
+    option = Column(String(30), default='0-0-0-0', doc=u'配置')
+    city = Column(String(50), nullable=True, doc=u'城市')
+    district = Column(String(30), default='', doc=u'区域')
+    status = Column(Enum(TRADE_CAR_STATUS_CHOICES),
+                    nullable=True, default='A', doc=u'状态')
+    source = Column(
+        Enum(TRADE_CAR_SOURCE_CHOICE), nullable=True, default='crawler', doc=u'来源')
+    created_on = Column(DateTime, default=datetime.now, doc=u'创建时间')
+    updated_on = Column(DateTime, default=datetime.now, doc=u'更新时间')
+    intent = Column(
+        Enum(INTENT_CHOICES), default='sell', nullable=True, doc=u'买卖意图')
+    list_price = Column(DECIMAL(precision=5, scale=2),
+                        default=0, doc=u'心理价位(万元)')
+    eval_price = Column(DECIMAL(precision=5, scale=2), default=0,
+                        doc=u'估值价格(万元)')
+    note = Column(String(200), default='', nullable=True,
+                  doc=u'备注')
+    car_id = Column(Integer, default=0, doc=u'车源id')
+    source_site = Column(String(20), default='', doc=u'标记')
+    send_sms = Column(Boolean, default=False, doc=u'发送短信')
+    send_sms_status = Column(Boolean, default=False, doc=u'发送短信状态')
+    access_report = Column(Boolean, default=False, doc=u'访问估值报告')
+    mandatory_insurance = Column(
+        DateTime, default=None, nullable=True, doc=u'交强险到期时间')
+    examine_insurance = Column(
+        DateTime, default=None, nullable=True, doc=u'年检到期时间')
+    inner_color = Column(String(20), default='', doc=u'车内饰颜色')
+    car_owner = Column(String(10), default='', doc=u'车是在名下')
+    loan = Column(String(10), default='', doc=u'车是否贷款')
+    insurance_money = Column(String(20), default='', doc=u'最大一次出险金额')
+    modify_car = Column(String(10), default='', doc=u'外观是否改装')
+    transfer_owner = Column(String(10), default='', doc=u'是否过户')
+    maintenance = Column(String(100), default='', doc=u'保养情况')
+    commercial_insurance = Column(
+        Boolean, default=False, doc=u'商业险是否随车卖')
+
+    @staticmethod
+    def init(item):
+        trade_car = TradeCar()
+        for attr in 'year month city volume phone mandatory_insurance examine_insurance'.split():
+            setattr(trade_car, attr, item[attr])
+        trade_car.car_id = item['id']
+        trade_car.contact = item['contact'] or ''
+        trade_car.brand = item['brand_slug']
+        trade_car.model = item['model_slug']
+        trade_car.list_price = item['price']
+        trade_car.source_site = item['domain']
+        try:
+            mile = item['mile']
+            mile = float(mile)
+        except:
+            trade_car.mile = mile
+        else:
+            trade_car.mile = int(10000 * mile)
+        trade_car.created_on = item['time']
+        trade_car.color = item['color'] or ''
+        if item['detail_model']:
+            detail_model_slug = item['detail_model']
+        else:
+            detail_model_slug = '-'.join(['all-standard',
+                                          str(item['volume']).replace('.', '_')])
+        trade_car.model_detail = detail_model_slug
+        return trade_car

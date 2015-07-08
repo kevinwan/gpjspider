@@ -10,7 +10,7 @@ from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
 from gpjspider.items import UsedCarItem
 from gpjspider.models.product import CarSource, CarDetailInfo, CarImage
-from gpjspider.models import UsedCar
+from gpjspider.models import UsedCar, TradeCar
 from gpjspider.services.cars import get_gpj_category
 from gpjspider.services.cars import get_gpj_detail_model
 from gpjspider.services.cars import get_average_price
@@ -62,40 +62,80 @@ def log(msg, *args):
     print ''
 
 @app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
-#def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
-def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
+def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
+# def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     log('Starting..')
     session = Session()
     cursor = get_cursor()
     domains = domain and [domain] or \
-        ['haoche51.com', '99haoche.com', 'haoche.ganji.com', 'souche.com',
-        # 'xin.com',
-        'youche.com', 'c.cheyipai.com', 'renrenche.com',
-        '58.com', '2sc.sohu.com', 'taoche.com']
+        [
+        'xin.com', 'ygche.com.cn',
+        'haoche51.com', 'renrenche.com',
+        '99haoche.com', 'haoche.ganji.com', 'souche.com', 'youche.com',
+        #'c.cheyipai.com',
+        '58.com', '2sc.sohu.com', 'taoche.com',
+        'ganji.com', '51auto.com', 'baixing.com',
+        ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
-    # update = "update open_product_source set status='C' where source_id=1 \
-    update = "update open_product_source set status='C' where created_on<=curdate() and source_id=1 \
-        and url in (SELECT url from car_source) and status in ('I', 'E');"
+    # update = "update open_product_source set status='C' where source_id=1 \ , 'E'
+    # update = "update open_product_source set status='C' where created_on > '2015-06-18' and source_id=1 \
+    # update = "update open_product_source set status='C' where created_on>=curdate() and source_id=1 \ a.domain='ygche.com.cn'
+        # where created_on between '2015-6-26' and '2015-7-2' and source_id=1 \
+    update = "update open_product_source a, car_source b set a.status='C' \
+        where created_on>=curdate() and source_id=1 \
+        and a.url=b.url and a.status in ('I');"
     if sync:
         cursor.execute(update.format("','".join(domains)))
+    sql = session.query(UsedCar.id).filter_by(status='Y', source=1
+        ).filter(UsedCar.domain.in_(domains),
+        UsedCar.created_on >= str(datetime.now())[:10],
+        # UsedCar.created_on >= '2015-07-1',
+        # UsedCar.created_on < str(datetime.now())[:10],
+        # UsedCar.status.in_(['N', 'Y']),
+        )
+    min_id = sql.first().id
+    # max_id = sql.order_by('-id').first().id
+    select = 'select %s(id) from open_product_source where status="Y" and source_id=1 and domain in (\'%s\');'
+    max_id = cursor.execute(select % ('max', "','".join(domains))).fetchone()[0]
+    clean_source(session, min_id, max_id, domains, cursor)
+
+    if max_id > min_id:
+        print min_id, max_id - min_id
+        cursor.execute('update open_product_source set status="N" \
+            where source_id=1 and id between %s and %s and status="Y" \
+            and domain in (\'%s\');' % (min_id, max_id, "','".join(domains)))
+        push_trade_cars(session, min_id, max_id, domains)
+    log('Done')
+
+WORKER = 20
+# WORKER = 10
+WORKER = 40
+
+def clean_source(session, min_id, max_id, domains, cursor):
     query = session.query(UsedCar.id).filter_by(source=1, is_certifield_car=True,
         status='Y',
-        #id=19688565#, 243410
+        # id=20677378 # 243410 19688565
         ).filter(
+            # UsedCar.created_on >= str(datetime.now())[:10],
+            UsedCar.id >= min_id,
+            UsedCar.id <= max_id,
             # UsedCar.status.in_(['i', 'I', 'Y']),
-            UsedCar.created_on >= str(datetime.now())[:10],
-            # UsedCar.created_on >= '2015-06-18',
-            # UsedCar.created_on < str(datetime.now())[:10],
+            #UsedCar.status.in_(['E', 'model_slug']),
+            #UsedCar.model_url is not None,
+            # UsedCar.status.in_(['E', 'I', 'Y']),
+            #UsedCar.created_on > '2015-06-18',
             # UsedCar.created_on <= '2015-05-18',
             # UsedCar.created_on >= '2015-05-1',
             # UsedCar.created_on >= '2015-05-15',
-            # UsedCar.status!='C',
+            # UsedCar.status.in_(['N', 'Y']),
             # UsedCar.status.in_(['i', 'I']),
+            # UsedCar.status.in_(['i', 'I', 'model_slug']),
             UsedCar.domain.in_(domains),
             UsedCar.phone != None, UsedCar.model_slug != None, UsedCar.imgurls != None, UsedCar.control != None,
-                  UsedCar.price > 0, UsedCar.volume > 0, UsedCar.year > 2007, UsedCar.mile < 30
-                  )
+            UsedCar.price > 0, UsedCar.volume > 0, UsedCar.year > 2007, UsedCar.mile < 30
+            )
     remain = query.count()
+    # print remain
     index = 0
     psize = 10
     # psize = 30
@@ -104,29 +144,101 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     amount = (remain / psize)
     items = []
     global WORKER
-    waits = 5
+    waits = 4
+    first = True
     for item in query.yield_per(psize):
         index += 1
         items.append(str(item.id))
         if index % psize == 0:
             ids = items
-            log(amount, '%s - %s' % (min(ids), max(ids)))
+            if first:
+                log(amount, '%s - %s' % (min(ids), max(ids)))
+                first = False
             cursor.execute('update open_product_source set status="I" where id in (%s)' % ','.join(ids))
             async_clean(clean_usedcar, items)
             amount -= 1
-            sleep(3 if WORKER < 5 else 2)
+            # sleep(3 if WORKER < 5 else 2)
+            sleep(2 if WORKER < 5 else 1)
             while WORKER == 0:
                 sleep(waits)
             items = []
+
     if items:
         ids = items
         log(amount, '%s - %s' % (min(ids), max(ids)))
-        # clean_usedcar(items)
-        sync_clean(clean_usedcar, items)
+        async_clean(clean_usedcar, items)
+        # sync_clean(clean_usedcar, items)
         # session.commit()
-        log('Done')
 
-WORKER = 20
+def push_trade_cars(session=Session(), min_id=None, max_id=None, domains=None):
+    filt = []
+    if min_id:
+        filt.append(UsedCar.id >= min_id)
+        if not max_id:
+            max_id = min_id
+    if max_id:
+        filt.append(UsedCar.id <= max_id)
+    # elif not min_id:
+    #     filt.append(UsedCar.created_on >= str(datetime.now())[:10])
+    if domains:
+        filt.append(UsedCar.domain.in_(domains))
+    # print filt, locals()
+    query = session.query(UsedCar.id).filter_by(source=1, source_type=4,
+        status='N', checker_runtime=1
+        # id=20778181 # 243410 19688565
+        ).filter(
+            # UsedCar.created_on >= str(datetime.now())[:10],
+            UsedCar.brand_slug != None,
+            UsedCar.phone.startswith('1'),
+            UsedCar.model_slug != None,
+            UsedCar.volume is not None,
+            UsedCar.year > 0,
+            UsedCar.mile < 200,
+            *filt
+            )
+    remain = query.count()
+    index = 0
+    psize = 10
+    # psize = 100
+    amount = (remain / psize)
+    items = []
+    waits = 3
+    meth = push_trade_car
+    global WORKER
+    for item in query.yield_per(psize):
+        index += 1
+        items.append(str(item.id))
+        if index % psize == 0:
+            async_clean(meth, items)
+            amount -= 1
+            while WORKER == 0:
+                sleep(waits)
+            items = []
+
+    if items:
+        sync_clean(meth, items)
+
+def push_trade_car(items):
+    session = Session()
+    for item in items:
+        sid = str(item['id'])
+        # print sid
+        if not is_trade_car(item):
+            continue
+        match_bmd(item)
+        if not item['brand_slug']:
+            continue
+        try:
+            car = TradeCar.init(item)
+            session.add(car)
+            session.commit()
+            session.query(UsedCar).filter_by(id=sid).update(
+                dict(checker_runtime_id=0), synchronize_session=False)
+        except IntegrityError:
+            session.rollback()
+        except Exception as e:
+            print e, sid
+    session.close()
 
 @async
 def async_clean(func, items, *args, **kwargs):
@@ -143,6 +255,8 @@ def sync_clean(func, items, *args, **kwargs):
             items.append(item.__dict__)
         session.close()
     func(items, *args, **kwargs)
+    # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
+    #     where id in (%s);' % ','.join(ids))
     WORKER += 1
 
 
@@ -151,6 +265,15 @@ def update_item(item, **kwargs):
         if not item.get(k):
             item[k] = v
 
+def is_trade_car(item):
+    if all([
+        item['source_type'] == 4,
+        item['city'] in [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac'],
+        item['volume'],
+        item['phone'].startswith('1') and len(item['phone']) == 11,
+        ]):
+        return True
+    return False
 
 @app.task(name="clean_usedcar", bind=True, base=GPJSpiderTask)
 def clean_usedcar(self, items, *args, **kwargs):
@@ -184,6 +307,18 @@ def clean_usedcar(self, items, *args, **kwargs):
                         status[key] = []
                     status[key].append(sid)
                 continue
+            if is_trade_car(item):
+                car = TradeCar.init(item)
+                try:
+                    session.add(car)
+                    session.commit()
+                    session.query(UsedCar).filter_by(id=sid).update(
+                        dict(checker_runtime_id=0), synchronize_session=False)
+                    # logger.debug(u'Saved trade_car {0}'.format(car.id))
+                except IntegrityError:
+                    session.rollback()
+                except Exception as e:
+                    print e
             # 确保 time 正确
             if not item.get('time'):
                 item['time'] = item['created_on']
@@ -243,7 +378,6 @@ def clean_usedcar(self, items, *args, **kwargs):
             #     'update open_product_source set status="%s" where id in (%s) and status="%s";' % (k.lower(), ','.join(v), k))
             cursor.execute(
                 'update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
-    #pdb.set_trace()
     session.commit()
     # session.close()
 
@@ -267,9 +401,6 @@ def preprocess_item(item, session, logger):
     if domain in ['58.com']:
         if item['source_type'] in (2, 3):
             item['is_certifield_car'] = True
-    elif domain == 'xin.com' and item.get('model_url'):
-        item['brand_slug'] = None
-        item['model_slug'] = item.get('model_url')
 
     if item['source_type'] == 2:
         item['source_type'] = 'dealer'
@@ -284,23 +415,31 @@ def preprocess_item(item, session, logger):
     if 'che.ganji.com' in domain and item['price'] and item['price_bn']:
         item['price_bn'] += item['price']
 
+    match_bmd(item, domain)
+    return item
+
+def match_bmd(item, domain=None):
+    domain = domain or item['domain']
     gpj_category = get_gpj_category(
-        item['brand_slug'], item['model_slug'], domain)
+        item['brand_slug'], item['model_slug'], domain, item.get('model_url'))
     if not gpj_category:
-        logger.warning(u'无法匹配brand:{0},{1},{2}'.format(
-            item['brand_slug'], item['model_slug'], domain))
+        # logger.warning(u'No match model for: {0},{1},{2}'.format(
+            # item['brand_slug'], item['model_slug'], domain))
         item['brand_slug'] = item['model_slug'] = None
     else:
-        item['brand_slug'] = gpj_category.parent
-        item['model_slug'] = gpj_category.slug
-        gpj_detail_model = get_gpj_detail_model(
-            gpj_category, item['dmodel'], domain)
-        if gpj_detail_model:
-            item['detail_model'] = gpj_detail_model.detail_model_slug
-        # else:
-        #     logger.warning(u'无法匹配到detail_model：{0},{1},{2}'.format(
-        #         gpj_category.id, item['dmodel'], domain))
-    return item
+        if isinstance(gpj_category, int):
+            item['model_slug'] = gpj_category
+        else:
+            item['brand_slug'] = gpj_category.parent
+            item['model_slug'] = gpj_category.slug
+            if domain != 'ygche.com.cn':
+                gpj_detail_model = get_gpj_detail_model(
+                    gpj_category, item['dmodel'], domain)
+                if gpj_detail_model:
+                    item['detail_model'] = gpj_detail_model.detail_model_slug
+                # else:
+                #     logger.warning(u'无法匹配到detail_model：{0},{1},{2}'.format(
+                #         gpj_category.id, item['dmodel'], domain))
 
 
 def is_normalized(item, logger):
@@ -495,7 +634,7 @@ def insert_to_carsource(item, session, logger):
         car_source = session.query(CarSource).filter_by(url=car_source.url).first()
     except Exception as e:
         # session.rollback()
-        raise
+        # raise
         # pdb.set_trace()
         logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
         return

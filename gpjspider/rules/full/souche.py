@@ -230,7 +230,7 @@ rule = {
                 '//div[@class="area-line"]/a/@data-pinyin',
             ),
             "format": "http://www.souche.com/{0}/list",
-            "format": "http://www.souche.com/{0}/list-pg4",
+            # "format": "http://www.souche.com/{0}/list-pg4",
             # "format": "http://www.souche.com/{0}/list-mx2014-styishou",
             "step": 'parse_list',
             # 'default': ['http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=6e4acb6b-7182-4e5a-97ff-2123138ea1d8'],

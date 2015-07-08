@@ -30,6 +30,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 COMPRESSION_ENABLED = True
 DOWNLOAD_TIMEOUT = 30
+DOWNLOAD_TIMEOUT = 60
 RETRY_ENABLED = False
 REDIRECT_ENABLED = False
 
@@ -54,8 +55,9 @@ CONCURRENT_REQUESTS_PER_IP = 150
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
 CONCURRENT_REQUESTS_PER_IP = 1
 DOWNLOAD_DELAY = 0.25
-DOWNLOAD_DELAY = 1.75
-# DOWNLOAD_DELAY = 2
+# DOWNLOAD_DELAY = 1.75
+# DOWNLOAD_DELAY = 1.5
+DOWNLOAD_DELAY = 2
 # RANDOMIZE_DOWNLOAD_DELAY = True
 
 # 性能调优
@@ -88,19 +90,20 @@ SPIDER_MIDDLEWARES = {
     'gpjspider.contrib.depth.DomainDepthMiddleware': 900,
 }
 DOMAIN_DEPTHS = {
-    'ganji.com': 1,
+    # 'ganji.com': 1,
     'xin.com': 5,
     'ygche.com.cn': 2,
     'renrenche.com': 2,
-    'souche.com': 1,
-    'haoche51.com': 1,
+    'souche.com': 2,
+    'haoche51.com': 2,
+    # '51auto.com': 1,
 }
 DOMAIN_FULL_DEPTHS = {
     '58.com': 15,
     'haoche51.com': 5,
-    'souche.com': 4,
+    # 'souche.com': 4,
     'xin.com': 20,
-    'ygche.com.cn': 1,
+    # 'ygche.com.cn': 1,
 }
 DEPTH_LIMIT = 2
 

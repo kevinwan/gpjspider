@@ -10,7 +10,7 @@ from gpjspider.utils import get_redis_cluster
 
 class ProxyMiddleware(object):
     domains = (
-        '58.com', #'ganji.com', 'souche.com', 
+        '58.com', 'ganji.com', 'taoche.com',
         # 'baixing.com', '273.cn', 'ganji.com',
         # 'autohome.com', 'pahaoche.com',
         # 'hx2car.com', 'zg2sc.cn', 'che168.com', 'souche.com'
@@ -19,6 +19,7 @@ class ProxyMiddleware(object):
     def __init__(self, settings):
         self.redis = get_redis_cluster()
         self.good_proxies = settings.getlist('PROXIES')
+        self.domains = settings.getlist('PROXY_DOMAINS', self.domains)
         self.need_proxy = None
 
     @classmethod
