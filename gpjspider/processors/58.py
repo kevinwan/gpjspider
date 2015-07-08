@@ -4,16 +4,15 @@ from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
-import pdb
 
-def city(value):
-    """
-    province=上海;city=上海;coord=121.487899,31.249162
-    """
-    try:
-        return value.split(';')[1].split('=')[1]
-    except:
-        return value
+# def city(value):
+#     """
+#     province=上海;city=上海;coord=121.487899,31.249162
+#     """
+#     try:
+#         return value.split(';')[1].split('=')[1]
+#     except:
+#         return value
 
 
 # def phone(values):
@@ -43,7 +42,6 @@ def source_type(values):
         if value.startswith('icon_'):
             st = SOURCE_TYPE_SELLER
             break
-            # pdb.set_trace()
             if 'renzheng' in value:
                 return SOURCE_TYPE_MANUFACTURER
             elif 'chengxin' in value or '4S' in value:

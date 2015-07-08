@@ -81,9 +81,11 @@ item_rule = {
         },
         'city': {
             'xpath': (
-                '//meta[@name="location"]/@content',
+                text(has_cls('address')),
+                # '//meta[@name="location"]/@content',
             ),
-            'processors': ['first', '58.city'],
+            # 'processors': ['first', '58.city'],
+            'regex': '\((\S+)\s\|',
         },
         'contact': {
             'xpath': (
@@ -258,6 +260,7 @@ rule = {
         # 'http://quanguo.58.com/ershouche/1/pn10/',
         # 'http://quanguo.58.com/ershouche/pn10/?xbsx=1',
         # 'http://bj.58.com/ershouche/21942816658953x.shtml', # 2
+        # 'http://bj.58.com/ershouche/22531356944521x.shtml', # 2
         # 'http://bj.58.com/ershouche/22095630730144x.shtml', # 2
         # 'http://bj.58.com/ershouche/19417891266819x.shtml', # 2
         # 'http://sh.58.com/ershouche/21667174258462x.shtml', # 3
@@ -277,4 +280,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
