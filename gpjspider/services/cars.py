@@ -22,11 +22,11 @@ def get_average_price(brand, model, year, volume):
 
 xin_model_url = lambda x: re.sub(r'/\w+/s', '/quanguo/s', x)
 
-def get_gpj_category(brand, model, domain, model_url=None):
+def get_gpj_category(brand, model, domain, model_url=None, session=None):
     u"""
 >>> get_gpj_category(u'凯迪拉克', u'凯雷德ESCALADE', 'souche.com')
     """
-    session = Session()
+    session = session or Session()
     query = session.query(CategoryDict)
     # if domain == 'xin.com':
     # if brand is None:

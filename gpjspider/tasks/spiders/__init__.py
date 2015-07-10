@@ -51,7 +51,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name):
     if has_run:
         if is_full:
             time.sleep(30)
-        if domain in ('ganji.com', '58.com', 'taoche.com'): # 58.com 'baixing.com', 
+        if domain in ('ganji.com', '58.com'): # 58.com 'baixing.com', 'taoche.com', 
             print 'already run..'
             return
         if os.path.exists(jobdir):

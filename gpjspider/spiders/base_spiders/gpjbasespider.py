@@ -721,7 +721,9 @@ class GPJBaseSpider(scrapy.Spider):
         if 'format' not in url_rule:
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
-        format_rule = url_rule['format'] % dict(url=_url)
+        format_rule = url_rule['format']
+        if '%(' in format_rule:
+            format_rule %= dict(url=_url)
         update = url_rule.get('replace')
         if update:
             a, b = update

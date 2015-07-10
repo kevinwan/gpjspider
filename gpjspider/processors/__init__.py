@@ -6,6 +6,10 @@ import pdb
 from datetime import datetime, timedelta
 from dateutil.parser import parse
 from exceptions import TypeError
+try:
+    from gpjspider.utils.phone_parser import ConvertPhonePic2Num
+except Exception, e:
+    print e
 
 reg_blank_split = re.compile(r'\s+')
 
@@ -635,8 +639,18 @@ def phone(value):
 '18117151473'
 >>> phone('4000802020-530867')
 '4000802020-530867'
+
+# >>> phone('http://cache.taoche.com/buycar/gettel.ashx?u=6020852&t=taabcimate')
+# 'http://cache.taoche.com/buycar/gettel.ashx?u=6020852&t=taabcimate#'
     '''
     if value and len(value) >= 10:
+        if value.startswith('http://'):
+            try:
+                phone_info = ConvertPhonePic2Num(value).find_possible_num()
+                value += '#%s#%s' % phone_info
+                return value
+            except Exception as e:
+                print e
         if len(value.split('-')) > 2:
             value = value.replace('-', '')
         value = re.sub('\(.+\)', ' ', value).strip()
