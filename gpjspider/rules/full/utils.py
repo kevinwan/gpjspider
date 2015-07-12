@@ -53,7 +53,7 @@ cls = with_cls
 
 def fmt_urls(rule, base_url):
     for k, v in rule.items():
-        if v.get('format') is True:
+        if isinstance(v, dict) and v.get('format') is True:
             v['format'] = full_url(base_url)
 
 
