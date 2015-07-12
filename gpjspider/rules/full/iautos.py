@@ -4,6 +4,7 @@
 """
 from gpjspider.utils.constants import *
 from .utils import *
+from scrapy.http.response.text import TextResponse
 
 _has = lambda x: has(x, '/..')
 
@@ -226,6 +227,10 @@ item_rule = {
 }
 
 parse_rule = {
+    'replace': (
+        {'headers': {'Content-Type': ['text/html;charset=UTF-8']}},
+        {'cls': TextResponse},
+    ),
     'url': {
         're': (
             r'http://www\.iautos\.cn/usedcar/\d+\.html',
@@ -249,17 +254,17 @@ parse_rule = {
 rule = {
     'name': u'第一车网',
     'domain': 'iautos.cn',
-    #'base_url': 'http://www.273.cn',
+    'base_url': 'http://so.iautos.cn',
     'spider': {
         'domain': 'iautos.cn',
         'download_delay': 2.5,
     },
     'start_urls': [
-        #'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
-        'http://www.iautos.cn/usedcar/4812772.html', # 个人
-        'http://www.iautos.cn/usedcar/4833120.html', # 商户
-        'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
-        'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
+        'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
+        #'http://www.iautos.cn/usedcar/4812772.html', # 个人
+        #'http://www.iautos.cn/usedcar/4833120.html', # 商户
+        #'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
+        #'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
     ],
 
     'parse': parse_rule,
@@ -270,4 +275,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
