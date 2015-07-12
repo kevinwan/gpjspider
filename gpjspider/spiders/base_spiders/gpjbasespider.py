@@ -130,7 +130,11 @@ class GPJBaseSpider(scrapy.Spider):
         # self.test(response)
         detail_amount = 0
         delta = 0
-        # delta = 0
+
+        if 'replace' in step_rule:
+            replace_rule = step_rule['replace']
+            for rr in replace_rule:
+                response = response.replace(**rr)
         if 'url' in step_rule:
             msg = u'try to get new urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
