@@ -212,10 +212,21 @@ class GPJBaseSpider(scrapy.Spider):
         print response.request._meta['depth'], response.url
 
     def parse_detail(self, response):
+        """
+        step rule中加入replace参数解决有些页面信息缺失或非utf-8编码问题
+        """
         # self.test(response)
         import sys
+
         my_name = sys._getframe().f_code.co_name
         step_rule = self.website_rule[my_name]
+
+        if 'replace' in step_rule:
+            replace_rule = step_rule['replace']
+
+            for rr in replace_rule:
+                response = response.replace(**rr)
+
         if 'item' in step_rule:
             yield self.get_item(step_rule['item'], response)
 
