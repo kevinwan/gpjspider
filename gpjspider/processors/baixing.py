@@ -11,7 +11,7 @@ def phone(values):
 
 
 def source_type(value):
-    if value != 'None':
+    if value == SOURCE_TYPE_GONGPINGJIA:
         return SOURCE_TYPE_GONGPINGJIA
 
     return SOURCE_TYPE_ODEALER
@@ -21,7 +21,8 @@ def model_slug(value):
         brand = value[0].strip()
         model = value[1].strip()
         if brand in model:
-            return model.split(brand)[-1]
+            #return model.split(brand)[-1]
+            return model
         return model
     return ''
 

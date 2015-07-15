@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from .utils import *
+from gpjspider.utils.constants import *
 
 item_rule = {
     "class": "UsedCarItem",
@@ -59,7 +60,7 @@ item_rule = {
             'xpath': (
                 has(u'变速箱', '/..'),
             ),
-            'default': '%(title)s',
+            'default': '%(dmodel)s',
             #'regex': [u'([手自]\S*[动体])', u'变速箱：(\S+)'],
             'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
@@ -75,6 +76,7 @@ item_rule = {
             'xpath': (
                 has(u'价格', '/strong'),
             ),
+            'regex': '(\d+\.?\d{1,2})0*',
         },
         #'price_bn': {
             #'xpath': (
@@ -180,11 +182,11 @@ item_rule = {
             'default': False
         },
         'source_type': {
-            # 'xpath': (
-            #     text(cls("shop-topic", '/a')),
-            # ),
-            'default': '%(company_name)s',
-            'processors': ['baixing.source_type'],
+             'xpath': (
+                 text(cls("shop-topic", '/a')),
+             ),
+            'default': SOURCE_TYPE_GONGPINGJIA,
+            'processors': ['first', 'baixing.source_type'],
         },
     },
 }
@@ -211,8 +213,9 @@ rule = {
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
     'start_urls': [
-        # 'http://china.baixing.com/ershouqiche/?imageFlag=1',
         'http://china.baixing.com/ershouqiche/?imageFlag=1&todayOnly=1',
+        'http://china.baixing.com/ershouqiche/?imageFlag=1&todayOnly=1&cheshang=1', # 品牌车商
+        'http://china.baixing.com/ershouqiche/koala_1/?imageFlag=1&todayOnly=1', # 考拉二手车
         # 'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
         # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
         # 'http://nanning.baixing.com/ershouqiche/a751473084.html',
@@ -231,6 +234,8 @@ rule = {
         #'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
         #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volumn
         #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volumn
+        #'http://ningbo.baixing.com/ershouqiche/a788142311.html',
+        #'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
     ],
     # 'per_page': 20,
     # 'pages': 100,
