@@ -2,6 +2,8 @@
 from .utils import *
 from gpjspider.utils.constants import *
 
+_has = lambda x: has(x, '/..')
+
 item_rule = {
     "class": "UsedCarItem",
     "fields": {
@@ -13,33 +15,38 @@ item_rule = {
         },
         'dmodel': {
             'xpath': (
-                has(u'车型', '/..'),
+                #has(u'车型', '/..'),
+                _has(u'车型'),
             ),
             'default': '%(title)s',
         },
         'meta': {
             'xpath': (
-                '//meta[@name="description"]/@content',
+                '//meta[@name="description" or @name="Description"]/@content',
             ),
         },
         'year': {
             'xpath': (
-                has(u'上牌年份', '/..'),
+                #has(u'上牌年份', '/..'),
+                _has(u'上牌年份'),
             ),
         },
         'month': {
             'xpath': (
-                has(u'上牌年份', '/..'),
+                _has(u'上牌年份'),
+                #has(u'上牌年份', '/..'),
             ),
         },
         'mile': {
             'xpath': (
-                has(u'行驶里程', '/..'),
+                #has(u'行驶里程', '/..'),
+                _has(u'行驶里程'),
             ),
         },
         'volume': {
             'xpath': (
-                has(u'排量', '/..'),
+                #has(u'排量', '/..'),
+                _has(u'排量'),
             ),
             'default': '%(dmodel)s',
         },
@@ -52,16 +59,16 @@ item_rule = {
         },
         'color': {
             'xpath': (
-                has(u'车辆颜色', '/..'),
+                #has(u'车辆颜色', '/..'),
+                _has(u'车辆颜色'),
             ),
             'processors': ['first', 'baixing.color'],
         },
         'control': {
             'xpath': (
-                has(u'变速箱', '/..'),
+                _has(u'变速箱'),
             ),
             'default': '%(dmodel)s',
-            #'regex': [u'([手自]\S*[动体])', u'变速箱：(\S+)'],
             'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
         },
@@ -85,12 +92,12 @@ item_rule = {
         #},
         'brand_slug': {
             'xpath': (
-                after_has(u'品牌：'),
+                after_has(u'品牌'),
             ),
         },
         'model_slug': {
             'xpath': [
-                after_has(u'品牌：'),
+                after_has(u'品牌'),
                 after_has(u'车系列'),
             ],
             'processors': ['baixing.model_slug'],
@@ -122,7 +129,8 @@ item_rule = {
         },
         'mandatory_insurance': {
             'xpath': (
-                has(u'交强险到期', '/..'),
+                #has(u'交强险到期', '/..'),
+                _has(u'交强险到期'),
             ),
         },
         'company_name': {
@@ -137,12 +145,14 @@ item_rule = {
         },
         'examine_insurance': {
             'xpath': (
-                has(u'年检到期', '/..'),
+                #has(u'年检到期', '/..'),
+                _has(u'年检到期'),
             ),
         },
         'business_insurance': {
             'xpath': (
-                has(u'商业险到期', '/..'),
+                #has(u'商业险到期', '/..'),
+                _has(u'商业险到期'),
             ),
         },
         # 'transfer_owner': {
@@ -152,9 +162,10 @@ item_rule = {
         # },
         'car_application': {
             'xpath': (
-                has(u'车辆用途', '/..'),
+                #has(u'车辆用途', '/..'),
+                _has(u'车辆用途'),
             ),
-            'processors': ['baixing.car_application'],
+            'processors': ['first', 'baixing.car_application'],
         },
         # 'maintenance_desc': {
         #     'xpath': (
@@ -168,9 +179,10 @@ item_rule = {
         # },
         'invoice': {
             'xpath': (
-                has(u'购车发票', '/..'),
+                #has(u'购车发票', '/..'),
+                _has(u'购车发票'),
             ),
-            'processors': ['baixing.invoice'],
+            'processors': ['first', 'baixing.invoice'],
         },
         'time': {
             'xpath': (
