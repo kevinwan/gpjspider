@@ -63,6 +63,15 @@ def concat(values):
         return value
 
 
+def control(value):
+    if not value:
+        return
+    match = re.findall(u'([手自]{1,2}一?[动体])', value)
+    if match:
+        value = match[0]
+    return value
+
+
 def quality_service(values):
     u'''
 >>> quality_service(u'质保到期： 已过期,延长质保： ,24,个月/,9.9,万公里&nbsp;(自您购车日起算)'.split(','))
@@ -641,7 +650,7 @@ def phone(value):
 '4000802020-530867'
 
 # >>> phone('http://cache.taoche.com/buycar/gettel.ashx?u=6020852&t=taabcimate')
-# 'http://cache.taoche.com/buycar/gettel.ashx?u=6020852&t=taabcimate#'
+# 'http://cache.taoche.com/buycar/gettel.ashx?u=6020852&t=taabcimate#4008159042#0.99'
     '''
     if value and len(value) >= 10:
         if value.startswith('http://'):

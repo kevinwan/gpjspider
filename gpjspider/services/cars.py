@@ -28,10 +28,6 @@ def get_gpj_category(brand, model, domain, model_url=None, session=None):
     """
     session = session or Session()
     query = session.query(CategoryDict)
-    # if domain == 'xin.com':
-    # if brand is None:
-    #     query = query.filter_by(domain=domain, url=model)
-    # else:
     query = query.filter_by(domain=domain, name=model, parent=brand)
     amount = query.count()
     if amount == 1:
@@ -44,13 +40,18 @@ def get_gpj_category(brand, model, domain, model_url=None, session=None):
             if match:
                 info = dict(slug=match[0])
             # model_url = xin_model_url(model_url)
+        elif domain in ['taoche.com']:
+            match = re.findall('com/([\d\w]+)/$', model_url)
+            if match:
+                info = dict(slug=match[0])
+            # model_url = xin_model_url(model_url)
         query = query.filter_by(domain=domain, **info)
         amount = query.count()
         if amount == 1:
             query = query.first()
             return query and query.category or None
         # print amount, domain, brand, model, model_url
-        return amount
+    return amount
 
 
 def get_gpj_detail_model(gpj_slug, detail_model_str, domain):
