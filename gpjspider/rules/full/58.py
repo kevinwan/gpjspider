@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from .utils import *
+from gpjspider.utils.constants import *
 
 item_rule = {
     "class": "UsedCarItem",
@@ -111,7 +112,8 @@ item_rule = {
         },
         'company_url': {
             'xpath': (
-                url(cls('dianpu_link')),
+                #url(cls('dianpu_link')),
+                href(cls('dianpu_link')),
             ),
         },
         # 'driving_license': {
@@ -187,19 +189,21 @@ item_rule = {
             'xpath': [
                 # 厂商认证
                 # 'boolean(//div[@class="rz_biaozhi"])',
-                exists(cls('rz_biaozhi')),
-                # exists(id_('changshangrenzheng')),
+                #exists(cls('rz_biaozhi')),
+                has(u'厂商认证'),
+                #exists(id_('changshangrenzheng')),
                 # 优质商家
                 attr(has_id('icon_'), 'id'),
                 # id_('icon_chengxincheshang'),
                 # text(cls('paddright13')),
                 # 普通商家
-                url(cls('dianpu_link')),
+                href(cls('dianpu_link')),
                 # '%(company_url)s',
                 # 默认为 个人车
             ],
             # 'default': '%(company_url)s %(quality_service)s %(description)s',
             # 'default': '%(description)s %(quality_service)s %(company_url)s '.split(),
+            'default': SOURCE_TYPE_GONGPINGJIA,
             'processors': ['58.source_type'],
         },
         'is_certifield_car': {
@@ -252,6 +256,13 @@ rule = {
 
     'start_urls': [
         'http://quanguo.58.com/ershouche/',
+        'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg&renzheng=1', # 尊沃
+        'http://faw-vw.58.com/ershouche/?renzheng=1', # 一汽大众
+        'http://audi.58.com/ershouche/?sheng=quanguo&city=qg&renzheng=1', # 奥迪品鉴
+        'http://svwuc.58.com/ershouche/?renzheng=1', # 上海大众
+        'http://ghac.58.com/ershouche/?renzheng=1&sheng=quanguo&city=qg', # 喜悦二手车、本田
+        'http://chengxin.58.com/ershouche/?renzheng=1&sheng=quanguo&city=qg', # 诚新二手车
+        'http://yicheng.58.com/ershouche/?renzheng=1&sheng=quanguo&city=qg', # 东风日产
         # 'http://quanguo.58.com/ershouche/0/',
         # 'http://quanguo.58.com/ershouche/1/',
         # 'http://quanguo.58.com/ershouche/?xbsx=1',
@@ -270,6 +281,10 @@ rule = {
         #'http://cq.58.com/ershouche/22548469757449x.shtml', # volume
         #'http://cq.58.com/ershouche/22548421513886x.shtml', # model_slug
         #'http://cd.58.com/ershouche/22449249479817x.shtml', # phone, region
+        #'http://nj.58.com/ershouche/22449972887201x.shtml', # 商家优质车
+        #'http://cd.58.com/ershouche/21975582547107x.shtml', # 厂商认证
+        #'http://cd.58.com/ershouche/22647994772126x.shtml', # 普通商家
+        #'http://bj.58.com/ershouche/22651418477321x.shtml', # 个人
     ],
 
     'parse': parse_rule,
@@ -280,4 +295,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-# rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
