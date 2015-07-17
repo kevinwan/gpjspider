@@ -15,7 +15,6 @@ item_rule = {
         },
         'dmodel': {
             'xpath': (
-                #has(u'车型', '/..'),
                 _has(u'车型'),
             ),
             'default': '%(title)s',
@@ -27,25 +26,21 @@ item_rule = {
         },
         'year': {
             'xpath': (
-                #has(u'上牌年份', '/..'),
                 _has(u'上牌年份'),
             ),
         },
         'month': {
             'xpath': (
                 _has(u'上牌年份'),
-                #has(u'上牌年份', '/..'),
             ),
         },
         'mile': {
             'xpath': (
-                #has(u'行驶里程', '/..'),
                 _has(u'行驶里程'),
             ),
         },
         'volume': {
             'xpath': (
-                #has(u'排量', '/..'),
                 _has(u'排量'),
             ),
             'default': '%(dmodel)s',
@@ -59,7 +54,6 @@ item_rule = {
         },
         'color': {
             'xpath': (
-                #has(u'车辆颜色', '/..'),
                 _has(u'车辆颜色'),
             ),
             'processors': ['first', 'baixing.color'],
@@ -85,11 +79,6 @@ item_rule = {
             ),
             'regex': '(\d+\.?\d{1,2})0*',
         },
-        #'price_bn': {
-            #'xpath': (
-
-            #),
-        #},
         'brand_slug': {
             'xpath': (
                 after_has(u'品牌'),
@@ -122,14 +111,12 @@ item_rule = {
         },
         'imgurls': {
             'xpath': (
-                #u'//div[@class="img sep"]/div/img/@src',
                 attr(cls('img sep', '/div/img'), 'src'),
             ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
-                #has(u'交强险到期', '/..'),
                 _has(u'交强险到期'),
             ),
         },
@@ -145,13 +132,11 @@ item_rule = {
         },
         'examine_insurance': {
             'xpath': (
-                #has(u'年检到期', '/..'),
                 _has(u'年检到期'),
             ),
         },
         'business_insurance': {
             'xpath': (
-                #has(u'商业险到期', '/..'),
                 _has(u'商业险到期'),
             ),
         },
@@ -162,7 +147,6 @@ item_rule = {
         # },
         'car_application': {
             'xpath': (
-                #has(u'车辆用途', '/..'),
                 _has(u'车辆用途'),
             ),
             'processors': ['first', 'baixing.car_application'],
@@ -179,7 +163,6 @@ item_rule = {
         # },
         'invoice': {
             'xpath': (
-                #has(u'购车发票', '/..'),
                 _has(u'购车发票'),
             ),
             'processors': ['first', 'baixing.invoice'],
@@ -244,8 +227,8 @@ rule = {
         #'http://shangqiu.baixing.com/ershouqiche/a781066618.html', # 有地图、地区
         #'http://tongling.baixing.com/ershouqiche/a781067063.html', # 无地图、地区
         #'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
-        #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volumn
-        #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volumn
+        #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volume
+        #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volume
         #'http://ningbo.baixing.com/ershouqiche/a788142311.html',
         #'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
     ],
