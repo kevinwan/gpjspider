@@ -1,26 +1,30 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
 from gpjspider.spiders.base_spiders.incrspider import IncrSpider
 import os
 import re
 
+__all__ = [
+    'IncrGPJSpider',
+    'FullGPJSpider',
+]
+
 
 class GPJSpider(IncrSpider):
     type_ = ''
 
-    def __init__(self, type_=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         site = self.name.split('_')[0]
-        type_ = type_ or self.type_
+        type_ = self.type_
         rule_name = '%s.%s' % (type_, site)
         self.name = '%s.%s' % (rule_name, os.getpid())
+        cls = None
         if type_ == 'full':
             cls = GPJBaseSpider
         elif type_ == 'incr':
             cls = IncrSpider
             rule_name = site
-        else:
-            cls = None
+
         if cls:
             cls.__init__(self, rule_name)
 
@@ -31,17 +35,29 @@ class IncrGPJSpider(GPJSpider):
 
 class FullGPJSpider(GPJSpider):
     type_ = 'full'
+    _incr_enabled = False
 
 
-os.chdir('%s/rules/full' % os.path.dirname(os.path.dirname(__file__)))
-file_list = os.listdir(os.getcwd())
-rules = re.findall('([\w\d]+)\.py[^c]', ' '.join(file_list))
-rules.remove('__init__')
-for rule_name in rules:
+here = os.path.dirname(__file__)
+file_list = os.listdir('%s/rules/full' % os.path.dirname(here))
+rules = re.findall('([a-z\d]+)\.py[^c]', ' '.join(file_list))
+rules.remove('sample')
 
-    exec """class Incr{0}GPJSpider(IncrGPJSpider):
+spiders = '# -*- coding: utf-8 -*-\nfrom gpj_spider import *\n'
+spider_cls = """
+class Incr{0}GPJSpider(IncrGPJSpider):
     name = '{0}'
 
 class Full{0}GPJSpider(FullGPJSpider):
     name = '{0}_full'
-""".format(rule_name)
+"""
+for rule_name in rules:
+    spiders += spider_cls.format(rule_name)
+
+try:
+    from auto_spiders import *
+except ImportError as e:
+    print 'Generating auto spiders..'
+    with open(os.path.join(here, 'auto_spiders.py'), 'w') as fp:
+        fp.write(spiders)
+        exec spiders
