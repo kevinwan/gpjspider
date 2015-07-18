@@ -3,16 +3,14 @@
 from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
 from gpjspider.spiders.base_spiders.incrspider import IncrSpider
 import os
+import re
 
 
 class GPJSpider(IncrSpider):
-    name = 'gpj_spider'
-    site = 'test'
-    site = 'baixing'
-    type_ = 'incr'
+    type_ = ''
 
-    def __init__(self, site='', type_=None, *args, **kwargs):
-        site = site or self.site
+    def __init__(self, type_=None, *args, **kwargs):
+        site = self.name.split('_')[0]
         type_ = type_ or self.type_
         rule_name = '%s.%s' % (type_, site)
         self.name = '%s.%s' % (rule_name, os.getpid())
@@ -21,19 +19,29 @@ class GPJSpider(IncrSpider):
         elif type_ == 'incr':
             cls = IncrSpider
             rule_name = site
-        cls.__init__(self, rule_name)
+        else:
+            cls = None
+        if cls:
+            cls.__init__(self, rule_name)
 
 
 class IncrGPJSpider(GPJSpider):
-    name = 'gpj_incr_spider'
+    type_ = 'incr'
 
 
 class FullGPJSpider(GPJSpider):
-    name = 'gpj_full_spider'
     type_ = 'full'
 
 
-class GanjiIncrGPJSpider(IncrGPJSpider):
-    name = 'ganji_incr_spider'
-    site = 'ganji'
-    eval('name = %s_incr_spider' % site)(name)
+os.chdir('%s/rules/full' % os.path.dirname(os.path.dirname(__file__)))
+file_list = os.listdir(os.getcwd())
+rules = re.findall('([\w\d]+)\.py[^c]', ' '.join(file_list))
+rules.remove('__init__')
+for rule_name in rules:
+
+    exec """class Incr{0}GPJSpider(IncrGPJSpider):
+    name = '{0}'
+
+class Full{0}GPJSpider(FullGPJSpider):
+    name = '{0}_full'
+""".format(rule_name)
