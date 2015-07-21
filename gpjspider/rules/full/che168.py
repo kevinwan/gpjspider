@@ -1,323 +1,302 @@
 # -*- coding: utf-8 -*-
+
+from gpjspider.utils.constants import *
 from .utils import *
 
-tag = lambda i: text('*[@id="sift"]/div[3]/div[2]/p[3]/span[2]/i[%s]' % i)
+_has = lambda x: has(x, '/..')
 
 item_rule = {
-    'class': 'UsedCarItem',
-    'fields': {
+    "class": "UsedCarItem",
+    "fields": {
         'title': {
             'xpath': (
-                '//div[@class="car-info"]/h2/@title',
-                text(with_cls('info', '/h3/a')),
+                text(cls('car-info', '/h2/a')),
+                text(cls('car-h', '/h2/a')),
+                text(cls('breadnav', '/a[4]')),
             ),
             'required': True,
         },
         'meta': {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',
-                text(with_cls('text')),
             ),
         },
-        'time': {
-            'xpath': (
-                # '//div[@class="time"]/text()',
-                has(u'发布日期'),
-                text(with_cls('time')),
-            ),
-            # 'processors': ['first', 'gpjtime'],
+        'dmodel': {
+            #'xpath': (
+                #after_has(u'本车标签'),
+            #),
+            'default': '%(title)s',
         },
         'year': {
             'xpath': (
-                # u'//*[contains(text(), "上牌")]/text()',
-                tag(5),
-                u'//*[@id="car_firstregtime"]/@value',
+                attr(id_('car_firstregtime'), 'value'),
+                text(cls('step-ul', '/li[2]')),
             ),
         },
         'month': {
             'xpath': (
-                tag(5),
-                u'//*[@id="car_firstregtime"]/@value',
+                attr(id_('car_firstregtime'), 'value'),
+                text(cls('step-ul', '/li[2]')),
+            ),
+        },
+        'time': {
+            'xpath': (
+                text(cls('ml10')),
             ),
         },
         'mile': {
-            'xpath': (
-                # after_has(u'车型概括'),
-                tag(4),
-                u'//*[contains(text(), "行驶里程")]/text()',
-            ),
-            # 'processors': ['first', 'after_colon', 'mile'],
+            #'xpath': (
+                #has(u'行驶里程'),
+            #),
+            'default': '%(meta)s',
         },
         'volume': {
             'xpath': (
-                hidden('pailiang'),
-                tag(3),
-                u'//*[contains(text(), "发 动 机")]/span/text() | //*[@id="car_carname"]/@value',
-                # u'//*[@id="car_carname"]/@value',
+                has(u'发 动 机', '/span'),
             ),
+            'default': '%(title)s',
         },
         'color': {
             'xpath': (
-                # u'//*[contains(text(), "颜色")]/text()',
-                tag(1),
-                u'/html/body/div[6]/div[3]/div[1]/div[9]/div[2]/ul[1]/li[4]/text()',
+                '//title/text()',
             ),
-            'processors': ['first', 'after_colon'],
+            'processors': ['first', 'che168.color'],
         },
         'control': {
             'xpath': (
-                tag(2),
-                u'//*[contains(text(), "变 速 器")]/span/text()',
-                # u'/html/body/div[6]/div[3]/div[1]/div[9]/div[2]/ul[1]/li[2]/text()',
+                has(u'变 速 器', '/span'),
+                '//*[@class="h2-list"]/div[2]/text()[3]',
             ),
-            'processors': ['first', 'after_colon'],
+            'default': '%(title)s',
+            'regex': u'([手自]{1,2}一?[动体])',
+            'regex_fail': None,
         },
         'price': {
             'xpath': (
-                text(with_cls('price')),
-                '//span[@class="font30"]/text()',
+                text(id_('carbase_carprice')),
+                text(id_('carprice')),
             ),
         },
         'price_bn': {
-            'xpath': (
-                text(id_('CarNewPrice')),
-                '//*[@id="CarNewPrice"]/text()',
-            ),
+            'xpath': [
+                attr(id_('car_specid'), 'value'),
+                attr(id_('car_cid'), 'value'),
+            ],
+            'processors': ['che168.price_bn'],
         },
         'brand_slug': {
             'xpath': (
-                '//div[@class="breadnav"]/a[last()-1]/text()',
+                #'//*[@class="breadnav"]/a[last()-1]/text()',
+                text(cls('breadnav', '/a[last()-1]')),
             ),
+            'regex': u'二手(.*)',
+            'regex_fail': '',
         },
         'model_slug': {
             'xpath': (
-                text(with_cls('nav-bread', '/a[2]')),
-                '//div[@class="breadnav"]/a[last()]/text()',
+                #has(u'车辆系列'),
+                #'//*[@class="breadnav"]/a[last()]/text()',
+                text(cls('breadnav', '/a[last()]')),
             ),
+            'regex': u'二手(.*)',
+            'regex_fail': '',
         },
+        'model_url': {
+            'xpath': (
+                href(cls('breadnav', '/a[last()]')),
+            ),
+            'processors': ['first', 'che168.model_url'],
+        },
+        #'status': {
+            #'xpath': (
+                #has(u'车辆类型'),
+            #),
+            #'processors': ['first', 'cn2che.status'],
+        #},
         'city': {
             'xpath': (
-                has(u'车辆所在地'),
-                '//div[@class="breadnav"]/a[2]/text()',
+                '//title/text()',
+            ),
+            'processors': ['first', 'che168.city'],
+        },
+        'region': {
+            'xpath': (
+                text(id_('carOwnerInfo', '/div[2]')),
             ),
         },
         'phone': {
             'xpath': (
-                attr(id_('callPhone'), 'data-telno'),
-                '//*[@id="carOwnerInfo"]/div[1]/div[1]//img/@src',
+                has(u'咨询电话'),
+                has(u'咨询电话', '/span'),
+                attr(cls('phone-div', '/img'), 'src'),
             ),
-            'format': True,
-            'default': '%(meta)s',
-            'regex': u'致电(\d+)',
+            'processors': ['first', 'che168.phone'],
         },
         'contact': {
             'xpath': (
-                text(with_cls('info')),
-                u'//*[@id="carOwnerInfo"]/div[1]/div[last()-1]/text()',
+                text(id_('carOwnerInfo', '/div[1]/span[1]')),
             ),
-            'processors': ['last'],
-            'regex': r'([^\(\[]{1,4})[\(\[]?',
-        },
-        'region': {
-            'xpath': (
-                '//*[@id="carOwnerInfo"]/div[1]/div[last()]/text()',
-            ),
-            'default': '%(meta)s',
-            'regex': u'地址：(.+)。',
-            'regex_fail': '',
         },
         'company_name': {
             'xpath': (
-                has(u'商家名称'),
-                '//div[@class="merchant-name"]/a/text()',
+                text(cls('merchant-name', '/div/a')),
             ),
-            'after': u'：',
         },
         'company_url': {
             'xpath': (
-                '//div[@class="merchant-name"]/a/@href',
+                href(cls('merchant-name', '/div/a')),
             ),
             'format': True,
-            'processors': ['first', 'clean_anchor'],
         },
-        # 'driving_license': {
-        #     'xpath': (
-        #         u'//li/span[contains(text(), "行驶证")]/../text()',
-        #     ),
-        # },
-        # 'invoice': {
-        #     'xpath': (
-        #         u'//li/span[contains(text(), "购车发票")]/../text()',
-        #     ),
-        # },
-        # 'maintenance_record': {
-        #     'xpath': (
-        #         u'//li[contains(text(), "保养")]/text()',
-        #     ),
-        #     'processors': ['first', 'after_colon'],
-        # },
-        'maintenance_desc': {
-            'xpath': (
-                u'//li[contains(text(), "保养")]/text()',
-            ),
-            'processors': ['first', 'after_colon'],
-        },
+        #'driving_license': {
+            #'xpath': (
+                #'//*[@id="other_infor1"]/div[1]/p/span[2]/text()',
+            #),
+        #},
+        #'invoice': {
+            #'xpath': (
+                #'//*[@id="other_infor1"]/div[1]/p/span[4]/text()',
+            #),
+        #},
+        #'maintenance_record': {
+            #'xpath': (
+                #has(u'保养情况', '/..'),
+            #),
+        #},
         'quality_service': {
             'xpath': (
-                u'//li[contains(text(), "质保") or contains(text(), "延保")]//text()',
+                '//*[@id="base_carservice"]/ul/li//@title',         # 普通车
+                after_has(u'服务承诺'),                             # 家家好车
+                text(cls('last', '/h3')),                           # 家认证
             ),
-            'processors': ['quality_service'],
+            'processors': ['join'],
         },
         'description': {
             'xpath': (
-                # text('*[@id="sift"]/div[3]/div[7]/div[1]'),
-                # text(with_cls('text')),
-                '//div[@class="explain"]/p[1]/text()',
+                text(cls('p-tx')),                                  # 普通车
+                '//*[@class="compile-tx"]//text()',                 # 家家好车
             ),
-            # 'processors': ['join'],
-            'default': '%(meta)s',
+            'processors': ['join'],
         },
         'imgurls': {
-            'xp'
             'xpath': (
-                attr(with_cls('img', '/a/img'), 'src'),
-                '//div[@class="explain"]/div[@class="pic-box"]/img/@src',
+                attr(cls('focusimg-pic', '/ul/li'), 'alt'),
+                attr(cls('explain', '//img'), 'src2'),
             ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
-                # u'//li[contains(text(), "保险")]/text()',
-                has(u'交强险'),
-                has(u'保险'),
+                has(u'保险还有', '/..'),
+                has(u'保险已', '/..'),
+                has(u'保险到期'),
             ),
         },
-        # 'business_insurance': {
-        #     'xpath': (
-        #         u'//li[contains(text(), "商业险")]/text()',
-        #     ),
-        # },
+        #'business_insurance': {
+            #'xpath': (
+                #_has(u'商业险'),
+            #),
+        #},
         'examine_insurance': {
             'xpath': (
-                # u'//li[contains(text(), "年检")]/text()',
-                has(u'下次验车'),
-                has(u'年检'),
+                #text(cls('step-ul', '/li[4]')),
+                has(u'距离下一次年检时间', '/..'),              # 家认证、家家好车
+                has(u'年检到期'),
             ),
         },
         'transfer_owner': {
             'xpath': (
-                u'//li[contains(text(), "过户次数")]/span/text()',
+                has(u'过户次数', '/span'),
             ),
-            'regex': ur'(\d+)次',
+        },
+        'is_certifield_car': {
+            'xpath': [
+                text(cls('breadnav', '/a[1]')),             # 家家好车、家认证
+                has(u'品牌认证'),
+                has(u'保障车'),
+                has(u'进入店铺'),
+            ],
+            'processors': ['che168.is_certifield_car'],
+        },
+        'source_type': {
+            'xpath': [
+                text(cls('breadnav', '/a[1]')),             # 家家好车、家认证
+                has(u'品牌认证'),
+                has(u'保障车'),
+                has(u'进入店铺'),
+            ],
+            'default': SOURCE_TYPE_GONGPINGJIA,
+            'processors': ['che168.source_type'],
         },
         'car_application': {
             'xpath': (
-                # u'//li[contains(text(), "用途")]/text()',
-                u'//*[@id="divHistory"]/div[2]/ul/li[6]/text()',
+                after_has(u'原车用途'),
             ),
-            'processors': ['first', 'after_colon'],
+            'regex': u'(.*运)',
+            'regex_fail': None,
         },
-        'source_type': {
-            'xpath': (
-                '//meta[@http-equiv="mobile-agent"]/@content | //div[@class="part4"]//text()',
-            ),
-            'processors': ['concat', 'che168.source_type'],
-            'default': SOURCE_TYPE_GONGPINGJIA,
-        },
-        'is_certifield_car': {
-            'xpath': (
-                '//div[@class="part4"]//text()',
-                # for autonomous cars
-                # '//div[@class="assess-ul"]//text()',
-            ),
-            'processors': ['concat'],
-            'default': False,
-        },
+        #'condition_level': { # 原网站有 车况 的字段，但是都是 非常好，没什么用
+            #'xpath':(
+            #),
+        #},
+        #'condition_detail': {
+            #'xpath': (
+                #has(u'准新车'),
+            #),
+        #},
     },
 }
 
+parse_rule = {
+    'url': {
+        'xpath': (
+            '//*[@class="all-source"]//div[@class="pic"]/a[@href]/@href',
+            href(id_('carOwnerType', '/li/a')),
+        ),
+        'excluded': ['/autonomous/'],
+        'format': True,
+        'processors': ['clean_anchor'],
+        'step': 'parse_detail',
+        'update': True,
+        'category': 'usedcar'
+    },
+    'next_page_url': {
+        'xpath': (
+            '//a[@class="page-item-next"]/@href',
+            url(after('*[@id="carOwnerType"]//li[@class="current"]', '*')),
+        ),
+        'format': True,
+        'processors': ['clean_anchor'],
+        'step': 'parse',
+    },
+}
+
+
 rule = {
-    # ==========================================================================
-    #  基本配置
-    # ==========================================================================
     'name': u'二手车之家',
     'domain': 'che168.com',
     'base_url': 'http://www.che168.com',
+    'spider': {
+        'domain': 'che168.com',
+        'download_delay': 2.5,
+    },
     'start_urls': [
-        # 'http://m.che168.com/china/0-0-0-6-0-0-00/',
-        # 'http://www.che168.com/china/list/',
-        # 'http://www.che168.com/china/a0_0ms3dgscncgpiltocspex/',
-        # 'http://www.che168.com/china/a0_0ms4dgscncgpiltocspex/',
-        # 'http://www.che168.com/china/a0_0ms2dgscncgpiltocspex/',
-        # 'http://www.che168.com/china/a0_0ms1dgscncgpiltocspex/',
-        # For Debug details
-        # 'http://m.che168.com/dealer/201923/5000779.html',
-        'http://m.che168.com/dealer/77710/5032736.html',
-        # 'http://m.che168.com/dealer/130861/5008532.html',
-        # 'http://www.che168.com/dealer/100582/4821401.html',
-        # 'http://www.che168.com/dealer/134677/4756499.html',
-        # 'http://www.che168.com/dealer/69682/4141834.html',
-        # 'http://www.che168.com/dealer/85459/4807434.html',
-        # 'http://www.che168.com/personal/4323708.html',
-        # 'http://www.che168.com/personal/4799037.html',
-        # 'http://www.che168.com/dealer/162138/4821871.html',
-        # 'http://www.che168.com/dealer/128393/4786037.html',
-        # 'http://www.che168.com/autonomous/4743579.html',
+        'http://www.che168.com/china/a0_0msdgscncgpi1ltocspexp1e3/', # 首页、只看有图、时间倒排序
+        #'http://www.che168.com/china/a0_0ms3dgscncgpi1lto8cspexp1e3/', # 认证车源
+        #'http://www.che168.com/authentication/5028866.html', # 家认证
+        #'http://hao.autohome.com.cn/5239567.html', # 家好车
+        #'http://www.che168.com/dealer/109121/5036252.html', # 品牌认证
+        #'http://www.che168.com/dealer/118132/5381345.html', # 保障车
+        #'http://www.che168.com/dealer/131975/5381232.html', # 商家车源
+        #'http://www.che168.com/personal/5381429.html', # 个人车源
     ],
 
-    # ==========================================================================
-    #  默认步骤  parse
-    # ==========================================================================
-    'parse': {
-        'url': {
-            'xpath': (
-                '//*[@class="all-source"]//div[@class="pic"]/a[@href]/@href',
-            ),
-            'excluded': ['/autonomous/'],
-            'format': True,
-            'processors': ['clean_anchor'],
-            'step': 'parse_detail',
-            'update': True,
-            'category': 'usedcar'
-        },
-        'next_page_url': {
-            'xpath': (
-                '//a[@class="page-item-next"]/@href',
-                url(after('*[@id="carOwnerType"]//li[@class="current"]', '*')),
-            ),
-            'format': True,
-            'processors': ['clean_anchor'],
-            'step': 'parse',
-        },
-    },
-    # ==========================================================================
-    #  详情页步骤  parse_list
-    # ==========================================================================
-    # 'parse_list': {
-    #     'url': {
-    #         're': (r'http.*58.com/ershouche/.*\.shtml',),
-    # 新 url 对应的解析函数
-    #         'step': 'parse_detail',
-    #         'update': True,
-    #         'category': 'usedcar'
-    #     },
-    #     'next_page_url': {
-    #         'xpath': ('//a[@class="next"]/@href', ),
-    #         'format': 'http://quanguo.58.com{0}',
-    #         'step': 'parse_list',
-    #     },
-    # },
+    'parse': parse_rule,
 
-    # ==========================================================================
-    #  详情页步骤  parse_detail
-    # ==========================================================================
     'parse_detail': {
-        'item': item_rule,
+        "item": item_rule,
     }
 }
 
 fmt_rule_urls(rule)
-start_url = rule['start_urls'][0]
-if ('html' in start_url and len(start_url) > 40) \
-        or rule['parse']['url']['contains'][0] in start_url:
-    rule['parse'] = rule['parse_detail']
+#rule['parse'] = rule['parse_detail']
