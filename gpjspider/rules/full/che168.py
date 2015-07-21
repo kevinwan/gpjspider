@@ -235,15 +235,17 @@ item_rule = {
             'regex': u'(.*运)',
             'regex_fail': None,
         },
-        #'condition_level': { # 原网站有 车况 的字段，但是都是 非常好，没什么用
-            #'xpath':(
-            #),
-        #},
-        #'condition_detail': {
-            #'xpath': (
-                #has(u'准新车'),
-            #),
-        #},
+        'condition_level': { # 原网站有 车况 的字段，但是都是 非常好，没什么用
+            'xpath':(
+                has(u'检测结果：', '/..'),
+            ),
+            'regex': '(\w)',
+        },
+        'condition_detail': {
+            'xpath': (
+                '//*[@class="o-logo-ul"]/li[@class="current"]/text()',
+            ),
+        },
     },
 }
 
