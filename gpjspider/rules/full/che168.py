@@ -278,10 +278,8 @@ rule = {
     'name': u'二手车之家',
     'domain': 'che168.com',
     'base_url': 'http://www.che168.com',
-    'spider': {
-        'domain': 'che168.com',
-        'download_delay': 2.5,
-    },
+    'per_page': 20,
+    'pages': 2000,
     'start_urls': [
         'http://www.che168.com/china/a0_0msdgscncgpi1ltocspexp1e3/', # 首页、只看有图、时间倒排序
         #'http://www.che168.com/china/a0_0ms3dgscncgpi1lto8cspexp1e3/', # 认证车源
