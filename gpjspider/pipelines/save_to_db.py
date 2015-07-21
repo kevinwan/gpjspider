@@ -36,6 +36,7 @@ def not_set(string):
 
 
 class SaveToMySQLBySqlalchemyPipeline(object):
+
     def __init__(self, settings):
         if not settings.getdict('MYSQL_SQLALCHEMY_URL'):
             raise NotConfigured()
@@ -71,13 +72,18 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         o = klass(**item)
         try:
             if spider.update:
-                q = session.query(klass).filter(
-                    klass.url == url, klass.status.in_(['E', 'P', 'u']))
+                q = session.query(klass).filter_by(domain=item['domain'])
+                if 'id' in item:
+                    # q = q.filter(klass.id==item['id'])
+                    q = q.filter_by(id=item['id'])
+                else:
+                    q = q.filter(
+                        klass.url == url, klass.status.in_(['E', 'P', 'u']))
                 if q.count():
                     q.update(item, synchronize_session=False)
                     # q.update(dict(item, status='Y'), synchronize_session=False)
-                spider.log(u'Updated Item: {0}'.format(url))
-                return
+                    spider.log(u'Updated Item: {0}'.format(url))
+                return item
             else:
                 session.add(o)
             session.commit()

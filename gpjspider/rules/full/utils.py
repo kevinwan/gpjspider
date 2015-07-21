@@ -98,6 +98,10 @@ u'//*[contains(text(), "t")]/following-sibling::a/@href'
 u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 >>> url(has_cls('listtab', '/'))
 '//*[contains(@class,"listtab")]//a[@href]/@href'
+>>> text(has_cls('report-main"]', '/p[1]'))
+'//*[contains(@class,"report-main"]")]/p[1]/text()'
+>>> text(cls('price', '/span[1]/'))
+
     '''
 
 def main():

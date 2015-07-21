@@ -38,14 +38,15 @@ class UsedCar(Base):
         #'N',  # unknown
         #'A',  # Active
         #'I',  # Inactive
-        'M', #'(M)新加入的产品或在后台被修改过'),
-        'N', #'(N)不在前台呈现'),
-        'Q', #'(Q)已售出'),
-        'T', #'(T)重复记录'),
-        'W', #'(W)没有缩略图'),
-        'X', #'(X)没有联系方式'),
-        'Y', #'(Y)信息完整，优先呈现'),
-        'E', #'(E)清理失败'),
+        'M',
+        'N',
+        'Q',
+        'T',
+        'W',
+        'X',
+        'Y',
+        'E',
+        'I',
     )
 
     __tablename__ = u'open_product_source'
@@ -85,9 +86,9 @@ class UsedCar(Base):
     phone = Column(String(128), index=True, nullable=True, doc=u'联系电话')
     company_name = Column(String(128), index=True, nullable=True)
     company_url = Column(String(500), index=True, nullable=True)
-    status = Column(
-        Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
-    # status = Column(index=True, default='Y', nullable=True, doc=u'状态')
+    # status = Column(
+        # Enum(STATUS_CHOICE), index=True, default='Y', nullable=True, doc=u'状态')
+    status = Column(String(32), index=True, default='Y', nullable=True, doc=u'状态')
     mandatory_insurance = Column(
         DateTime, default=None, nullable=True, doc=u'交强险到期时间')
     business_insurance = Column(

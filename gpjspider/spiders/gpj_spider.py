@@ -11,7 +11,7 @@ __all__ = [
 
 
 class GPJSpider(IncrSpider):
-    type_ = ''
+    type_ = None
 
     def __init__(self, *args, **kwargs):
         site = self.name.split('_')[0]
@@ -38,26 +38,31 @@ class FullGPJSpider(GPJSpider):
     _incr_enabled = False
 
 
-here = os.path.dirname(__file__)
-file_list = os.listdir('%s/rules/full' % os.path.dirname(here))
-rules = re.findall('([a-z\d]+)\.py[^c]', ' '.join(file_list))
-rules.remove('sample')
+def create_spiders():
+    here = os.path.dirname(__file__)
+    file_list = os.listdir('%s/rules/full' % os.path.dirname(here))
+    rules = re.findall('([a-z\d]+)\.py[^c\.]', ' '.join(file_list))
+    for name in 'sample utils test'.split():
+        if name in rules:
+            rules.remove(name)
 
-spiders = '# -*- coding: utf-8 -*-\nfrom gpj_spider import *\n'
-spider_cls = """
+    spiders = '# -*- coding: utf-8 -*-\nfrom gpj_spider import *\n'
+    spider_cls = """
 class Incr{0}GPJSpider(IncrGPJSpider):
     name = '{0}'
 
 class Full{0}GPJSpider(FullGPJSpider):
     name = '{0}_full'
 """
-for rule_name in rules:
-    spiders += spider_cls.format(rule_name)
+    for rule_name in rules:
+        spiders += spider_cls.format(rule_name)
+
+    with open(os.path.join(here, 'auto_spiders.py'), 'w') as fp:
+        fp.write(spiders)
+        exec spiders
 
 try:
     from auto_spiders import *
 except ImportError as e:
     print 'Generating auto spiders..'
-    with open(os.path.join(here, 'auto_spiders.py'), 'w') as fp:
-        fp.write(spiders)
-        exec spiders
+    create_spiders()

@@ -585,8 +585,12 @@ def dmodel(value):
 u'2009\\u6b3e1.8TSI \\u624b\\u52a8 \\u8212\\u9002\\u578b'
 >>> dmodel(u'大众迈腾09款1.8TSI 手动 舒适型')
 u'09\\u6b3e1.8TSI \\u624b\\u52a8 \\u8212\\u9002\\u578b'
+>>> dmodel(u'贵阳白云区  比亚迪S7 2015款 2.0T 手自一体 旗舰型 (国Ⅴ)')
+u'2015\\u6b3e 2.0T \\u624b\\u81ea\\u4e00\\u4f53 \\u65d7\\u8230\\u578b (\\u56fd\\u2164)'
     '''
-    return extract(value, u'(\d{2}款.+|\d{4}款.+)$').replace('  ', ' ')
+    if value:
+        value = extract(value, u'(\d{2}款.+|\d{4}款.+)$').replace('  ', ' ')
+    return value
 
 
 def raw_imgurls(value):

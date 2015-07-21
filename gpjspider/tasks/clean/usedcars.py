@@ -73,14 +73,15 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     session = Session()
     cursor = get_cursor(session)
     domains = domain and [domain] or [
-        'xin.com', 'ygche.com.cn',
-        'haoche51.com', 'renrenche.com',
-        '99haoche.com', 'haoche.ganji.com', 'souche.com', 'youche.com',
         # 'c.cheyipai.com',
-        '58.com',
-        '2sc.sohu.com',
-        # 'taoche.com',
-        'ganji.com', '51auto.com', 'baixing.com',
+        'xin.com',
+        '99haoche.com', 'ygche.com.cn',
+        'haoche51.com', 'renrenche.com',
+        'haoche.ganji.com', 'souche.com', 'youche.com',
+        '58.com', 'ganji.com', 'baixing.com',
+        'taoche.com', '51auto.com',
+        '273.com', 'cn2che.com', 'used.xcar.com.cn', 'iautos.cn',
+        # 'hx2car.com', 'che168.com', 'cheshi.com', '2sc.sohu.com',
     ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)
@@ -95,6 +96,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     #     cursor.execute(update.format("','".join(domains)))
     status = 'Y'
     # status = ' control'
+    # status = '_'
     # status = 'N'
     sql = session.query(UsedCar.id).filter_by(source=1).filter(
         UsedCar.domain.in_(domains),
@@ -119,6 +121,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     max_id = cursor.execute(select % ('max',
         status, "','".join(domains)
         )).fetchone()[0]
+    # min_id = 21711200 # 17547311 20052220 21252445
+    # max_id = 22470882
     # min_id, max_id = 21588122, 21588667
     # min_id, max_id = 21861584, 21921761
     # min_id, max_id = 21203289, 21693372
@@ -132,8 +136,10 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # min_id, max_id = 21877164, 21877165
     # min_id = 21877089
     # id_range = 2000
-    # id_range = 5000
-    id_range = 10000
+    id_range = 5000
+    # id_range = 10000
+    # id_range = 20000
+    # id_range = 50000
     # id_range = 500
     print min_id, max_id, max_id - min_id + 1
     while min_id < max_id:
@@ -146,7 +152,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     log('Done')
 
 WORKER = 20
-# WORKER = 10
+WORKER = 10
 # WORKER = 40
 # WORKER = 0
 
@@ -225,8 +231,8 @@ def pool_run(query, meth, index=0, psize=10):
     # psize = 60
     # psize = 100
     amount = (remain / psize) + 1
-    items = []
     global WORKER
+    items = []
     for item in query.yield_per(psize):
         items.append(str(item.id))
         # cid = str(item.id)
@@ -481,7 +487,7 @@ def preprocess_item(item, session, logger):
         item['source_type'] = 'odealer'
 
     # 默认item['price_bn']是省下的价格
-    if 'che.ganji.com' in domain and item['price'] and item['price_bn']:
+    if 'haoche.ganji.com' in domain and item['price'] and item['price_bn']:
         item['price_bn'] += item['price']
 
     match_bmd(item, domain, session)
