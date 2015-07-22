@@ -146,7 +146,6 @@ class GPJBaseSpider(scrapy.Spider):
                 response.meta['depth'] = response.meta.get('depth', 0) - 1
                 if size > 3:
                     delta -= 1
-            # print response.meta['depth'], len(requests)
             for request in requests:
                 self.log('start request {0}'.format(request.url))
                 yield request
@@ -211,7 +210,7 @@ class GPJBaseSpider(scrapy.Spider):
         return self.parse(response, 'parse_list')
 
     def test(self, response):
-        print response.request._meta['depth'], response.url
+        print response.meta['depth'], response.url
 
     def parse_detail(self, response):
         """
@@ -498,8 +497,8 @@ class GPJBaseSpider(scrapy.Spider):
         """
         item = import_item(item_rule['class'])()
         item['url'] = response.url
-        if 'id' in response.request._meta:
-            item['id'] = response.request._meta['id']
+        if 'id' in response.meta:
+            item['id'] = response.meta['id']
         item['domain'] = self.domain
         fields = item_rule['fields']
         for field_name in item_rule.get('keys', self.item_keys):
