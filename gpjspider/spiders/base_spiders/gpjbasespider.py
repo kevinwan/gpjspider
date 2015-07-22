@@ -210,7 +210,7 @@ class GPJBaseSpider(scrapy.Spider):
         return self.parse(response, 'parse_list')
 
     def test(self, response):
-        print response.meta['depth'], response.url
+        print response.request.meta['depth'], response.url
 
     def parse_detail(self, response):
         """
@@ -257,6 +257,18 @@ class GPJBaseSpider(scrapy.Spider):
         if 'json' in url_rule:
             for url in self.get_json(response.body, url_rule['json']):
                 urls.add(unicode(url))
+
+        urls_info = {}
+        if 'xpath_with_info' in url_rule:
+            for rule in url_rule['xpath_with_info']:
+                _urls = response.xpath(rule).extract()
+                self.log(u'rule: {0}, urls: {1}'.format(rule, _urls))
+                for idx, _url in enumerate(_urls):
+                    if 'html' in _url:
+                        urls.add(_url)
+                    if u'认证' in _url:
+                        urls_info[_urls[idx-1]] = dict(source_type=_url)            # {url: {icc: xxx}}
+
         # if 'match' in url_rule:
         #     for url in urls:
         #         match = url_rule['match']:
@@ -311,6 +323,12 @@ class GPJBaseSpider(scrapy.Spider):
         urls -= tmp_urls
 
         urls = self.format_urls(url_rule, urls, response.url)
+        # 将 urls_info 中的 url 替换成这里的url
+        if urls_info:
+            for _iurl in urls_info.keys():
+                for _url in urls:
+                    if _iurl in _url:
+                        urls_info[_url] = urls_info.pop(_iurl)
 
         # 设置dont_filter比使用默认值优先级要高
         # 默认值是：如果 step 规则中有 item，则False；如果 step 规则中没有 item，则 True
@@ -372,7 +390,7 @@ class GPJBaseSpider(scrapy.Spider):
             dont_filter = True
             for url in urls:
                 request = Request(
-                    url, callback=step_function, dont_filter=dont_filter)
+                    url, callback=step_function, dont_filter=dont_filter, meta=urls_info.get(url))
                 ret_requests.append(request)
 
         # if 'update' in url_rule and 'category' in url_rule:
@@ -497,8 +515,10 @@ class GPJBaseSpider(scrapy.Spider):
         """
         item = import_item(item_rule['class'])()
         item['url'] = response.url
-        if 'id' in response.meta:
-            item['id'] = response.meta['id']
+        if 'id' in response.request.meta:
+            item['id'] = response.request.meta['id']
+        if 'source_type' in response.request.meta:
+            item['source_type'] = response.request.meta['source_type']
         item['domain'] = self.domain
         fields = item_rule['fields']
         for field_name in item_rule.get('keys', self.item_keys):
@@ -542,7 +562,14 @@ class GPJBaseSpider(scrapy.Spider):
                                         try:
                                             value %= item
                                         except Exception as e:
-                                            value = field.get('default_fail', value)
+                                            dfl = field.get('default_fail1', None)
+                                            if dfl and isinstance(dfl, basestring) and '%(' in dfl:
+                                                dfl %= item
+                                                if dfl:
+                                                    value = dfl
+                                                else:
+                                                    value = field.get('default_fail', value)
+
                                         values = value
                                     elif isinstance(value, (list, tuple)):
                                         values = []
