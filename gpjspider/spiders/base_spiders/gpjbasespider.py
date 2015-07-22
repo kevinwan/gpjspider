@@ -210,7 +210,7 @@ class GPJBaseSpider(scrapy.Spider):
         return self.parse(response, 'parse_list')
 
     def test(self, response):
-        print response.request.meta['depth'], response.url
+        print response.meta['depth'], response.url
 
     def parse_detail(self, response):
         """
@@ -513,14 +513,16 @@ class GPJBaseSpider(scrapy.Spider):
         """
         priority: xpath > json > css > str > function > default
         """
-        item = import_item(item_rule['class'])()
-        item['url'] = response.url
-        if 'id' in response.request.meta:
-            item['id'] = response.request.meta['id']
-        if 'source_type' in response.request.meta:
-            item['source_type'] = response.request.meta['source_type']
-        item['domain'] = self.domain
+        item_cls = import_item(item_rule['class'])
+        # item = dict(response.meta)
+        item = dict(url=response.url)
+        if 'id' in response.meta:
+            item['id'] = response.meta['id']
         fields = item_rule['fields']
+        for field in fields:
+            if field in response.meta:
+                item[field] = response.meta[field]
+        item['domain'] = self.domain
         for field_name in item_rule.get('keys', self.item_keys):
             field = fields.get(field_name)
             if not field:
@@ -541,8 +543,8 @@ class GPJBaseSpider(scrapy.Spider):
                     if 'css' in field:
                         values = self.get_xpath(field['css'], response)
                     if not values:
-                        if 'str' in field:
-                            values = self.get_str(field['str'], response)
+                        if 're' in field:
+                            values = self.extract_str(field['re'], response)
                         if not values:
                             if 'function' in field:
                                 func_name = field['function']['name']
@@ -558,7 +560,9 @@ class GPJBaseSpider(scrapy.Spider):
                             if not values:
                                 if 'default' in field:
                                     value = field['default']
-                                    if isinstance(value, basestring) and '%(' in value:
+                                    if value == '{item}':
+                                        values = item
+                                    elif isinstance(value, basestring) and '%(' in value:
                                         try:
                                             value %= item
                                         except Exception as e:
@@ -646,7 +650,7 @@ class GPJBaseSpider(scrapy.Spider):
                     m = u'{0} is required: {1}'.format(
                         field_name, response.url)
                     raise DropItem(m)
-        return item
+        return item_cls(item)
 
     def get_xpath(self, xpath_rules, response):
         for xpath_rule in xpath_rules:
@@ -683,7 +687,7 @@ class GPJBaseSpider(scrapy.Spider):
 
     def get_str(self, str_rules, response):
         for str_rule in str_rules:
-            assert len(str_rule) == 2, 'str guize  error'
+            assert len(str_rule) == 2, 'str guize error'
             start_index = response.body.find(str_rule[0])
             if start_index == -1:
                 continue
@@ -692,6 +696,14 @@ class GPJBaseSpider(scrapy.Spider):
             if end_index == -1:
                 continue
             return [response.body[start_index:end_index]]
+        return []
+
+    def extract_str(self, regx_rules, response):
+        txt = response.body
+        for regx_rule in regx_rules:
+            match = re.findall(regx_rule, txt)
+            if match:
+                return match[0]
         return []
 
     def exec_processor(self, field_name, field_rule, item):
