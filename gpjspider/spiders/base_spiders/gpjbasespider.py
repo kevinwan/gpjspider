@@ -16,7 +16,6 @@ from gpjspider.models.requests import RequestModel
 from gpjspider.utils.path import import_rule_function, import_item
 from gpjspider.utils.path import import_processor
 from gpjspider.checkers import CheckerManager
-from gpjspider.models.usedcars import UsedCar
 from gpjspider.checkers.constants import HIGH_QUALITY_RULE_CHECKER_NAME
 import re
 import json
@@ -69,7 +68,6 @@ class GPJBaseSpider(scrapy.Spider):
             setattr(self, attr, rule.get(attr))
         self._is_export and self.export_incr_rule(rule_name)
         # pp(self.website_rule['parse'])
-        self.Session = get_mysql_connect()
 
     def export_incr_rule(self, rule_name):
         rule_name = rule_name.split('.')[-1]
@@ -97,26 +95,26 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                psize = 50
-                cursor = self.get_cursor()
-                update = 'update open_product_source set status="q" where id in (%s) and status="u";'
-                # query = self.Session().query(UsedCar).filter_by(status='u', domain=self.domain)
-                query = self.Session().query(UsedCar.id, UsedCar.url).filter_by(#status='u',
-                    domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
-                # print query.count()
-                ids = []
-                index = 0
-                for item in query.yield_per(psize):
-                    cid = item.id
-                    ids.append(str(cid))
-                    yield Request(item.url, meta=dict(id=cid), callback=self.parse_detail, dont_filter=True)
-                    index += 1
-                    if index % psize == 0:
-                        if ids:
-                            cursor.execute(update % ','.join(ids))
-                            ids = []
-                if ids:
-                    cursor.execute(update % ','.join(ids))
+                query = "select id,url from open_product_source where status='u' and domain='%s' limit 50;"
+                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
+                update = 'update open_product_source set status="n" where id in (%s) and status="u";'
+                while True:
+                    q = self.get_cursor().execute(query % self.domain)
+                    res = q.fetchall()
+                    ids = []
+                    # for c in q.yield_per(psize):
+                    for c in res:
+                        start_url = c.url
+                        self.detail_urls.add(start_url)
+                        self.log(u'start request {0}'.format(start_url), log.INFO)
+                        ids.append(str(c.id))
+                        yield Request(start_url, callback=self.parse_detail, dont_filter=True)
+                    if ids:
+                        self.get_cursor().execute(update % ','.join(ids))
+
+                    # if res.count() < 50:
+                    if len(ids) < 50:
+                        break
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
             start_urls = start_url_function(
@@ -146,6 +144,7 @@ class GPJBaseSpider(scrapy.Spider):
                 response.meta['depth'] = response.meta.get('depth', 0) - 1
                 if size > 3:
                     delta -= 1
+            # print response.meta['depth'], len(requests)
             for request in requests:
                 self.log('start request {0}'.format(request.url))
                 yield request
@@ -257,18 +256,6 @@ class GPJBaseSpider(scrapy.Spider):
         if 'json' in url_rule:
             for url in self.get_json(response.body, url_rule['json']):
                 urls.add(unicode(url))
-
-        urls_info = {}
-        if 'xpath_with_info' in url_rule:
-            for rule in url_rule['xpath_with_info']:
-                _urls = response.xpath(rule).extract()
-                self.log(u'rule: {0}, urls: {1}'.format(rule, _urls))
-                for idx, _url in enumerate(_urls):
-                    if 'html' in _url:
-                        urls.add(_url)
-                    if u'认证' in _url:
-                        urls_info[_urls[idx-1]] = dict(source_type=_url)            # {url: {icc: xxx}}
-
         # if 'match' in url_rule:
         #     for url in urls:
         #         match = url_rule['match']:
@@ -288,6 +275,7 @@ class GPJBaseSpider(scrapy.Spider):
                     if ex_url in url:
                         tmp_urls.add(url)
                         break
+        # pdb.set_trace()
         try:
             if 'regex' in url_rule:
                 regex = url_rule['regex']
@@ -323,12 +311,6 @@ class GPJBaseSpider(scrapy.Spider):
         urls -= tmp_urls
 
         urls = self.format_urls(url_rule, urls, response.url)
-        # 将 urls_info 中的 url 替换成这里的url
-        if urls_info:
-            for _iurl in urls_info.keys():
-                for _url in urls:
-                    if _iurl in _url:
-                        urls_info[_url] = urls_info.pop(_iurl)
 
         # 设置dont_filter比使用默认值优先级要高
         # 默认值是：如果 step 规则中有 item，则False；如果 step 规则中没有 item，则 True
@@ -387,10 +369,9 @@ class GPJBaseSpider(scrapy.Spider):
                     max_page = self.get_max_page(url_rule)
                     urls = self.clean_detail_urls(urls, _url, max_page)
                     # dont_filter = not self._incr_enabled
-            dont_filter = True
             for url in urls:
                 request = Request(
-                    url, callback=step_function, dont_filter=dont_filter, meta=urls_info.get(url))
+                    url, callback=step_function, dont_filter=dont_filter)
                 ret_requests.append(request)
 
         # if 'update' in url_rule and 'category' in url_rule:
@@ -524,56 +505,82 @@ class GPJBaseSpider(scrapy.Spider):
                 item[field] = response.meta[field]
         item['domain'] = self.domain
         for field_name in item_rule.get('keys', self.item_keys):
+            process_step = ''
+            print_error = False
+            have_rule = False
             field = fields.get(field_name)
             if not field:
                 continue
             values = None
             if 'xpath' in field:
+                have_rule = True
                 rules = field['xpath']
+                process_step = 'xpath'
                 if isinstance(rules, tuple):
                     values = self.get_xpath(rules, response)
                 else:
                     values = []
                     for rule in rules:
                         values.extend(self.get_xpath([rule], response))
+                if not values and not print_error:
+                    self.rule_log_print(field_name, response.url, process_step, field)
+                    print_error = True
             if not values:
                 if 'json' in field:
+                    have_rule = True
                     values = self.get_json(response.body, field['json'])
+                    process_step = 'json'
+                    if not values and not print_error:
+                        self.rule_log_print(field_name, response.url, process_step, field)
+                        print_error = True
                 if not values:
                     if 'css' in field:
+                        have_rule = True
                         values = self.get_xpath(field['css'], response)
+                        process_step = 'css'
+                        if not values and not print_error:
+                            self.rule_log_print(field_name, response.url, process_step, field)
+                            print_error = True
                     if not values:
                         if 're' in field:
+                            have_rule = True
                             values = self.extract_str(field['re'], response)
+                            process_step = 're'
+                            if not values and not print_error:
+                                self.rule_log_print(field_name, response.url, process_step, field)
+                                print_error = True
                         if not values:
                             if 'function' in field:
+                                have_rule = True
                                 func_name = field['function']['name']
+                                process_step = 'function'
                                 func = import_rule_function(func_name)
                                 if not func:
                                     f = field['function']
-                                    m = u'无法导入规则函数:{0}'.format(f)
-                                    self.log(m, log.WARNING)
+                                    m = u'{0} rule {1} error: {2}'.format(field_name, process_step, f)
+                                    self.log(m, log.ERROR)
                                     continue
                                 args = field['function'].get('args', tuple())
                                 kwargs = field['function'].get('kwargs', {})
                                 values = func(response, self, *args, **kwargs)
+                                if not values and not print_error:
+                                    self.rule_log_print(field_name, response.url, process_step, field)
+                                    print_error = True
                             if not values:
                                 if 'default' in field:
+                                    have_rule = True
                                     value = field['default']
+                                    process_step = 'default'
                                     if value == '{item}':
                                         values = item
                                     elif isinstance(value, basestring) and '%(' in value:
                                         try:
                                             value %= item
                                         except Exception as e:
-                                            dfl = field.get('default_fail1', None)
-                                            if dfl and isinstance(dfl, basestring) and '%(' in dfl:
-                                                dfl %= item
-                                                if dfl:
-                                                    value = dfl
-                                                else:
-                                                    value = field.get('default_fail', value)
-
+                                            if 'default_fail' in field:
+                                                value = field['default_fail']
+                                        if not value:
+                                            print_error = True
                                         values = value
                                     elif isinstance(value, (list, tuple)):
                                         values = []
@@ -582,21 +589,31 @@ class GPJBaseSpider(scrapy.Spider):
                                                 try:
                                                     v %= item
                                                 except Exception as e:
-                                                    v = field.get('default_fail', v)
+                                                    if 'default_fail' in field:
+                                                        v = field['default_fail']
+                                                if not v:
+                                                    print_error = True
                                             values.append(v)
                                     else:
                                         values = value
 
                                     item[field_name] = values
-                                else:
-                                    # 连 default 都没有配置，就没有值了，说明规则不对
-                                    m = u'field {0} is NULL: {1}'.format(
-                                        field_name, response.url)
-                                    self.log(m, log.WARNING)
+                                    if not values and not print_error:
+                                        self.rule_log_print(field_name, response.url, process_step, field)
+                                        print_error = True
+                                        m = u'{0}\'s rule failed'.format(field_name)
+                                        self.log(m, log.ERROR)
+                                if not have_rule:
+                                    m = u'{0}\'s rule not exist'.format(field_name)
+                                    self.log(m)
             if values:
+                print_error = False
                 item[field_name] = values
                 # 执行处理器
-                processors = field.get('processors', [])
+                processors = []
+                if 'processors' in field:
+                    processors = field['processors']
+                    process_step = 'processors'
                 try:
                     if field_name in processors:
                         processors.remove(field_name)
@@ -609,9 +626,11 @@ class GPJBaseSpider(scrapy.Spider):
                     # continue
                 finally:
                     value = item[field_name]
+                    value_old = value
                 try:
                     if 'regex' in field:
                         regex = field['regex']
+                        process_step = 'regex'
                         if isinstance(regex, list):
                             flag = False
                             for reg in regex:
@@ -623,6 +642,7 @@ class GPJBaseSpider(scrapy.Spider):
                                         break
                                 except Exception as e:
                                     value = field.get('regex_fail', value)
+                                    # flag = True
                                     break
                             if not flag:
                                 value = field.get('regex_not')
@@ -631,11 +651,30 @@ class GPJBaseSpider(scrapy.Spider):
                                 value = re.findall(regex, value)[0]
                             except Exception as e:
                                 value = field.get('regex_fail', value)
-                                # print value
+                        if not value and not print_error:
+                            self.processors_log_print(field_name, process_step, field, value_old, value)
+                            print_error = True
+                    value_old = value
                     if 'after' in field:
                         value = after(value, field['after'])
+                        process_step = 'after'
+                        if not value and not print_error:
+                            m = u'{0} after "{1}" failed for "{2}"'.format(
+                                field_name,
+                                field[process_step],
+                                value_old
+                            )
+                            self.log(m, log.WARNING)
                     if 'before' in field:
-                        value = before(value, field['before'])
+                        value = after(value, field['before'])
+                        process_step = 'before'
+                        if not value and not print_error:
+                            m = u'{0} before "{1}" failed for "{2}"'.format(
+                                field_name,
+                                field[process_step],
+                                value_old
+                            )
+                            self.log(m, log.WARNING)
                     if 'format' in field and not value.startswith('http') and value.startswith('/'):
                         value = field['format'].format(value)
                 except:
@@ -645,12 +684,35 @@ class GPJBaseSpider(scrapy.Spider):
                 item[field_name] = self.exec_processor(None, field_name, value)
 
             # required判断
-            if field.get('required', False):
-                if field_name not in item:
-                    m = u'{0} is required: {1}'.format(
-                        field_name, response.url)
-                    raise DropItem(m)
+            if field_name not in item and field.get('required', False):
+                m = u'{0} is required: {1}'.format(
+                    field_name, response.url)
+                raise DropItem(m)
         return item_cls(item)
+
+    def rule_log_print(self, field_name, url, process_step, field):
+        if process_step in field:
+            m = u'{0}\'s {1} "{2}" failed'.format(
+                field_name,
+                process_step,
+                field[process_step]
+            )
+            self.log(m, log.ERROR)
+        m = u'field {0} is NULL: {1}'.format(
+            field_name, url)
+        self.log(m, log.WARNING)
+
+    def processors_log_print(self, field_name, process_step, field, value_old, value):
+        m = u'{0}\'s {1} "{2}" failed'.format(
+            field_name,
+            process_step,
+            field[process_step]
+        )
+        if value == value_old:
+            m = m + u' - "{0}"'.format(value)
+        else:
+            m = m + u' - from "{0}" to "{1}"'.format(value_old, value)
+        self.log(m, log.WARNING)
 
     def get_xpath(self, xpath_rules, response):
         for xpath_rule in xpath_rules:
@@ -718,7 +780,11 @@ class GPJBaseSpider(scrapy.Spider):
             processor_func = import_processor(processor)
             if not processor_func:
                 if field_name:
-                    self.log(u'无此处理器:{0}'.format(processor))
+                    m = u'{0}\'s processor "{1}" not exist'.format(
+                        field_name,
+                        processor
+                    )
+                    self.log(m, log.WARNING)
                 return item
             if field_name and field_name in item:
                 item[field_name] = processor_func(item[field_name])
@@ -805,7 +871,8 @@ class GPJBaseSpider(scrapy.Spider):
         return new_urls
 
     def save_request(self, requests, url_category):
-        session = self.Session()
+        Session = get_mysql_connect()
+        session = Session()
         request_model = RequestModel()
         for request in requests:
             request_model = RequestModel()
