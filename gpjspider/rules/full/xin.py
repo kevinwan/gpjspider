@@ -87,19 +87,24 @@ item_rule = {
             ),
         },
         'brand_slug': {
-            'xpath': (
-                text(cls('car-tit', '/p/a[3]')),
-                text(cls("tit", '/h1')),
-            ),
+            # 'xpath': (
+            #     text(cls('car-tit', '/p/a[3]')),
+            #     text(cls("tit", '/h1')),
+            # ),
+            'default': '%(title)s',
         },
         'model_slug': {
-            'xpath': [
-                text(cls('car-tit', '/p/a[3]')),
-                text(cls('car-tit', '/p/a[4]')),
-                # text(cls("tit", '/h1')),
-            ],
+            # 'xpath': [
+            #     text(cls('car-tit', '/p/a[3]')),
+            #     text(cls('car-tit', '/p/a[4]')),
+            #     # text(cls("tit", '/h1')),
+            # ],
+            # 'xpath': (
+            #     text(cls('car-tit', '/p/a[4]')),
+            #     text(cls("tit", '/h1')),
+            # ),
             'default': '%(title)s',
-            'processors': ['xin.model_slug'],
+            # 'processors': ['xin.model_slug'],
         },
         'model_url': {
             'xpath': (
@@ -169,35 +174,48 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                u"//div[@class='day']//span[contains(text(), '退') or contains(text(), '修')  or contains(text(), '换' or contains(text(), '保'))]/text()",
-                u"//div[@class='msg']//li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
-                # u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
-                img(cls("test-txt", '/')),
-                img(cls('day-pic', '/')),
+                text(cls('test-txt', '/p/')),
+                # u"//div[@class='day']//span[contains(text(), '退') or contains(text(), '修')  or contains(text(), '换' or contains(text(), '保'))]/text()",
+                # u"//div[@class='msg']//li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
+                # # u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
+                # img(cls("test-txt", '/')),
+                # img(cls('day-pic', '/')),
             ),
-            'processors': ['first', 'xin.quality_service']
+            'processors': ['first', 'xin.quality_service'],
+            'processors': ['join'],
         },
         'time': {
             'xpath': (
                 after_has(u'检测时间', 'text()'),
+                has(u'发布：'),
             ),
+            # 'after': '：',
+            'processors': ['first', 'after_colon'],
         },
         'is_certifield_car': {
-            'xpath': (
-                exists(cls('test-txt', '//img')),
-                # img(cls('day-pic', '/')),
-            ),
+            # 'xpath': (
+            #     exists(cls('test-txt', '//img')),
+            #     # img(cls('day-pic', '/')),
+            # ),
             'default': "%(quality_service)s",
             'default_fail': False,
         },
         'source_type': {
-            'xpath': (
-                img(cls("test-txt", '/')),
-                img(cls('day-pic', '/')),
-            ),
+            # 'xpath': (
+            #     img(cls("test-txt", '/')),
+            #     img(cls('day-pic', '/')),
+            #     img(cls('day', '/')),
+            # ),
             'default': SOURCE_TYPE_ODEALER,
+            'default': '{item}',
+            # 'default': '%(item)s',
             'processors': ['first', 'xin.source_type'],
+            'processors': ['xin.source_type'],
         },
+        # 'status': {
+        #     're': ['(sale_bg)'],
+        #     'processors': ['first', 'xin.status'],
+        # }
     },
 }
 
@@ -209,7 +227,7 @@ list_rule = {
         "format": True,
         'contains': '/c/',
         "step": 'parse_detail',
-        'max_pagenum': 50,
+        # 'max_pagenum': 50,
         # 'incr_pageno': 10,
     },
     "next_page_url": {
@@ -227,7 +245,7 @@ rule = {
     'start_urls': [
         # 'http://www.xin.com/quanguo/s/o2a10i600v1/',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i108v1/',
+        # 'http://www.xin.com/quanguo/s/o2a10i28v1/',
         # 'http://www.xin.com/quanguo/s/o2a10i10v1/',
         # 'http://www.xin.com/quanguo/s/o2a10i40v1/',
         # 'http://www.xin.com/quanguo/s/o2a10i80v1/',
@@ -248,12 +266,14 @@ rule = {
         # 'http://www.xin.com/c/10254412.html',  # 2
         # 'http://www.xin.com/c/10354226.html',  # 3
         # 'http://www.xin.com/c/10354157.html',  # 2
-        # 'http://www.xin.com/c/10358862.html',  # 3
+        # 'http://www.xin.com/c/10358862.html',  # 3 Q
         # 'http://www.xin.com/c/10376527.html',  # 3
+        # 'http://www.xin.com/c/10585041.html',  # 3
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,
     'pages': 18489,
+    # 'update': True,
 
     'parse': list_rule,
 

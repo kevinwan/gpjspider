@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from gpjspider.utils.constants import SOURCE_TYPE_SELLER, SOURCE_TYPE_MANUFACTURER, SOURCE_TYPE_ODEALER
 
 def model_slug(values):
     if isinstance(values, str):
@@ -27,12 +27,22 @@ def quality_service(value):
 
 
 def source_type(value):
-    from gpjspider.utils.constants import SOURCE_TYPE_SELLER, SOURCE_TYPE_MANUFACTURER
+    st = SOURCE_TYPE_ODEALER
+    if isinstance(value, dict):
+        item = value
+        if item['is_certifield_car']:
+            st = SOURCE_TYPE_MANUFACTURER if u'原厂质保' in item['quality_service'] else SOURCE_TYPE_SELLER
+    return st
 
-    if isinstance(value, int):
-        return value
+    # if isinstance(value, int):
+    #     return value
 
-    if 'sell_ico' in value or 'promise_ico' in value:
-        return SOURCE_TYPE_SELLER
-    elif value.find('presur_ico') != -1:
-        return SOURCE_TYPE_MANUFACTURER
+    # if 'sell_ico' in value or 'promise_ico' in value:
+    #     return SOURCE_TYPE_SELLER
+    # elif value.find('presur_ico') != -1:
+    #     return SOURCE_TYPE_MANUFACTURER
+
+def status(value):
+    import ipdb; ipdb.set_trace()
+    print value
+    return value and 'Q' or 'Y'
