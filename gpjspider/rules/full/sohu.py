@@ -6,7 +6,7 @@ from gpjspider.utils.constants import *
 def parse_meta(key, with_key=False):
     return with_key and u'(%s[^：]{,4}：[^;\s]+)' % key or u'%s[^：]{,4}：([^;\s]+)' % key
 
-def get_url_and_souce_type(response, spider):
+def get_url_and_source_type(response, spider):
     """
         主要是为了提取列表页的链接和对应的 source_type 信息，返回两部分的信息，
         一个是链接列表，一个是链接列表和对应的额外信息
@@ -222,7 +222,7 @@ parse_rule = {
     'url': {
         'xpath': {
             #'url': '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
-            'function': get_url_and_souce_type,
+            'function': get_url_and_source_type,
         },
         #'xpath_with_info': (
             #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
