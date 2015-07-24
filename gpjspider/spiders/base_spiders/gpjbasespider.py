@@ -515,45 +515,40 @@ class GPJBaseSpider(scrapy.Spider):
             if 'xpath' in field:
                 have_rule = True
                 rules = field['xpath']
-                process_step = 'xpath'
                 if isinstance(rules, tuple):
                     values = self.get_xpath(rules, response)
                 else:
                     values = []
                     for rule in rules:
                         values.extend(self.get_xpath([rule], response))
-                if not values and not print_error:
-                    self.rule_log_print(field_name, response.url, process_step, field)
+                if not values and not print_error and field['xpath']:
+                    process_step = 'xpath'
                     print_error = True
             if not values:
                 if 'json' in field:
                     have_rule = True
                     values = self.get_json(response.body, field['json'])
-                    process_step = 'json'
-                    if not values and not print_error:
-                        self.rule_log_print(field_name, response.url, process_step, field)
+                    if not values and not print_error and field['json']:
+                        process_step = 'json'
                         print_error = True
                 if not values:
                     if 'css' in field:
                         have_rule = True
                         values = self.get_xpath(field['css'], response)
-                        process_step = 'css'
-                        if not values and not print_error:
-                            self.rule_log_print(field_name, response.url, process_step, field)
+                        if not values and not print_error and field['css']:
+                            process_step = 'css'
                             print_error = True
                     if not values:
                         if 're' in field:
                             have_rule = True
                             values = self.extract_str(field['re'], response)
-                            process_step = 're'
-                            if not values and not print_error:
-                                self.rule_log_print(field_name, response.url, process_step, field)
+                            if not values and not print_error and field['re']:
+                                process_step = 're'
                                 print_error = True
                         if not values:
                             if 'function' in field:
                                 have_rule = True
                                 func_name = field['function']['name']
-                                process_step = 'function'
                                 func = import_rule_function(func_name)
                                 if not func:
                                     f = field['function']
@@ -563,14 +558,13 @@ class GPJBaseSpider(scrapy.Spider):
                                 args = field['function'].get('args', tuple())
                                 kwargs = field['function'].get('kwargs', {})
                                 values = func(response, self, *args, **kwargs)
-                                if not values and not print_error:
-                                    self.rule_log_print(field_name, response.url, process_step, field)
+                                if not values and not print_error and field['function']:
+                                    process_step = 'function'
                                     print_error = True
                             if not values:
                                 if 'default' in field:
                                     have_rule = True
                                     value = field['default']
-                                    process_step = 'default'
                                     if value == '{item}':
                                         values = item
                                     elif isinstance(value, basestring) and '%(' in value:
@@ -579,8 +573,6 @@ class GPJBaseSpider(scrapy.Spider):
                                         except Exception as e:
                                             if 'default_fail' in field:
                                                 value = field['default_fail']
-                                        if not value:
-                                            print_error = True
                                         values = value
                                     elif isinstance(value, (list, tuple)):
                                         values = []
@@ -591,21 +583,22 @@ class GPJBaseSpider(scrapy.Spider):
                                                 except Exception as e:
                                                     if 'default_fail' in field:
                                                         v = field['default_fail']
-                                                if not v:
-                                                    print_error = True
                                             values.append(v)
                                     else:
                                         values = value
 
                                     item[field_name] = values
-                                    if not values and not print_error:
+                                else:
+                                    if not print_error:
+                                        if not have_rule:
+                                            m = u'field {0} missing rule'.format(field_name)
+                                            self.log(m, log.WARNING)
+                                        m = u'field {0} is NULL: {1}'.format(
+                                            field_name, response.url)
+                                        self.log(m, log.WARNING)
+                                    else:
                                         self.rule_log_print(field_name, response.url, process_step, field)
-                                        print_error = True
-                                        m = u'{0}\'s rule failed'.format(field_name)
-                                        self.log(m, log.ERROR)
-                                if not have_rule:
-                                    m = u'{0}\'s rule not exist'.format(field_name)
-                                    self.log(m)
+
             if values:
                 print_error = False
                 item[field_name] = values
@@ -659,7 +652,7 @@ class GPJBaseSpider(scrapy.Spider):
                         value = after(value, field['after'])
                         process_step = 'after'
                         if not value and not print_error:
-                            m = u'{0} after "{1}" failed for "{2}"'.format(
+                            m = u'{0} not found "{1}" in "{2}"'.format(
                                 field_name,
                                 field[process_step],
                                 value_old
@@ -669,7 +662,7 @@ class GPJBaseSpider(scrapy.Spider):
                         value = after(value, field['before'])
                         process_step = 'before'
                         if not value and not print_error:
-                            m = u'{0} before "{1}" failed for "{2}"'.format(
+                            m = u'{0} not found "{1}" in "{2}"'.format(
                                 field_name,
                                 field[process_step],
                                 value_old
