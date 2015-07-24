@@ -678,7 +678,7 @@ class GPJBaseSpider(scrapy.Spider):
                             )
                             self.log(m, log.WARNING)
                     if 'before' in field:
-                        value = after(value, field['before'])
+                        value = before(value, field['before'])
                         process_step = 'before'
                         if not value and not print_error:
                             m = u'{0} before "{1}" failed for "{2}"'.format(

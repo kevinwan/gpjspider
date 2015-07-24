@@ -543,7 +543,8 @@ class TradeCar(Base):
             trade_car.mile = mile
         else:
             trade_car.mile = int(10000 * mile)
-        trade_car.created_on = item['time']
+        # trade_car.created_on = item['time']
+        trade_car.created_on = item['created_on']
         trade_car.color = item['color'] or ''
         if item['detail_model']:
             detail_model_slug = item['detail_model']

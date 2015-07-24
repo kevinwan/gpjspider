@@ -11,6 +11,10 @@ item_rule = {
         # 5. 凡有的字段都加在规则中，不要漏失，没有的可以注释掉。。
         # 6. 遇到特殊规需处理，如果是通用性的就在公共代码上更新（添加相应的测试）；
         # 否则私有化处理。避免影响其他地方的正常运行
+        # OPT as follow:
+        # a 避免标点    b 保持格式的统一与整洁
+        # c smart tricks instead of more codes
+
         'title': {
             'xpath': (
                 text(cls('h1')),
@@ -23,8 +27,8 @@ item_rule = {
             # 网站自己的车型，若没有则取
             # 含年款在内的有效信息，去掉无用内容！如下regex+before的处理
             'default': '%(title)s',
-            'regex': u'(\S+\d{2,4}款.+)\s\d{4}年上牌',
-            'before': '[',
+            # 'regex': u'(\S+\d{2,4}款.+)\s\d{4}年上牌',
+            # 'before': '[',
         },
         'meta': {
             # 网页的元信息，很多SEO好点的网站都会把一些搜索的关键信息存放在这以便搜索引擎能收纳并高效查找。。
@@ -41,6 +45,7 @@ item_rule = {
         },
         'month': {  # 月 m 1-12 int
             'xpath': (
+                # TODO: add support of format %(year)s
                 after_has(u'上牌时间'),
             ),
         },
@@ -53,6 +58,7 @@ item_rule = {
             'xpath': (
                 after_has(u'排量'),
             ),
+            'default': '%(title)s',
         },
         'color': {  # 颜色描述：红、蓝色、深内饰。。
             'xpath': (
@@ -78,15 +84,24 @@ item_rule = {
             # xpath -> default 网页上没有专门信息的时候，可通过meta/desc
             'default': '%(description)s',
         },
+        # visit http://pricebook.cn/user/model_match/ to validate brand & model info
         'brand_slug': {  # 网站自己的品牌
             'xpath': (
                 text(id_('carbrands')),
             ),
+            'default': '%(title)s',
         },
         'model_slug': {  # 网站自己的车系
             'xpath': (
                 text(id_('carseriess')),
             ),
+            'default': '%(title)s',
+        },
+        'model_url': {  # 网站自己的车系url, mush crawl if has
+            'xpath': (
+                href(id_('carseriess')),
+            ),
+            'format': True,
         },
         'city': {  # 车源归属地、所在城市
             'xpath': (
@@ -96,7 +111,7 @@ item_rule = {
         },
         'contact': {  # 联系人
             'xpath': (
-                after_has(u'联系', 'span[1]//text()'),
+                after_has(u'车主', 'span[1]//text()'),
             ),
         },
         'region': {  # 看车地点
@@ -203,7 +218,6 @@ item_rule = {
                 # text(cls('paddright13')),
                 exists(has_id('icon_')),
             ),
-            'default': False,
             'default': '%(quality_service)s',
             'default_fail': None,
         },
@@ -219,12 +233,13 @@ item_rule = {
                 url(cls('dianpu_link')),
                 # 默认为 个人车
             ],
+            'default': '{item}', # offer item for processors to handle
             'processors': ['58.source_type'],
         },
     },
 }
 
-parse_rule = {
+list_rule = {
     "url": {  # 车源详情链接
         'xpath': (
             url('*[@id="infolist"]//*[@sortid]/'),
@@ -248,12 +263,9 @@ rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
-    # TODO: update spider for support
-    'spider': {
-        'domain': '58.com',
-        'download_delay': 2.5,
-    },
     # 'update': True,
+    'per_page': 20,
+    'pages': 100,
 
     'start_urls': [
         'http://quanguo.58.com/ershouche/',
@@ -271,7 +283,7 @@ rule = {
         # 'http://sy.58.com/ershouche/21851847601184x.shtml', # 4
     ],
 
-    'parse': parse_rule,
+    'parse': list_rule,
 
     'parse_detail': {
         "item": item_rule,

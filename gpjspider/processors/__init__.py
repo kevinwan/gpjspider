@@ -220,6 +220,7 @@ def strip_imgurls(urls_with_query):
     # return False
     # return bool(value)
 
+# def source_type(value):
 
 def price(value):
     u'''
@@ -256,13 +257,15 @@ Decimal('39.8')
 Decimal('29.88')
 >>> price_bn(u'新车：31.80万 + 2.72万购置税')
 Decimal('31.80')
+>>> price_bn(u'新车价： \\n8.98万+0.77万购置税，比新车省')
+Decimal('8.98')
 >>> price_bn(u'(裸车价44.95万元+购置税3.84万元)')
 Decimal('44.95')
     '''
     # print value
-    v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})万?', decimal)
+    v = extract(value, ur'[新车指导价]{2,5}\D*[^\d]{,2}(\d*\.?\d{1,2})万?', decimal)
     if isinstance(v, basestring) and value and not u'万' in value:
-        v = extract(value, ur'[新车指导价]{2,5}[^\d]{,2}(\d*\.?\d{1,2})', decimal)
+        v = extract(value, ur'[新车指导价]{2,5}\D*[^\d]{,2}(\d*\.?\d{1,2})', decimal)
     if isinstance(v, Decimal) and v > 10000:
         v /= 10000
     return v if isinstance(v, Decimal) else None
@@ -406,6 +409,8 @@ True
     """
     if u'已过期' in time:
         return None
+    elif u'今天' in time:
+        time = u'0天前'
     elif u'昨天' in time:
         time = u'1天前'
     elif u'前天' in time:
@@ -567,6 +572,14 @@ u'\\u5b9a\\u671f4S\\u4fdd\\u517b'
     return extract(value, regx)
 
 
+def remove_param(url, param):
+    '''
+>>> remove_param('http://jinhua.baixing.com/ershouqiche/a796036346.html?index=82', 'index')
+'http://jinhua.baixing.com/ershouqiche/a796036346.html'
+    '''
+    return re.sub('[\?&]%s=[^&]*' % param, '', url)
+
+
 def extract(value, regx, _type=None):
     if not isinstance(value, basestring):
         return value
@@ -658,6 +671,7 @@ def phone(value):
     '''
     if value and len(value) >= 10:
         if value.startswith('http://'):
+            return value
             try:
                 phone_info = ConvertPhonePic2Num(value).find_possible_num()
                 value += '#%s#%s' % phone_info

@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER, SOURCE_TYPE_GONGPINGJIA
 from urllib import unquote
+import re
 
+
+def remove_index(url, param='index'):
+    '''
+>>> remove_index('http://jinhua.baixing.com/ershouqiche/a796036346.html?index=82')
+'http://jinhua.baixing.com/ershouqiche/a796036346.html'
+    '''
+    return re.sub('[\?&]%s=[^&]*' % param, '', url)
 
 def phone(values):
     if isinstance(values, list):

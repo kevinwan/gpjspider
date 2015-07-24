@@ -41,10 +41,13 @@ class FullGPJSpider(GPJSpider):
 def create_spiders():
     here = os.path.dirname(__file__)
     file_list = os.listdir('%s/rules/full' % os.path.dirname(here))
-    rules = re.findall('([a-z\d]+)\.py[^c\.]', ' '.join(file_list))
+    rules = ' '.join(file_list)
+    rule_list = re.findall('([a-z\d]+)\.pyc', rules)
+    # rule_list = list(set(re.findall('([a-z\d]+)\.pyc', rules)))
+    # print rule_list
     for name in 'sample utils test'.split():
-        if name in rules:
-            rules.remove(name)
+        if name in rule_list:
+            rule_list.remove(name)
 
     spiders = '# -*- coding: utf-8 -*-\nfrom gpj_spider import *\n'
     spider_cls = """
@@ -54,7 +57,7 @@ class Incr{0}GPJSpider(IncrGPJSpider):
 class Full{0}GPJSpider(FullGPJSpider):
     name = '{0}_full'
 """
-    for rule_name in rules:
+    for rule_name in rule_list:
         spiders += spider_cls.format(rule_name)
 
     with open(os.path.join(here, 'auto_spiders.py'), 'w') as fp:

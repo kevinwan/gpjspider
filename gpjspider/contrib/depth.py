@@ -45,7 +45,8 @@ class DomainDepthMiddleware(object):
                     return False
             return True
         if self.init:
-            if not spider._incr_enabled:
+
+            if hasattr(spider, '_incr_enabled') and not spider._incr_enabled:
                 settings = self.crawler.settings
                 self.domain_depths = settings.getdict('DOMAIN_FULL_DEPTHS', default={})
                 self.default_depth = settings.getint('DEPTH_FULL_LIMIT', 5)
