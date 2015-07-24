@@ -148,6 +148,8 @@ u'test'
         a = a[0].split('-')
     return a[0].strip()
 
+def add_temp(value):
+    return 'temp ' + value[0]
 
 def model_slug(value):
     u'''
@@ -163,15 +165,17 @@ u'test'
 u'test'
 >>> model_slug(u'二手test')
 u'test'
+>>> model_slug(u' CR-V')
+u'CR-V'
     '''
     # pdb.set_trace()
     value = value.strip('> ').lstrip(u'二手')
     if ' ' in value:
         a = reg_blank_split.split(value)
-        return a[1]
+        return ' '.join(a[1:])
     elif '-' in value:
         a = value.split('-')
-        value = a[1]
+        value = '-'.join(a[1:])
         match = re.findall(u'([^21]+)\d{2,4}款', value)
         return match and match[0] or value
     else:
