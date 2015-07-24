@@ -26,11 +26,15 @@ def strip(value):
     return value.strip('\t\r\n\b ')
 
 
-def first(value):
-    if isinstance(value, (list, tuple)):
-        return strip(value[0])
+def first(values):
+    if isinstance(values, (list, tuple)):
+        for value in values:
+            value = strip(value)
+            if value:
+                return value
+        # return strip(values[0])
     else:
-        return value
+        return values
 
 
 def last(value):
@@ -289,11 +293,14 @@ Decimal('0.06')
 Decimal('0.06')
 >>> mile(u'三十二万公里')
 unsupported operand type(s) for /=: 'unicode' and 'int' 三十二万公里
+>>> mile(u'138,100公里')
+Decimal('13.81')
     '''
 
     # print v
     # if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
     if isinstance(value, basestring):
+        value = re.sub(',', '', value)
         if not u'万' in value:
             v = extract(value, ur'(\d+|[\d\.]{3,})公里', decimal)
             v /= 10000

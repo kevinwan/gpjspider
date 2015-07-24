@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #-*-coding:utf-8-*-
 import re
 
@@ -9,14 +8,6 @@ def color(value):
     if u'色' in val:
         return val
     return ''
-
-
-# def control(value):
-#     """ 2010款 凯美瑞三厢 240G 豪华版 手自一体 黑色"""
-#     if isinstance(value, (list, tuple)):
-#         value = value[0]
-
-#     return value.split()[-2]
 
 
 def price_bn(value):
@@ -51,15 +42,8 @@ def condition_level(value):
     else:
         return None
 
+
 def status(value):
     if u'看车' in value:
         return 'Y'
     return 'Q'
-# def transfer_owner(value):
-#     if isinstance(value, (list, tuple)):
-#         value = value[0]
-
-#     if  value.strip() == u'一手车':
-#         return 0
-#     else:
-#         return 1

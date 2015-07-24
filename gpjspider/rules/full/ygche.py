@@ -14,9 +14,9 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            #'xpath': (
-                #text(cls('info-ul', '/li[1]')),
-            #),
+            # 'xpath': (
+            #     text(cls('info-ul', '/li[1]')),
+            # ),
             'default': '%(title)s',
         },
         'meta': {
@@ -36,6 +36,7 @@ item_rule = {
         },
         'mile': {  # ？万公里
             'xpath': (
+                _has(u'里程'),
                 has(u'里程', '/span'),
             ),
         },
@@ -46,11 +47,12 @@ item_rule = {
             'default': '%(title)s',
         },
         'color': {  # 颜色描述：红、蓝色、深内饰。。
-            #'xpath': (
-            # _has(u'车辆信息：'),
-            #),
-            'default': '%(dmodel)s',
+            'xpath': (
+                _has(u'车辆信息'),
+            ),
+            # 'default': '%(dmodel)s',
             'processors': ['first', 'ygche.color'],
+            # 'processors': ['ygche.color'],
         },
         'control': {  # 手动/自动/手自一体
             'xpath': (
@@ -72,17 +74,21 @@ item_rule = {
         },
         'brand_slug': {  # 网站自己的品牌
             'xpath': (
-                text(cls('w1200 bread-Crumbs', '/a[3]')),
+                text(cls('w1200 bread-Crumbs', '/a[contains(@href, "list/b")]')),
+                text(cls('w1200 bread-Crumbs', '/a[2]')),
             ),
         },
         'model_slug': {  # 网站自己的车系
             'xpath': (
-                text(cls('w1200 bread-Crumbs', '/a[4]')),
+                text(cls('w1200 bread-Crumbs', '/a[contains(@href, "list/s")]')),
+                text(cls('w1200 bread-Crumbs', '/a[3]')),
             ),
+            # 'default': '%(brand_slug)s',
         },
         'model_url': {
             'xpath': (
-                href(cls('w1200 bread-Crumbs', '/a[4]')),
+                href(cls('w1200 bread-Crumbs', '/a[contains(@href, "list/s")]')),
+                href(cls('w1200 bread-Crumbs', '/a[3]')),
             ),
             'format': True,
         },
@@ -167,12 +173,11 @@ item_rule = {
             'processors': ['join'],
         },
         # 交强险、商业险、年检 YYYY-MM-1，需处理过期/到期之类的情况
-        # 'mandatory_insurance': {
-        #     'xpath': (
-        #     _has(u'交强险有效期：'),
-        #     ),
-        #     'processors': ['ygche.mandatory_insurance'],
-        # },
+        'mandatory_insurance': {
+            'xpath': (
+                _has(u'交强险'),
+            ),
+        },
         # 'business_insurance': {
         #     'xpath': (
         #         u'//li/span[contains(text(), "商业险到期时间")]/../text()',
@@ -241,18 +246,16 @@ rule = {
     'name': u'阳光车网',
     'domain': 'ygche.com.cn',
     'base_url': 'http://www.ygche.com.cn',
-    # TODO: update spider for support
-    'spider': {
-        'domain': 'ygche.com.cn',
-        'download_delay': 0.5,
-    },
-    # 'update': True,
     'per_page': 20,
     'pages': 2000,
+    # 'update': True,
 
     'start_urls': [
         'http://www.ygche.com.cn/city.html',
         # 'http://www.ygche.com.cn/nanning/list/',
+        # 'http://www.ygche.com.cn/detail/gz1047261.html',
+        # 'http://www.ygche.com.cn/detail/wh1047696.html',
+        # 'http://www.ygche.com.cn/detail/nj1048021.html',
         # 'http://www.ygche.com.cn/detail/nn1045013.html',
         # 'http://www.ygche.com.cn/detail/cd1032596.html',
         # 'http://www.ygche.com.cn/detail/cd1041162.html',
@@ -263,7 +266,7 @@ rule = {
         # 'http://www.ygche.com.cn/detail/cd1019953.html', # 已售
         #'http://www.ygche.com.cn/detail/cd1001107.html',
         #'http://www.ygche.com.cn/detail/nn1025954.html',
-        #'http://www.ygche.com.cn/detail/gz1044279.html', # 变速器
+        # 'http://www.ygche.com.cn/detail/gz1044279.html', # 变速器
     ],
 
     'parse': {

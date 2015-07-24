@@ -23,9 +23,6 @@ item_rule = {
             ),
         },
         'dmodel': {
-            #'xpath': (
-                #after_has(u'本车标签'),
-            #),
             'defautl': '%(title)s',
         },
         'year': {

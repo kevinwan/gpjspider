@@ -153,12 +153,10 @@ item_rule = {
         },
         # 'maintenance_desc': {
         #     'xpath': (
-        #
         #     ),
         # },
         # 'quality_service': {
         #     'xpath': (
-        #
         #     ),
         # },
         'invoice': {
@@ -192,6 +190,7 @@ parse_rule = {
             '//li[@data-aid]/a/@href',
         ),
         'contains': '/ershouqiche/',
+        'processors': ['clean_param'],
         'step': 'parse_detail',
     },
     'next_page_url': {
@@ -232,8 +231,9 @@ rule = {
         #'http://ningbo.baixing.com/ershouqiche/a788142311.html',
         #'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
     ],
-    # 'per_page': 20,
-    # 'pages': 100,
+    'per_page': 100,
+    'pages': 100,
+    # 'update': True,
 
     'parse': parse_rule,
     'parse_detail': {
@@ -242,4 +242,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

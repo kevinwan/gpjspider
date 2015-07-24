@@ -100,7 +100,7 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 '//*[contains(@class,"listtab")]//a[@href]/@href'
 >>> text(has_cls('report-main"]', '/p[1]'))
 '//*[contains(@class,"report-main"]")]/p[1]/text()'
->>> text(cls('price', '/span[1]/'))
+>>> has(u'里程', '/span')
 
     '''
 

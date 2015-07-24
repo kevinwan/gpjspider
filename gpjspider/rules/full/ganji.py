@@ -12,6 +12,10 @@ item_rule = {
             ),
             'required': True,
         },
+        'dmodel': {
+            'default': '%(title)s',
+            'regex': ur'(\d{2,4}款.+[版型])',
+        },
         'meta': {
             'xpath': (
                 '//meta[@name="description" or @name="Description"]/@content',
@@ -39,8 +43,8 @@ item_rule = {
             'processors': ['first', 'ganji.mile'],
         },
         'volume': {
-            'xpath': (
-            ),
+            # 'xpath': (
+            # ),
             'default': '%(title)s',
         },
 
@@ -83,21 +87,24 @@ item_rule = {
                 u'//a[@class="fc-70"]/text()',
             ),
         },
-        'region': {
-            'xpath': (
-            ),
-        },
+        # 'region': {
+        #     'xpath': (
+        #     ),
+        # },
         'phone': {
             'xpath': (
                 text(cls('telephone')),
+                img(cls('telephone')),
             ),
             'processors': ['first', 'ganji.phone'],
+            'format': True,
         },
         'contact': {
             'xpath': (
                 _has(u'联系人'),
             ),
             'processors': ['first', 'ganji.contact'],
+            'before': u'（',
         },
         'company_name': {
             'xpath': (
@@ -135,6 +142,7 @@ item_rule = {
                 text(cls('font-c-type', '/p')),
             ),
             'processors': ['join', 'souche.strip_and_join'],
+            'before': u'联系我时，',
         },
         'imgurls': {
             'xpath': (
@@ -172,10 +180,10 @@ item_rule = {
                 _has(u'使用性质'),
             ),
         },
-        'condition_level': {
-            'xpath':(
-            ),
-        },
+        # 'condition_level': {
+        #     'xpath':(
+        #     ),
+        # },
     },
 }
 
@@ -191,7 +199,6 @@ parse_rule = {
             url(has_cls('listtab', '/')),
             '//*[@class="next"]/@href',
         ),
-        #'format': 'http://www.ganji.com{0}',
         'format': True,
         "step": 'parse',
         # 'incr_pageno': 3,
@@ -203,16 +210,15 @@ rule = {
     'name': u'赶集二手车',
     'domain': 'ganji.com',
     'base_url': 'http://www.ganji.com',
-    'spider': {
-        'domain': 'ganji.com',
-        'download_delay': 2.5,
-    },
+    'per_page': 100,
+    'pages': 40,
+    # 'update': True,
     'start_urls': [
         'http://www.ganji.com/ershouche/',
-        # 'http://www.ganji.com/ershouche/o10/',
+        # 'http://www.ganji.com/ershouche/o10/', # p=10
         #'http://su.ganji.com/ershouche/1466078402x.htm', # 无新车价
         #'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
-        #'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人
+        # 'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人
         #'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
     ],
 
@@ -224,4 +230,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

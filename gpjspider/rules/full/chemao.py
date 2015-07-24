@@ -223,8 +223,6 @@ list_rule = {
         "format": True,
         'contains': '/show-id',
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
@@ -239,7 +237,13 @@ rule = {
     'name': u'车猫',
     'domain': 'chemao.com.cn',
     'start_urls': [
-        'http://www.chemao.com.cn/market-condition-_XN6-BeggGcgdmcHLRh4_7j_IpkRh9RwR6I61UZlyIE..html',
+        # 'http://www.chemao.com.cn/market-condition-QLJIXTnPB9lZ6cCEX9C4WtZZlgytXtsdRywDW96LPeC8i9PShxdo0qNdI0GodJdKzeK-cZlXn4tCesaXbhGiYg...html',
+        # 'http://www.chemao.com.cn/market-condition-UWVvSj7RiYGjvVwyjPLw8cnAMWlKmLNcHabhqnZUgKSkwAvgp9TvjzQE-5xIVlHmugSstOdlIfsjWeDh0IclLTB6cEAJ0bcBbT9ofI6UKwZ3b1nrl5ZmkRG6XmrKkpar.html',
+        'http://www.chemao.com.cn/market-condition-O7zqLQozGV6YL3ZXhS7dyKFumnCgwobXJLBOOoHphvwRO2O4pp6JwF-a5PrAxrVdiBZa1SHUXJajKgvZXA2QMTDOM3GlyH1vuq6YFzGaDI86mGPxbtYkeAlYAjotaEiQ.html',
+        'http://www.chemao.com.cn/market-condition-O7zqLQozGV6YL3ZXhS7dyKFumnCgwobXJLBOOoHphvxRpm0fT9WqGkCOXIGXrrpNK7-6M1R3fQu7XXH1Mav67TDOM3GlyH1vuq6YFzGaDI86mGPxbtYkeAlYAjotaEiQ.html',
+        # 'http://www.chemao.com.cn/market-condition-QLJIXTnPB9lZ6cCEX9C4WtZZlgytXtsdRywDW96LPeC8i9PShxdo0qNdI0GodJdKzeK-cZlXn4tCesaXbhGiYg..-page-46.html',
+        # 'http://www.chemao.com.cn/market-condition-UWVvSj7RiYGjvVwyjPLw8cnAMWlKmLNcHabhqnZUgKSkwAvgp9TvjzQE-5xIVlHmugSstOdlIfsjWeDh0IclLTB6cEAJ0bcBbT9ofI6UKwZ3b1nrl5ZmkRG6XmrKkpar-page-46.html',
+        # 'http://www.chemao.com.cn/market-condition-_XN6-BeggGcgdmcHLRh4_7j_IpkRh9RwR6I61UZlyIE..html',
         #'http://www.chemao.com.cn/market.html', # 默认会取请求所在城市的数据
         # 'http://www.chemao.com.cn/show-id-1153094.html'  # 认证车
         # 'http://www.chemao.com.cn/show-id-1138467.html'  # 非认证车
@@ -247,6 +251,9 @@ rule = {
         #'http://www.chemao.com.cn/show-id-1158143.html'
     ],
     'base_url': 'http://www.chemao.com.cn',
+    'per_page': 21,
+    'pages': 100,
+
     'parse': list_rule,
 
     'parse_detail': {

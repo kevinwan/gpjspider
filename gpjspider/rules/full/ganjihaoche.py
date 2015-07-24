@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from gpjspider.utils.constants import SOURCE_TYPE_SELLER
+# from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from .utils import *
 
 item_rule = {
@@ -7,10 +7,12 @@ item_rule = {
     "fields": {
         'title': {
             'xpath': (
-                #'//h1[@class="dt-titletype"]/text()',
                 text(cls('dt-titletype')),
             ),
             'required': True,
+        },
+        'dmodel': {
+            'default': '%(title)s',
         },
         'meta': {
             'xpath': (
@@ -19,81 +21,73 @@ item_rule = {
         },
         'year': {
             'xpath': (
-                #'//li[@class="one"]/b/text()',
                 text(cls('one', '/b')),
             ),
         },
         'month': {
             'xpath': (
-                #'//li[@class="one"]/b/text()',
                 text(cls('one', '/b')),
             ),
-            'default': '%(year)s',
         },
         'mile': {
             'xpath': (
-                # u'//li[contains(text(), "里程")]/b/text()',
                 has(u'里程', '/b'),
             ),
         },
         'volume': {
             'xpath': (
-                # u'//li[contains(text(), "排量")]/b/text()',
                 has(u'排量', '/b'),
             ),
+            'default': '%(title)s',
         },
         'control': {
             'xpath': (
-                # u'//li[contains(text(), "变速箱")]/b/text()',
                 has(u'变速箱', '/b'),
             ),
         },
         'price': {
             'xpath': (
-                #'//b[@class="f30 numtype"]/text()',
                 text(cls('f30 numtype')),
             ),
         },
         #  加上 price之后才是新车价
         'price_bn': {
             'xpath': (
-                '//div[@class="pricebox"]/span[@class="f14"]/i/text()',
+                '//div[@class="pricebox"]/span[@class="f14"]/text()',
+                # '//div[@class="pricebox"]/span[@class="f14"]/i/text()',
             ),
             'processors': ['first', 'ganjihaoche.price_bn'],
+            'processors': ['concat'],
         },
         'phone': {
             'xpath': (
-                #'//b[@class="teltype"]/text()',
                 text(cls('teltype')),
             ),
         },
         'brand_slug': {
             'xpath': (
-                # u'//span[contains(text(), "检测车型")]/text()',
                 has(u'检测车型'),
             ),
             'processors': ['first', 'ganjihaoche.brand_slug'],
+            'processors': ['first', 'after_colon'],
         },
         'model_slug': {
             'xpath': (
-                # u'//span[contains(text(), "检测车型")]/text()',
                 has(u'检测车型'),
             ),
             'processors': ['first', 'ganjihaoche.model_slug'],
+            'processors': ['first', 'after_colon'],
         },
         'city': {
             'xpath': (
-                #'//a[@class="choose-city"]/span/text()',
                 text(cls('choose-city', '/span')),
             ),
         },
-        #'city_slug': {
-            #'xpath': (
-                #'//a[@class="toindex"]/@href',
-                # attr(cls('toindex'), 'href'),
-            #),
-            #'processors': ['first', 'ganjihaoche.city_slug'],
-        # },
+        'contact': {  # 联系人
+            'xpath': (
+                after_has(u'车主', 'text()'),
+            ),
+        },
         'region': {
             'xpath': (
                 text(id_('base', '/ul/li[1]')),
@@ -102,16 +96,14 @@ item_rule = {
         },
         'description': {
             'xpath': (
-                #'//p[@class="f-type03"]/text()',
                 text(cls('f-type03')),
             ),
         },
         'imgurls': {
             'xpath': (
-                #'//div[@class="dt-pictype"]/img/@data-original',
                 attr(cls('dt-pictype', '/img'), 'data-original'),
             ),
-            'processors': ['join', 'strip'],
+            'processors': ['join'],
         },
         'condition_detail': {
             'xpath': [
@@ -124,19 +116,16 @@ item_rule = {
         },
         'mandatory_insurance': {
             'xpath': (
-                #'//li[@class="baoxian"]/text()',
                 text(cls('baoxian')),
             ),
         },
         'examine_insurance': {
             'xpath': (
-                #'//li[@class="nianjian"]/text()',
                 text(cls('nianjian')),
             ),
         },
         'transfer_owner': {
             'xpath': (
-                #'//li[@class="guohu"]/text()',
                 text(cls('guohu')),
             ),
             'default': 0,
@@ -153,7 +142,8 @@ item_rule = {
             'default': '%(quality_service)s',
         },
         'source_type': {
-            'default': SOURCE_TYPE_SELLER,
+            # 'default': SOURCE_TYPE_SELLER,
+            'default': SOURCE_TYPE_GONGPINGJIA,
         },
     },
 }
@@ -163,16 +153,14 @@ parse_rule = {
         "xpath": (
             url(has_cls('list-infoBox')),
         ),
-        "format": "http://haoche.ganji.com{0}",
+        "format": True,
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar',
     },
     "next_page_url": {
         "xpath": (
             '//a[@class="next"]/@href',
         ),
-        "format": "http://haoche.ganji.com{0}",
+        "format": True,
         "step": 'parse',
         # 'incr_pageno': 10,
     },
@@ -181,13 +169,17 @@ parse_rule = {
 rule = {
     'name': u'赶集好车',
     'domain': 'haoche.ganji.com',
+    'base_url': 'http://haoche.ganji.com',
+    'per_page': 20,
+    'pages': 600,
+    # 'update': True,
     'start_urls': [
         'http://haoche.ganji.com/www/buy/',
         # 'http://haoche.ganji.com/cn/buy/o2/',
         # 'http://haoche.ganji.com/cc/1713365366x.htm',
+        # 'http://haoche.ganji.com/nj/1512163128x.htm',
+        # 'http://haoche.ganji.com/bj/1514507784x.htm',
     ],
-    'per_page': 20,
-    'pages': 600,
 
     'parse': parse_rule,
 
@@ -195,4 +187,6 @@ rule = {
         "item": item_rule,
     },
 }
+
+fmt_rule_urls(rule)
 # rule['parse'] = rule['parse_detail']

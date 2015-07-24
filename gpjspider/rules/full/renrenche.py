@@ -42,27 +42,27 @@ item_rule = {
         },
         'color': {
             'xpath': (
-                # u'//*[contains(text(), "\u989c\u8272")]/following-sibling::*/text()',
                 after_has(u'颜色'),
             ),
         },
         'control': {
             'xpath': (
-                # u'//*[contains(text(), "\u53d8\u901f\u7bb1")]/following-sibling::*/text()',
                 after_has(u'变速箱'),
             ),
             'processors': ['last']
         },
         'price': {
             'xpath': (
-                # '//*[@id="car_price"]/@value',
+                # '//*[@id="basic"]/div[2]/div/div/div[1]/p[2]',
+                text(cls('box-price')),
+                hidden('car_price'),
                 attr(id_('car_price'), 'value'),
             ),
         },
         'price_bn': {
             'xpath': (
+                '//*[@id="basic"]/div[2]/div/div/div[1]/ul[1]//text()',
                 '//*[@id="basic"]/div[2]/div/div/div[1]/ul[1]/li/text()',
-                # '//*[@id="newCarPriceG"]/@value',
                 attr(id_('newCarPriceG'), 'value'),
             ),
         },
@@ -100,34 +100,30 @@ item_rule = {
         },
         'invoice': {
             'xpath': (
-                # u'//*[contains(text(), "\u8d2d\u8f66\u53d1\u7968")]/following-sibling::*/text()',
                 after_has(u'购车发票'),
             ),
         },
         'maintenance_record': {
             'xpath': (
-                # u'//*[contains(text(), "\u662f\u54264S\u5e97\u4fdd\u517b")]/following-sibling::*/text()',
                 after_has(u'是否4S店保养'),
             ),
-            # 'processors': ['has_maintenance_record']
         },
         'is_certifield_car': {
             'default': True,
         },
         'description': {
             'xpath': (
-                # '//div[@class="main"]/div/p/text()',
                 text(cls('main', '/div/p')),
             ),
         },
         'mandatory_insurance': {
             'xpath': (
-                # u'//*[contains(text(), "\u4ea4\u5f3a\u9669")]/following-sibling::*/text()',
                 after_has(u'交强险'),
             ),
         },
         'business_insurance': {
             'xpath': (
+                after_has(u'商业险'),
                 after_has(u'商业险到期时间'),
                 #u'//li/span[contains(text(), "商业险到期时间")]/../text()',
             ),
@@ -149,18 +145,14 @@ item_rule = {
         },
         'business_insurance': {
             'xpath': (
-                # u'//*[contains(text(), "\u5546\u4e1a\u9669")]/following-sibling::*/text()',
                 after_has(u'商业险'),
             ),
         },
         'source_type': {
             'default': 2,
         },
-        'car_application': {
-        },
         'city': {
             'xpath': (
-                # u'//*[contains(text(), "\u5f52\u5c5e\u5730")]/following-sibling::*/text()',
                 after_has(u'归属地'),
             ),
         },
@@ -183,20 +175,18 @@ item_rule = {
         },
         'examine_insurance': {
             'xpath': (
-                # u'//*[contains(text(), "\u5e74\u68c0")]/following-sibling::*/text()',
                 after_has(u'年检'),
             ),
         },
         'transfer_owner': {
             'xpath': (
-                # u'//*[contains(text(), "\u8fc7\u6237\u6b21\u6570")]/following-sibling::*/text()',
                 after_has(u'过户次数'),
             ),
         },
         # 'condition_detail': {
         #     'xpath': (
         #         # '//span[@class="desc"]/text()',
-        #         text(cls('desc')),
+        #         text(cls('report-result', '/')),
         #     ),
         # },
         'time': {

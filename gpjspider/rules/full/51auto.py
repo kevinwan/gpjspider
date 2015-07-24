@@ -57,6 +57,7 @@ item_rule = {
                 '//title/text()',
             ),
             'processors': ['first', '51auto.color'],
+            'processors': ['first', 'ygche.color'],
         },
         'control': {
             'xpath': (

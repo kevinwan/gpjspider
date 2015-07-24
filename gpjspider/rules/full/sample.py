@@ -263,9 +263,9 @@ rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
-    # 'update': True,
     'per_page': 20,
     'pages': 100,
+    # 'update': True,
 
     'start_urls': [
         'http://quanguo.58.com/ershouche/',
