@@ -6,6 +6,27 @@ from gpjspider.utils.constants import *
 def parse_meta(key, with_key=False):
     return with_key and u'(%s[^：]{,4}：[^;\s]+)' % key or u'%s[^：]{,4}：([^;\s]+)' % key
 
+def get_url_and_souce_type(response, spider):
+    """
+        主要是为了提取列表页的链接和对应的 source_type 信息，返回两部分的信息，
+        一个是链接列表，一个是链接列表和对应的额外信息
+        这里采用的方法是，一个 xpath 规则提取出来链接和是否认证车的信息，
+        它们的关系是，如果一个链接对应的有认证车信息，那么在列表顺序上，就是认证信息紧跟着
+        链接，如果没有，那么就是没有认证信息
+    """
+    xpath_rule = '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()'
+    _urls = response.xpath(xpath_rule).extract()
+    urls = set()
+    meta_info = {}
+    for idx, url in enumerate(_urls):
+        if 'html' in url:
+            urls.add(url)
+        if u'认证' in url:
+            meta_info[_urls[idx-1]] = dict(_source_type=url)
+
+    spider.log(u'urls is: {0} and meta_info is: {1}'.format(urls, meta_info))
+    return urls, meta_info
+
 
 item_rule = {
     'class': 'UsedCarItem',
@@ -33,15 +54,12 @@ item_rule = {
             'regex': u'发布时间：(.*)',
         },
         'is_certifield_car': {
-            'default': '%(source_type)s',
-            'default_fail': False,
-            'processors': ['first', 'sohu.is_certifield_car'],
+            'default': '{item}',
+            'processors': ['sohu.is_certifield_car'],
         },
         'source_type': {
-            'default': '%(source_type)s',
-            'default_fail1': '%(company_name)s',
-            'default_fail': SOURCE_TYPE_GONGPINGJIA,
-            'processors': ['first', 'sohu.source_type'],
+            'default': '{item}',
+            'processors': ['sohu.source_type'],
         },
         'city': {
             'default': '%(title)s',
@@ -202,14 +220,13 @@ item_rule = {
 
 parse_rule = {
     'url': {
-        #'xpath': (
-            #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href',
-            ##url('*[@class="item"]//div[@class="pic"]'),
-            ## url('*[@class="all-source"]//div[@class="pic"]'),
+        'xpath': {
+            #'url': '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
+            'function': get_url_and_souce_type,
+        },
+        #'xpath_with_info': (
+            #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
         #),
-        'xpath_with_info': (
-            '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
-        ),
         'format': True,
         'step': 'parse_detail',
         # 'match': '/buycar/carinfo',
@@ -244,10 +261,10 @@ rule = {
     'pages': 200,
 
     'start_urls': [
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1548176.shtml',
         # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',

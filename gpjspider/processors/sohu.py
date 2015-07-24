@@ -6,16 +6,23 @@ def transfer_owner(value):
     return u'\u662f' in value and 1 or _transfer_owner(value)
 
 def source_type(value):
-    if value == SOURCE_TYPE_GONGPINGJIA:
-        return SOURCE_TYPE_GONGPINGJIA
-    if u'品牌认证' in value:
-        return SOURCE_TYPE_MANUFACTURER
-    elif u'尊沃' in value:
-        return SOURCE_TYPE_MANUFACTURER
-    elif u'认证' in value:
-        return SOURCE_TYPE_SELLER
-    else:
-        return SOURCE_TYPE_ODEALER
+    if isinstance(value, dict):
+        item = value
+        st = item.get('_source_type', None)
+        company = item.get('company_name', None)
+        if st:
+            if u'品牌认证' in st:
+                return SOURCE_TYPE_MANUFACTURER
+            elif u'尊沃' in st:
+                return SOURCE_TYPE_MANUFACTURER
+            elif u'认证' in st:
+                return SOURCE_TYPE_SELLER
+            else:
+                return SOURCE_TYPE_ODEALER
+        elif company:
+            return SOURCE_TYPE_ODEALER
+        else:
+            return SOURCE_TYPE_GONGPINGJIA
 
 def brand_slug(value):
     if value.count(u'二手') == 5:
@@ -38,12 +45,18 @@ def status(value):
         return 'Q'
 
 def is_certifield_car(value):
-    if not value:
-        return False
-    if u'认证' in value:
-        return True
-    else:
-        return False
+    if isinstance(value, dict):
+        item = value
+        st = item.get('_source_type', None)
+        if st:
+            if u'认证' in st:
+                return True
+            elif st == SOURCE_TYPE_MANUFACTURER:
+                return True
+            else:
+                return False
+        else:
+            return False
 
 if __name__ == '__main__':
     import doctest
