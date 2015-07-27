@@ -95,26 +95,46 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                query = "select id,url from open_product_source where status='u' and domain='%s' limit 50;"
-                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
-                update = 'update open_product_source set status="n" where id in (%s) and status="u";'
-                while True:
-                    q = self.get_cursor().execute(query % self.domain)
-                    res = q.fetchall()
-                    ids = []
-                    # for c in q.yield_per(psize):
-                    for c in res:
-                        start_url = c.url
-                        self.detail_urls.add(start_url)
-                        self.log(u'start request {0}'.format(start_url), log.INFO)
-                        ids.append(str(c.id))
-                        yield Request(start_url, callback=self.parse_detail, dont_filter=True)
-                    if ids:
-                        self.get_cursor().execute(update % ','.join(ids))
+                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 50;"
+                # # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
+                # update = 'update open_product_source set status="n" where id in (%s) and status="u";'
+                # while True:
+                #     q = self.get_cursor().execute(query % self.domain)
+                #     res = q.fetchall()
+                #     ids = []
+                #     # for c in q.yield_per(psize):
+                #     for c in res:
+                #         start_url = c.url
+                #         self.detail_urls.add(start_url)
+                #         self.log(u'start request {0}'.format(start_url), log.INFO)
+                #         ids.append(str(c.id))
+                #         yield Request(start_url, callback=self.parse_detail, dont_filter=True)
+                #     if ids:
+                #         self.get_cursor().execute(update % ','.join(ids))
 
-                    # if res.count() < 50:
-                    if len(ids) < 50:
-                        break
+                #     # if res.count() < 50:
+                #     if len(ids) < 50:
+                #         break
+                psize = 50
+                cursor = self.get_cursor()
+                update = 'update open_product_source set status="q" where id in (%s) and status="u";'
+                # query = self.Session().query(UsedCar).filter_by(status='u', domain=self.domain)
+                query = self.Session().query(UsedCar.id, UsedCar.url).filter_by(#status='u',
+                    domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
+                # print query.count()
+                ids = []
+                index = 0
+                for item in query.yield_per(psize):
+                    cid = item.id
+                    ids.append(str(cid))
+                    yield Request(item.url, meta=dict(id=cid), callback=self.parse_detail, dont_filter=True)
+                    index += 1
+                    if index % psize == 0:
+                        if ids:
+                            cursor.execute(update % ','.join(ids))
+                            ids = []
+                if ids:
+                    cursor.execute(update % ','.join(ids))
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
             start_urls = start_url_function(
@@ -512,9 +532,11 @@ class GPJBaseSpider(scrapy.Spider):
         for field in fields:
             if field in response.meta:
                 item[field] = response.meta[field]
+        meta_keys = set([])
         for key in response.meta.keys():
             if key.startswith('_'):
                 item[key] = response.meta[key]
+                meta_keys.add(key)
         item['domain'] = self.domain
         for field_name in item_rule.get('keys', self.item_keys):
             process_step = ''
@@ -527,62 +549,56 @@ class GPJBaseSpider(scrapy.Spider):
             if 'xpath' in field:
                 have_rule = True
                 rules = field['xpath']
-                process_step = 'xpath'
                 if isinstance(rules, tuple):
                     values = self.get_xpath(rules, response)
                 else:
                     values = []
                     for rule in rules:
                         values.extend(self.get_xpath([rule], response))
-                if not values and not print_error:
-                    self.rule_log_print(field_name, response.url, process_step, field)
+                if not values and not print_error and field['xpath']:
+                    process_step = 'xpath'
                     print_error = True
             if not values:
                 if 'json' in field:
                     have_rule = True
                     values = self.get_json(response.body, field['json'])
-                    process_step = 'json'
-                    if not values and not print_error:
-                        self.rule_log_print(field_name, response.url, process_step, field)
+                    if not values and not print_error and field['json']:
+                        process_step = 'json'
                         print_error = True
                 if not values:
                     if 'css' in field:
                         have_rule = True
                         values = self.get_xpath(field['css'], response)
-                        process_step = 'css'
-                        if not values and not print_error:
-                            self.rule_log_print(field_name, response.url, process_step, field)
+                        if not values and not print_error and field['css']:
+                            process_step = 'css'
                             print_error = True
                     if not values:
                         if 're' in field:
                             have_rule = True
                             values = self.extract_str(field['re'], response)
-                            process_step = 're'
-                            if not values and not print_error:
-                                self.rule_log_print(field_name, response.url, process_step, field)
+                            if not values and not print_error and field['re']:
+                                process_step = 're'
                                 print_error = True
                         if not values:
                             if 'function' in field:
                                 have_rule = True
                                 func_name = field['function']['name']
-                                process_step = 'function'
                                 func = import_rule_function(func_name)
                                 if not func:
                                     f = field['function']
-                                    m = u'{0} rule {1} error: {2}'.format(field_name, process_step, f)
+                                    m = u'{0} rule {1} error: {2}'.format(field_name, 'function', f)
                                     self.log(m, log.ERROR)
                                     continue
                                 args = field['function'].get('args', tuple())
                                 kwargs = field['function'].get('kwargs', {})
                                 values = func(response, self, *args, **kwargs)
-                                if not values and not print_error:
-                                    self.rule_log_print(field_name, response.url, process_step, field)
+                                if not values and not print_error and field['function']:
+                                    process_step = 'function'
                                     print_error = True
                             if not values:
                                 if 'default' in field:
                                     have_rule = True
                                     value = field['default']
-                                    process_step = 'default'
                                     if value == '{item}':
                                         values = item
                                     elif isinstance(value, basestring) and '%(' in value:
@@ -591,8 +607,6 @@ class GPJBaseSpider(scrapy.Spider):
                                         except Exception as e:
                                             if 'default_fail' in field:
                                                 value = field['default_fail']
-                                        if not value:
-                                            print_error = True
                                         values = value
                                     elif isinstance(value, (list, tuple)):
                                         values = []
@@ -603,21 +617,22 @@ class GPJBaseSpider(scrapy.Spider):
                                                 except Exception as e:
                                                     if 'default_fail' in field:
                                                         v = field['default_fail']
-                                                if not v:
-                                                    print_error = True
                                             values.append(v)
                                     else:
                                         values = value
 
                                     item[field_name] = values
-                                    if not values and not print_error:
+                                else:
+                                    if not print_error:
+                                        if not have_rule:
+                                            m = u'field {0} missing rule'.format(field_name)
+                                            self.log(m, log.WARNING)
+                                        m = u'field {0} is NULL: {1}'.format(
+                                            field_name, response.url)
+                                        self.log(m, log.WARNING)
+                                    else:
                                         self.rule_log_print(field_name, response.url, process_step, field)
-                                        print_error = True
-                                        m = u'{0}\'s rule failed'.format(field_name)
-                                        self.log(m, log.ERROR)
-                                if not have_rule:
-                                    m = u'{0}\'s rule not exist'.format(field_name)
-                                    self.log(m)
+
             if values:
                 print_error = False
                 item[field_name] = values
@@ -654,7 +669,6 @@ class GPJBaseSpider(scrapy.Spider):
                                         break
                                 except Exception as e:
                                     value = field.get('regex_fail', value)
-                                    # flag = True
                                     break
                             if not flag:
                                 value = field.get('regex_not')
@@ -671,7 +685,7 @@ class GPJBaseSpider(scrapy.Spider):
                         value = after(value, field['after'])
                         process_step = 'after'
                         if not value and not print_error:
-                            m = u'{0} after "{1}" failed for "{2}"'.format(
+                            m = u'{0} not found "{1}" in "{2}"'.format(
                                 field_name,
                                 field[process_step],
                                 value_old
@@ -681,7 +695,7 @@ class GPJBaseSpider(scrapy.Spider):
                         value = before(value, field['before'])
                         process_step = 'before'
                         if not value and not print_error:
-                            m = u'{0} before "{1}" failed for "{2}"'.format(
+                            m = u'{0} not found "{1}" in "{2}"'.format(
                                 field_name,
                                 field[process_step],
                                 value_old
@@ -700,8 +714,8 @@ class GPJBaseSpider(scrapy.Spider):
                 m = u'{0} is required: {1}'.format(
                     field_name, response.url)
                 raise DropItem(m)
-        for key in item.keys():
-            if key.startswith('_'):
+        for key in meta_keys:
+            if key in item:
                 item.pop(key)
         return item_cls(item)
 
