@@ -178,6 +178,7 @@ item_rule = {
             'xpath': (
                 after_has(u'门店名称'),
             ),
+            'processors': ['first', 'sohu.company_name'],
         },
         'company_url': {
             'xpath': (
@@ -200,7 +201,7 @@ item_rule = {
             'xpath': (
                 after_has(u'门店地址'),
             ),
-            'processors': ['last'],
+            'processors': ['sohu.region'],
         },
         'status': {
             'xpath': (
@@ -280,6 +281,8 @@ rule = {
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1503731.shtml', # 5
         # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1611825.shtml#品牌认证',
         #'http://2sc.sohu.com/nmg-hhht/buycar/carinfo_sohuperson_1610175.shtml', # 个人
+        #'http://2sc.sohu.com/gd-foshan/buycar/carinfo_sohuperson_1620313.shtml',
+        #'http://2sc.sohu.com/xj-wlmq/buycar/carinfo_sohuperson_1625324.shtml',
     ],
 
     'parse': parse_rule,

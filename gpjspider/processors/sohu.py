@@ -7,9 +7,8 @@ def transfer_owner(value):
 
 def source_type(value):
     if isinstance(value, dict):
-        item = value
-        st = item.get('_source_type', None)
-        company = item.get('company_name', None)
+        st = value.get('_source_type', None)
+        company = value.get('company_name', None)
         if st:
             if u'品牌认证' in st:
                 return SOURCE_TYPE_MANUFACTURER
@@ -57,6 +56,17 @@ def is_certifield_car(value):
                 return False
         else:
             return False
+
+def company_name(value):
+    if u'联系电话' in value:
+        return ''
+    return value
+
+def region(value):
+    last = value[-1].strip()
+    if u'--' in last:
+        return ''
+    return last
 
 if __name__ == '__main__':
     import doctest
