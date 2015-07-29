@@ -129,6 +129,7 @@ class Category(Base):
     logo_img = Column(String(200), nullable=True)
     thumbnail = Column(String(200), nullable=True, index=True, doc=u'缩略图')
     has_detailmodel = Column(Integer, nullable=True, default=0)
+    score = Column(Integer, nullable=True, default=0)
     starting_price = Column(
         DECIMAL(precision=10, scale=1), nullable=True, default=0, doc=u'起步价格')
     classified_slug = Column(String(128), nullable=True)

@@ -88,3 +88,15 @@ class UsedCarItem(GpjspiderItem):
 class CarSourceItem(GpjspiderItem):
     price = Field()
     status = Field()
+
+
+
+
+class BaiduHotItem(GpjspiderItem):
+    """
+    百度指数模型
+    """
+    keyword = Field()
+    is_brand = Field()
+    score = Field()
+    the_date = Field()

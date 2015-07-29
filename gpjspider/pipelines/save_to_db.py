@@ -17,6 +17,8 @@ from scrapy.contrib.exporter import BaseItemExporter
 from gpjspider.models import *
 from gpjspider.items import UsedCarItem, GpjspiderItem
 from gpjspider.models.usedcars import UsedCar
+from gpjspider.models.BaiduHot import BaiduHot
+
 from gpjspider.utils import get_mysql_connect
 
 __ALL__ = (
