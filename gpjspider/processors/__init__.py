@@ -172,7 +172,7 @@ u'CR-V'
     value = value.strip('> ').lstrip(u'二手')
     if ' ' in value:
         a = reg_blank_split.split(value)
-        return ' '.join(a[1:])
+        return a[1]
     elif '-' in value:
         a = value.split('-')
         value = '-'.join(a[1:])
@@ -269,8 +269,12 @@ Decimal('31.80')
 Decimal('8.98')
 >>> price_bn(u'(裸车价44.95万元+购置税3.84万元)')
 Decimal('44.95')
+>>> price_bn(u'25.48\u4e07')
+Decimal('25.48')
     '''
     # print value
+    if u'新车' not in value:
+        value = u'新车' + value
     v = extract(value, ur'[新车指导价]{2,5}\D*[^\d]{,2}(\d*\.?\d{1,2})万?', decimal)
     if isinstance(v, basestring) and value and not u'万' in value:
         v = extract(value, ur'[新车指导价]{2,5}\D*[^\d]{,2}(\d*\.?\d{1,2})', decimal)
@@ -694,6 +698,7 @@ def phone(value):
         value = re.sub('\(.+\)', ' ', value).strip()
     else:
         value = None
+    # value = re.sub(' ', '', value)
     return value
 
 

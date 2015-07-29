@@ -36,6 +36,8 @@ def source_type(values):
     if isinstance(values, int):
         return SOURCE_TYPE_GONGPINGJIA
     for val in values:
+        if val == '1':
+            return SOURCE_TYPE_MANUFACTURER
         if u'厂商认证' in val:
             return SOURCE_TYPE_MANUFACTURER  # 厂商认证
         elif val.startswith('icon_'):
