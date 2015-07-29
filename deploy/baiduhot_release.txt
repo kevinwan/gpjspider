@@ -1,0 +1,45 @@
+百度指数抓取功能上线事项记录
+===============================
+
+运作原理
+----------
+	采用crontab调度baiduhot这个spider每天定期抓取百度的指数数据，并在抓取完成后更新到我们的 open_category 中的 score 字段中。由于百度传过来的是关键词不一定是正确的品牌和型号，需要进行人工匹配。所以需要在pricebook进行匹配操作。
+
+SQL
+---------------------
+	-- 创建抓取记录表
+	CREATE TABLE `baidu_hot_source` (
+	  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+	  `keyword` varchar(45) NOT NULL,
+	  `score` int(10) unsigned NOT NULL DEFAULT '0',
+	  `domain` varchar(255) NOT NULL,
+	  `url` varchar(255) NOT NULL,
+	  `the_date` date NOT NULL,
+	  `is_brand` int(11) unsigned NOT NULL DEFAULT '0',
+	  PRIMARY KEY (`id`),
+	  UNIQUE KEY `keyword_UNIQUE` (`keyword`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+	-- 分类模型中增加 score 字段代表 指数
+
+	 ALTER TABLE `pingjia`.`open_category`
+	        ADD COLUMN `score` INT(11) UNSIGNED NOT NULL DEFAULT 0 ;
+
+	 -- 增加相关域名记录
+	INSERT INTO `pingjia`.`open_domainlist` (`name`, `domain`, `type`, `has_api`, `has_crawler`) VALUES ('百度指数', 'top.baidu.com', 'S', '0', '0');
+
+
+Crontab
+-----------------------
+
+	每天运行2次
+		scrapy runspider gpjspider/spiders/baiduhot.py  
+	运行第一次的时候会抓取并同步数据
+	运行第二次的时候只会同步数据,可以在两次抓取的间隙对数据的匹配进行处理
+
+Manage
+------------------
+	网站选择请选择“百度指数”，如果没有出现，这需要清理后台缓存
+
+	http://pricebook.cn/user/brand_match/ 基本已经匹配，清找到未匹配的进行匹配
+	http://pricebook.cn/user/model_match/ 能匹配的比较少，而且因为没有办法确认品牌，所以品牌全部是未知，后面部分请使用搜索功能搜索添加。
