@@ -145,8 +145,8 @@ item_rule = {
                 text(id_('carInfo_price_lxr')),
                 after_has(u'联系', 'span[1]//text()'),
             ),
-            # 'processors': ['join'],
-            'processors': ['concat'],
+            'processors': ['join', '58.phone'],
+            # 'processors': ['concat'],
             'after': u'：',
         },
         'company_name': {
@@ -249,7 +249,7 @@ item_rule = {
                 has(u'厂商认证'),
                 exists(id_('carinfo_rzcl', '//' + has_cls('color_f47306'))),
                 # exists(id_('carinfo_rzcl', cls('font22 color_f47306 inline_block font_weight','','/'))),
-                #exists(id_('changshangrenzheng')),
+                # exists(id_('changshangrenzheng')),
                 # 优质商家
                 attr(has_id('icon_'), 'id'),
                 # id_('icon_chengxincheshang'),
@@ -359,6 +359,12 @@ rule = {
         # 'http://mm.58.com/ershouche/22724556227465x.shtml', # control dmodel
         # 'http://su.58.com/ershouche/22124465115529x.shtml', # no month
         # 'http://cq.58.com/ershouche/22738191832356x.shtml', # no month
+        # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
+        # 'http://yk.58.com/ershouche/22560359108383x.shtml',
+        # 'http://zz.58.com/ershouche/22724266776481x.shtml',
+        # 'http://bj.58.com/ershouche/22646499851428x.shtml',
+        # 'http://sjz.58.com/ershouche/22779478418210x.shtml',
+        # 'http://zz.58.com/ershouche/22679581563812x.shtml',
     ],
 
     'parse': parse_rule,
