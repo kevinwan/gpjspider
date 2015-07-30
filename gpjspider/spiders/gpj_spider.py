@@ -42,7 +42,8 @@ def create_spiders():
     here = os.path.dirname(__file__)
     file_list = os.listdir('%s/rules/full' % os.path.dirname(here))
     rules = ' '.join(file_list)
-    rule_list = re.findall('([a-z\d]+)\.pyc', rules)
+    # rule_list = re.findall('([a-z\d]+)\.pyc', rules)
+    rule_list = set(re.findall('([a-z\d]+)\.py', rules))
     # rule_list = list(set(re.findall('([a-z\d]+)\.pyc', rules)))
     # print rule_list
     for name in 'sample utils test'.split():

@@ -50,6 +50,7 @@ def join(values, token=' '):
     '''
     value = [strip(v) for v in values]
     if isinstance(value, (list, tuple)):
+        return token.join([v for v in value if v])
         return token.join(value)
     else:
         return value
@@ -60,6 +61,7 @@ def comma_join(values):
 
 
 def concat(values):
+    return join(values, '')
     value = [strip(v) for v in values]
     if isinstance(value, (list, tuple)):
         return ''.join(value)
@@ -165,7 +167,7 @@ u'test'
 u'test'
 >>> model_slug(u'二手test')
 u'test'
->>> model_slug(u' CR-V')
+>>> model_slug(u't CR-V')
 u'CR-V'
     '''
     # pdb.set_trace()
@@ -221,12 +223,9 @@ def strip_imgurls(urls_with_query):
     return ' '.join(new_urls)
 
 
-# def status(value):
-    # if value == '1':
-    # return True
-    # elif value == '0':
-    # return False
-    # return bool(value)
+def status(value):
+    return 'Q' if value in ('Q', '1') else 'Y'
+    # return 'Y' if value and value not in ('Q', '1') else 'Q'
 
 # def source_type(value):
 
@@ -290,7 +289,7 @@ Decimal('0.1')
 >>> mile(u'26.78        万公里')
 Decimal('26.78')
 >>> mile(u'7万公里')
-Decimal('7')
+Decimal('7.0')
 >>> mile(u'3000万公里')
 Decimal('0.3')
 >>> mile(u'55')
@@ -299,10 +298,13 @@ Decimal('0.0055')
 Decimal('0.06')
 >>> mile(u'600')
 Decimal('0.06')
->>> mile(u'三十二万公里')
-unsupported operand type(s) for /=: 'unicode' and 'int' 三十二万公里
 >>> mile(u'138,100公里')
 Decimal('13.81')
+>>> mile(u'6.8000万公里')
+Decimal('6.8')
+
+# >>> mile(u'三十二万公里')
+# unsupported operand type(s) for /=: 'str' and 'int' None
     '''
 
     # print v
@@ -310,10 +312,11 @@ Decimal('13.81')
     if isinstance(value, basestring):
         value = re.sub(',', '', value)
         if not u'万' in value:
-            v = extract(value, ur'(\d+|[\d\.]{3,})公里', decimal)
+            v = extract(value, ur'(\d+|[\d\.]{3,})公里', float)
             v /= 10000
         else:
-            v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', decimal)
+            v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', float)
+        v = str(v)
     else:
         v = value
     try:
@@ -659,7 +662,7 @@ def transfer_owner(value):
 
 
 def description(value):
-    return value.strip()
+    return value and value.strip() or value
 
 
 def has_maintenance_record(value):

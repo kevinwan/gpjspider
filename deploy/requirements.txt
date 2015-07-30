@@ -32,3 +32,5 @@ qiniu==7.0.3
 redis-py-cluster==0.2.0
 python-dateutil==1.5
 pytesseract==0.1.5
+ipdb
+scrapyd
