@@ -10,20 +10,23 @@ def parse_args():
     parser.add_argument("-s", "--site", default="58", help="要执行的网站名称，默认为 58")
     parser.add_argument("-d", "--debug", default=True, help="是否debug模式运行，True/False，默认是 True")
     parser.add_argument("-t", "--dtype", default="incr", help="网站抓取模式，incr/full，默认incr")
+    parser.add_argument("-u", "--update", default=False, help="是否更新，False/True，默认False")
 
     args = parser.parse_args()
     return args
 
-def main(name='test', type_='incr'):
+
+def main(name='test', type_='incr', update=False):
+    # import ipdb;ipdb.set_trace()
     if name == '.':
         return clean_domain()
     # elif name.endswith('.com'):
     #     clean_domain(name)
     else:
         try:
-            eval('run_%s_spider' % type_)(name)
+            eval('run_%s_spider' % type_)(name, update)
         except:
-            run_spider('%s.%s' % (type_, name))
+            run_spider('%s.%s' % (type_, name), update)
 
 if __name__ == '__main__':
     import sys
@@ -31,5 +34,5 @@ if __name__ == '__main__':
     args = parse_args()
     name = args.site
     type_ = args.dtype
-
-    main(name, type_)
+    update = args.update
+    main(name, type_, update)
