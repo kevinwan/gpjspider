@@ -1,9 +1,15 @@
-from raven import Client,DummyClient
+from raven import Client
 from gpjspider.tracker_setting import SENTRY_DSN,TRACKER_ENABLED
 _RAVEN = None
 _LOGGER_HOOKED=False
 
 __all__=['get_tracker', 'hook_logger']
+
+class DummyClient(Client):
+    "Sends messages into an empty void"
+    def send(self, **kwargs):
+        return None
+
 
 def get_tracker():
     global _RAVEN
