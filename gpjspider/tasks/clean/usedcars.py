@@ -17,7 +17,7 @@ from gpjspider.services.cars import get_gpj_detail_model
 from gpjspider.services.cars import get_average_price
 # from gpjspider.services.city import get_gongpingjia_city
 
-
+from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
@@ -69,14 +69,25 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         # 'c.cheyipai.com',
         'xin.com',
         'haoche.ganji.com',
-        '99haoche.com', 'ygche.com.cn',
-        'haoche51.com', 'renrenche.com',
-        'souche.com', 'youche.com',
-        '58.com', 'ganji.com', 'baixing.com',
+        '99haoche.com',
+        'ygche.com.cn',
+        'haoche51.com',
+        'renrenche.com',
+        'souche.com',
+        'youche.com',
+        '58.com',
+        'ganji.com',
+        'baixing.com',
         'taoche.com',
         '51auto.com',
-        '273.com', 'cn2che.com', 'used.xcar.com.cn', 'iautos.cn',
-        # 'hx2car.com', 'che168.com', 'cheshi.com', '2sc.sohu.com',
+        '273.com',
+        'cn2che.com',
+        'used.xcar.com.cn',
+        'iautos.cn',
+        # 'hx2car.com',
+        # 'che168.com',
+        # 'cheshi.com',
+        # '2sc.sohu.com',
     ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)
@@ -165,6 +176,14 @@ WORKER = 40
 # WORKER = 5
 # WORKER = 0
 
+# def inspect_reason(item, group, reason, detail=''):
+#     session = Session()
+#     from gpjspider.models.product import ReasonTrack
+#     from datetime import datetime
+#     track = ReasonTrack(item_id=item['id'], group=group, code=reason, detail=detail, created_at=datetime.now())
+#     session.add(track)
+#     session.commit()
+
 
 def clean(session, min_id, max_id, domains=None, status='Y'):
     # print min_id, max_id
@@ -206,11 +225,13 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
         # UsedCar.phone != None, UsedCar.model_slug != None, UsedCar.imgurls != None, UsedCar.control != None,
         UsedCar.year > 2007, UsedCar.mile < 30)
     pool_run(good_cars, clean_usedcar)
+
     # filter normal car_source
     # TODO: push all
     # log('filter normal car_source..')
     normal_cars = iq.filter_by(is_certifield_car=True).filter(
         UsedCar.year > 1970, UsedCar.mile < 200)
+
     pool_run(normal_cars, clean_normal_car)
 
     end_status = '_'
@@ -219,18 +240,20 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
         dict(status=end_status), synchronize_session=False)
     # push to sell_car
     # log('push to sell_car..')
-    trade_cars = bq.filter_by(source_type=4,
+    trade_cars = bq.filter_by(
+        source_type=4,
         checker_runtime=1
-        ).filter(
+    ).filter(
         UsedCar.domain.in_(domains),
         UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title']),
-        UsedCar.city.in_(
-            [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']),
+        UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']),
         or_(UsedCar.phone.like('1%'), UsedCar.phone.like('http://%')),
         UsedCar.year > 1970,
-        UsedCar.mile < 200)
+        UsedCar.mile < 200
+    )
     # ipdb.set_trace()
-    pool_run(trade_cars, clean_trade_car)
+    if trade_cars.count():
+        pool_run(trade_cars, clean_trade_car)
 
 
 def pool_run(query, meth, index=0, psize=10):
@@ -242,6 +265,7 @@ def pool_run(query, meth, index=0, psize=10):
     amount = (remain / psize) + 1
     global WORKER
     items = []
+    print query.count(), ' items to clean'
     for item in query.yield_per(psize):
         items.append(str(item.id))
         # cid = str(item.id)
@@ -252,12 +276,13 @@ def pool_run(query, meth, index=0, psize=10):
                     log(amount, '%s - %s' % (min(items), max(items)))
                 async_clean(meth, items)
             else:
+                print 'sync cleaning'
                 log(amount, '%s - %s' % (min(items), max(items)))
                 sync_clean(meth, items)
             amount -= 1
             items = []
         index += 1
-
+    print 'remains cleaning'
     if items:
         log(amount, '%s - %s' % (min(items), max(items)))
         if WORKER:
@@ -275,26 +300,61 @@ def push_trade_car(item, sid, session):
         session.commit()
         session.query(UsedCar).filter_by(id=sid).update(
             dict(checker_runtime_id=0, status='_t'), synchronize_session=False)
+        return True, 'ok'
     except IntegrityError:
         session.rollback()
+        return False, 'IntegrityError'
     except Exception as e:
         # raise
         print e, sid
+        return False, e.message
 
+
+class CleanException(Exception):
+    pass
 
 def clean_trade_car(items):
-    session = Session()
     for item in items:
+        session = Session()
+        print 'clean_trade_car', item['id']
+        detail = ''
+        ctx={}
+        for f in 'title,dmodel,model_slug,brand_slug'.split(','):
+            ctx['origin_%s' % f]=unicode(item.get(f, None))
         sid = str(item['id'])
-        # print sid
-        if not is_trade_car(item):
-            continue
-        match_bmd(item, session=session)
-        # ipdb.set_trace()
-        if not (item['brand_slug'] and item['model_slug']):
-            continue
-        push_trade_car(item, sid, session)
-    session.close()
+        try:
+            # ipdb.set_trace()
+            item_is_trade_car, codes = is_trade_car(item, True)
+            if not item_is_trade_car:
+                detail = ','.join(codes)
+                raise CleanException('is_not_trade_car')
+
+            match_bmd(item, session=session)
+            # ipdb.set_trace()
+            if not (item['brand_slug'] and item['model_slug']):
+                raise CleanException('empty_brand_or_model')
+
+            pushed,push_error = push_trade_car(item, sid, session)
+            if not pushed:
+                raise CleanException(push_error)
+        except CleanException as e:
+            # ipdb.set_trace()
+            code = e.message
+            for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug'.split(','):
+                ctx[f]=item.get(f, None)
+            get_tracker().captureException(exta=ctx)
+            # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
+
+            if 0:# 暂时使用sentry记录，不在保存在本地数据库
+                from gpjspider.models.product import ReasonTrack
+                from datetime import datetime
+                import json
+                ctx = json.dumps({k:unicode(v) for k,v in ctx.items()}, ensure_ascii=False)
+                track = ReasonTrack(item_id=item['id'], domain=item['domain'], code=code, detail=detail, ctx=ctx, created_at=datetime.now())
+                session.add(track)
+                session.commit()
+                print 'new clean_trade_car on'
+        session.close()
 
 
 @async
@@ -313,6 +373,7 @@ def sync_clean(func, items, *args, **kwargs):
         for item in session.query(UsedCar).filter(UsedCar.id.in_(ids)).yield_per(10):
             items.append(item.__dict__)
         session.close()
+    print 'sync_clean:', func.__name__
     func(items, *args, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
     #     where id in (%s);' % ','.join(ids))
@@ -325,29 +386,48 @@ def update_item(item, **kwargs):
             item[k] = v
 
 
-def is_trade_car(item):
-    if all([
-        item['source_type'] == 4,
-        item['city'] in [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac'],
-        item['volume'],
-        item['phone'] and (
-            len(item['phone']) == 11 or item['phone'].startswith('http://')
-            #re.match('^http.+#[\w\d]+#0.\d+$', item['phone'])
-                ),
-    ]):
-        global AUTO_PHONE
-        tel = item['phone']
-        if item['phone'].startswith('http'):
-            if '#' in tel:
-                if AUTO_PHONE and tel.endswith('#0.99'):
-                    tel = tel.split('#')[1]
-            else:
+def is_trade_car(item, throw_reason=False):
+    criteria = (
+        (item['source_type'] == 4, 'invalid_source_type',),
+        (item['city'] in [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac'], 'invalid_city'),
+        (item['volume'], 'empty_volume',),
+        (item['phone'], 'empty_phone',),
+        (len(item['phone']) == 11 or item['phone'].startswith('http://'), 'invalid_phone',),
+    )
+
+    can_go = True
+    errors=[]
+    for is_valid,code in criteria:
+        if not is_valid:
+            can_go=False
+            errors.append(code)
+
+    if not can_go:
+        if throw_reason:
+            return False, errors
+        return False
+
+    global AUTO_PHONE
+    tel = item['phone']
+    if item['phone'].startswith('http'):
+        if '#' in tel:
+            if AUTO_PHONE and tel.endswith('#0.99'):
+                tel = tel.split('#')[1]
+        else:
+            # added by y10n
+            # 识别手机号码的代码中出现错误的时候如果有错误没有被处理的时候我们应该在此捕获，不影响后续的清理
+            try:
                 tel_info = ConvertPhonePic2Num(tel).find_possible_num()
                 tel += '#%s#%s' % tel_info
-                print item['id'], tel
-            item['phone'] = tel
-        return True
-    return False
+                # print item['id'], tel
+            except Exception as e:
+                get_task_logger('is_trade_car').error(e, exc_info=True)
+                return False , ['captcha error', e.message]
+
+        item['phone'] = tel
+    if throw_reason:
+        return True, []
+    return True
 
 def clean_normal_car(items):
     global funcs

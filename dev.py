@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument("-s", "--site", default="58", help="要执行的网站名称，默认为 58")
     parser.add_argument("-d", "--debug", default=True, help="是否debug模式运行，True/False，默认是 True")
     parser.add_argument("-t", "--dtype", default="incr", help="网站抓取模式，incr/full，默认incr")
-
+    parser.add_argument("-l", "--logger", default="sentry", help="bug追踪日志保存方式，sentry/db，默认sentry")
     args = parser.parse_args()
     return args
 
@@ -32,4 +32,8 @@ if __name__ == '__main__':
     name = args.site
     type_ = args.dtype
 
+    # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
+    # if args.logger=='sentry':
+    #     from gpjspider.utils.tracker import hook_logger
+    #     hook_logger()
     main(name, type_)

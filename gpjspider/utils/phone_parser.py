@@ -5,6 +5,12 @@ from PIL import Image
 from pytesseract import image_to_string
 from urllib2 import urlopen, Request
 
+# @added by y10n
+# hack for error:
+#
+# IOError: image file is truncated (5 bytes not processed)
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ConvertPhonePic2Num(object):
 

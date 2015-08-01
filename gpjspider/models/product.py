@@ -554,3 +554,13 @@ class TradeCar(Base):
                                           str(item['volume']).replace('.', '_')])
         trade_car.model_detail = detail_model_slug
         return trade_car
+
+class ReasonTrack(Base):
+    __tablename__ = 'open_clean_track'
+    id = Column(Integer, primary_key=True)
+    item_id = Column(Integer, default=0, doc=u'编号')
+    domain = Column(String(30), default='', doc=u'所在域')
+    code = Column(String(20), nullable=True, doc=u'原因')
+    detail = Column(String(512), doc=u'详情')
+    ctx = Column(String(1024), doc=u'详情')
+    created_at = Column(DateTime, doc=u'发生时间')
