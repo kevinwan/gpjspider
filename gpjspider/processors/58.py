@@ -15,17 +15,17 @@ from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
 #         return value
 
 
-# def phone(values):
-#     vs = []
-#     for value in values:
-#         v = value.strip()
-#         try:
-#             long(v)
-#         except:
-#             continue
-#         else:
-#             vs.append(v)
-#     return ''.join(vs)
+def phone(values):
+    phone_str = ''
+    phone_all = ''
+    value = values.split()
+    for val in value:
+        if len(phone_str) < 9:
+            phone_str += val
+        if len(phone_str) >= 9:
+            phone_all += phone_str + ' '
+            phone_str = ''
+    return phone_all.strip()
 
 
 def is_certifield_car(value):

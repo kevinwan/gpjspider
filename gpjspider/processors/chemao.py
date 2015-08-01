@@ -1,9 +1,18 @@
 # -*- coding: utf-8 -*-
 import re
 import json
-from gpjspider.utils.constants import SOURCE_TYPE_ODEALER, SOURCE_TYPE_SELLER
+import urlparse
 
 import requests
+
+from gpjspider.utils.constants import SOURCE_TYPE_ODEALER, SOURCE_TYPE_SELLER
+
+
+base_url = 'http://www.chemao.com.cn'
+
+
+def model_url(value):
+    return urlparse.urljoin(base_url, value) if value else None
 
 
 def extract(value, regx, _type=None):
@@ -18,7 +27,12 @@ def extract(value, regx, _type=None):
 
 
 def model_slug(value):
-    return extract(value, ur'.*年款(.*)\s?\d\.\d.*')
+    value = extract(value, ur'第.+代(.*)')
+
+    if (u'-' in value) and (u'厢' in value):
+        return value.split(u'-')[0]
+
+    return value.split(' ')[0]
 
 
 def mile(value):

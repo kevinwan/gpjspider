@@ -106,18 +106,19 @@ item_rule = {
             'default': '%(title)s',
             'regex': '(.*)\s?\d{4}.*',
         },
-        # 'model_slug': {
-        #     'xpath': (
-        #
-        #     ),
-        #     'default': '%(title)s',
-        # },
-        # 'model_url': {
-        #     'xpath': (
-        #         href(cls('car-tit', '/p/a[4]')),
-        #     ),
-        #     'format': True,
-        # },
+        'model_slug': {
+            'xpath': (
+                text(cls('show-breadcrumb', '//ul/li[4]/a')),
+            ),
+            'default': '%(dmodel)s',
+            'processors': ['strip', 'first', 'chemao.model_slug'],
+        },
+        'model_url': {
+            'xpath': (
+                href(cls('show-breadcrumb', '//ul/li[4]/a')),
+            ),
+            'processors': ['first', 'chemao.model_url'],
+        },
         'city': {
             'xpath': (
                 '//meta[@name="location"]/@content',
@@ -245,10 +246,14 @@ rule = {
         # 'http://www.chemao.com.cn/market-condition-UWVvSj7RiYGjvVwyjPLw8cnAMWlKmLNcHabhqnZUgKSkwAvgp9TvjzQE-5xIVlHmugSstOdlIfsjWeDh0IclLTB6cEAJ0bcBbT9ofI6UKwZ3b1nrl5ZmkRG6XmrKkpar-page-46.html',
         # 'http://www.chemao.com.cn/market-condition-_XN6-BeggGcgdmcHLRh4_7j_IpkRh9RwR6I61UZlyIE..html',
         #'http://www.chemao.com.cn/market.html', # 默认会取请求所在城市的数据
-        # 'http://www.chemao.com.cn/show-id-1153094.html'  # 认证车
-        # 'http://www.chemao.com.cn/show-id-1138467.html'  # 非认证车
-        #'http://www.chemao.com.cn/show-id-1156880.html'  # 非认证车
-        #'http://www.chemao.com.cn/show-id-1158143.html'
+        # 'http://www.chemao.com.cn/show-id-1153094.html',  # 认证车
+        # 'http://www.chemao.com.cn/show-id-1138467.html',  # 非认证车
+        # 'http://www.chemao.com.cn/show-id-1156880.html',  # 非认证车
+        # 'http://www.chemao.com.cn/show-id-1158143.html',
+        # 'http://www.chemao.com.cn/show-id-1167631.html',   # 非认证车
+        # 'http://www.chemao.com.cn/show-id-1194012.html',   # 非认证车
+        # 'http://www.chemao.com.cn/show-id-1193806.html',
+        # 'http://www.chemao.com.cn/show-id-1194586.html',
     ],
     'base_url': 'http://www.chemao.com.cn',
     'per_page': 21,

@@ -11,13 +11,13 @@ class IncrSpider(GPJBaseSpider):
     name = "incrspider"
     _incr_enabled = True
 
-    def __init__(self, rule_name="", checker_name=HIGH_QUALITY_RULE_CHECKER_NAME):
+    def __init__(self, rule_name="", update=None, checker_name=HIGH_QUALITY_RULE_CHECKER_NAME):
         if import_incr_rule(rule_name):
             rule_name = 'incr.' + rule_name
         else:
             rule_name = 'full.' + rule_name
 
-        super(IncrSpider, self).__init__(rule_name)
+        super(IncrSpider, self).__init__(rule_name, update)
 
     def setup_rule(self, rule_name):
         # if rule_name.startswith('full'):
