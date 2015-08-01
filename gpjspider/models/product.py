@@ -292,6 +292,11 @@ class CarSource(Base):
         nullable=True, doc=u'状态'
     )
     province = Column(String(32), nullable=True)
+    process_status = Column(String(1), default='P')
+    qs_tags = Column(String(32), nullable=True, default=None)
+    eval_price = Column(DECIMAL(precision=5, scale=2), default=0,
+                        doc=u'估值价格(万元)')
+    gpj_index = Column(DECIMAL(precision=5, scale=2), default=0)
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")
     #car_detail = relationship("CarDetailInfo", uselist=False, backref="car", onupdate="cascade")

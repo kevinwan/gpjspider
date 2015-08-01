@@ -27,6 +27,7 @@ DOWNLOADER_MIDDLEWARES = {
     # 'gpjspider.downloaders.CurlDownloader': 119,
     'scrapy.contrib.downloadermiddleware.downloadtimeout.DownloadTimeoutMiddleware': 350,
     'scrapy.contrib.downloadermiddleware.httpcompression.HttpCompressionMiddleware': 590,
+    'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': 400,
 }
 COMPRESSION_ENABLED = True
 DOWNLOAD_TIMEOUT = 30
@@ -90,7 +91,8 @@ SPIDER_MIDDLEWARES = {
     'gpjspider.contrib.depth.DomainDepthMiddleware': 900,
 }
 DOMAIN_DEPTHS = {
-    # 'ganji.com': 1,
+    'ganji.com': 4,
+    '58.com': 4,
     'xin.com': 5,
     'ygche.com.cn': 2,
     'renrenche.com': 2,
@@ -149,9 +151,10 @@ MYSQL_SQLALCHEMY_URL = {
 #==============================================================================
 LOCAL_REDIS = False
 REDIS_CONFIG = [
-    {"host": "192.168.168.237", "port": "6379"},
+    # {"host": "192.168.168.237", "port": "6379"},
     {"host": "192.168.190.122", "port": "6379"},
-    {"host": "192.168.168.237", "port": "6380"}
+    {"host": "192.168.168.237", "port": "6380"},
+    {"host": "192.168.168.237", "port": "6381"},
 ]
 
 try:

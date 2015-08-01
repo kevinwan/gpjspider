@@ -356,7 +356,7 @@ def clean_trade_car(items):
                 track = ReasonTrack(item_id=item['id'], domain=item['domain'], code=code, detail=detail, ctx=ctx, created_at=datetime.now())
                 session.add(track)
                 session.commit()
-            print 'new clean_trade_car on'
+            # print 'new clean_trade_car on'
         session.close()
 
 
@@ -376,7 +376,7 @@ def sync_clean(func, items, *args, **kwargs):
         for item in session.query(UsedCar).filter(UsedCar.id.in_(ids)).yield_per(10):
             items.append(item.__dict__)
         session.close()
-    print 'sync_clean:', func.__name__
+    # print 'sync_clean:', func.__name__
     func(items, *args, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
     #     where id in (%s);' % ','.join(ids))
@@ -801,7 +801,7 @@ def imgurls(item, logger):
     item['imgurls'] = souche.imgurls(imgurls)
     return imgurls and 'nopic' not in imgurls
 
-funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
+# funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
 
 # ==============================================================================
 # 数据库操作

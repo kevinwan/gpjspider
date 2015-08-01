@@ -34,3 +34,4 @@ python-dateutil==1.5
 pytesseract==0.1.5
 ipdb
 scrapyd
+raven
