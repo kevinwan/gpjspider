@@ -27,6 +27,8 @@ import threading
 import re
 # import ipdb
 from time import sleep
+import requests
+import json
 AUTO_PHONE = False
 
 
@@ -75,6 +77,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'renrenche.com',
         'souche.com',
         'youche.com',
+
         '58.com',
         'ganji.com',
         'baixing.com',
@@ -152,6 +155,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # min_id, max_id = 21289949, 21877089
     # min_id, max_id = 21877164, 21877165
     # min_id, max_id = 22857674, 22857684
+    # min_id, max_id = 23735633, 23737035
     # min_id = 21877089
     # max_id = 22685092
     # id_range = 2000
@@ -168,12 +172,13 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         clean(session, min_id, mid, domains, status)
         min_id = mid
         # return
+    session.close()
     log('Done')
 
 WORKER = 10
 WORKER = 20
 WORKER = 40
-# WORKER = 5
+WORKER = 5
 # WORKER = 0
 
 # def inspect_reason(item, group, reason, detail=''):
@@ -190,7 +195,8 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
     # base query
     domains = domains or []
     base_query = session.query(UsedCar).filter(
-        UsedCar.id >= min_id, UsedCar.id <= max_id, UsedCar.domain.in_(domains)).filter_by(source=1)
+        UsedCar.id >= min_id, UsedCar.id <= max_id,
+        UsedCar.domain.in_(domains), UsedCar.source_type != 1).filter_by(source=1)
     # mark status=I, processing
     wait_status = 'I'
     base_query.filter_by(
@@ -206,6 +212,8 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
             filts[1] = Column(field) == 0
             if field == 'month':
                 filts.append(Column(field) > 12)
+        elif field == 'imgurls':
+            filts.append(Column(field).like('http%'))
         # elif field in 'control'.split():
         #     filts.pop()
         q.filter(or_(*filts)).update(dict(status=' %s' %
@@ -218,7 +226,7 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
     # filter good car_source
     # log('filter good car_source..')
     bq = session.query(UsedCar.id).filter(UsedCar.id >= min_id,
-        UsedCar.id <= max_id).filter_by(source=1)
+        UsedCar.id <= max_id, UsedCar.source_type != 1).filter_by(source=1)
     iq = bq.filter_by(status=wait_status).filter(
         UsedCar.domain.in_(domains), UsedCar.control != None)
     good_cars = iq.filter_by(is_certifield_car=True).filter(
@@ -251,13 +259,13 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
         UsedCar.year > 1970,
         UsedCar.mile < 200
     )
-    # ipdb.set_trace()
-    if trade_cars.count():
-        pool_run(trade_cars, clean_trade_car)
+    pool_run(trade_cars, clean_trade_car)
 
 
 def pool_run(query, meth, index=0, psize=10):
     remain = query.count()
+    if remain == 0:
+        return
     # print remain
     # psize = 30
     # psize = 60
@@ -265,7 +273,7 @@ def pool_run(query, meth, index=0, psize=10):
     amount = (remain / psize) + 1
     global WORKER
     items = []
-    print query.count(), ' items to clean'
+    # print remain, ' items to clean'
     for item in query.yield_per(psize):
         items.append(str(item.id))
         # cid = str(item.id)
@@ -276,13 +284,13 @@ def pool_run(query, meth, index=0, psize=10):
                     log(amount, '%s - %s' % (min(items), max(items)))
                 async_clean(meth, items)
             else:
-                print 'sync cleaning'
+                # print 'sync cleaning'
                 log(amount, '%s - %s' % (min(items), max(items)))
                 sync_clean(meth, items)
             amount -= 1
             items = []
         index += 1
-    print 'remains cleaning'
+    # print 'remains cleaning'
     if items:
         log(amount, '%s - %s' % (min(items), max(items)))
         if WORKER:
@@ -316,44 +324,39 @@ class CleanException(Exception):
 def clean_trade_car(items):
     for item in items:
         session = Session()
-        print 'clean_trade_car', item['id']
         detail = ''
-        ctx={}
+        ctx = {}
         for f in 'title,dmodel,model_slug,brand_slug'.split(','):
-            ctx['origin_%s' % f]=unicode(item.get(f, None))
+            ctx['origin_%s' % f] = unicode(item.get(f, None))
         sid = str(item['id'])
+        # print 'clean_trade_car', sid
         try:
-            # ipdb.set_trace()
             item_is_trade_car, codes = is_trade_car(item, True)
             if not item_is_trade_car:
                 detail = ','.join(codes)
                 raise CleanException('is_not_trade_car')
 
             match_bmd(item, session=session)
-            # ipdb.set_trace()
             if not (item['brand_slug'] and item['model_slug']):
                 raise CleanException('empty_brand_or_model')
 
-            pushed,push_error = push_trade_car(item, sid, session)
+            pushed, push_error = push_trade_car(item, sid, session)
             if not pushed:
                 raise CleanException(push_error)
         except CleanException as e:
-            # ipdb.set_trace()
             code = e.message
             for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug'.split(','):
-                ctx[f]=item.get(f, None)
+                ctx[f] = item.get(f, None)
             get_tracker().captureException(exta=ctx)
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
 
             if 0:# 暂时使用sentry记录，不在保存在本地数据库
                 from gpjspider.models.product import ReasonTrack
-                from datetime import datetime
-                import json
                 ctx = json.dumps({k:unicode(v) for k,v in ctx.items()}, ensure_ascii=False)
                 track = ReasonTrack(item_id=item['id'], domain=item['domain'], code=code, detail=detail, ctx=ctx, created_at=datetime.now())
                 session.add(track)
                 session.commit()
-                print 'new clean_trade_car on'
+            print 'new clean_trade_car on'
         session.close()
 
 
@@ -396,10 +399,10 @@ def is_trade_car(item, throw_reason=False):
     )
 
     can_go = True
-    errors=[]
-    for is_valid,code in criteria:
+    errors = []
+    for is_valid, code in criteria:
         if not is_valid:
-            can_go=False
+            can_go = False
             errors.append(code)
 
     if not can_go:
@@ -422,16 +425,17 @@ def is_trade_car(item, throw_reason=False):
                 # print item['id'], tel
             except Exception as e:
                 get_task_logger('is_trade_car').error(e, exc_info=True)
-                return False , ['captcha error', e.message]
+                return False, ['captcha error', e.message]
 
         item['phone'] = tel
     if throw_reason:
         return True, []
     return True
 
+
 def clean_normal_car(items):
-    global funcs
-    # funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
+    # global funcs
+    funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
     clean_usedcar(items, False, funcs)
 is_good = True
 
@@ -448,13 +452,12 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
         'E': [],
         'S': [],
     }
-    session = Session()
     # global is_good
     for item in items:
         if isinstance(item, UsedCarItem):
             item = item._values
             continue
-
+        session = Session()
         sid = str(item['id'])
         # print sid
         try:
@@ -526,15 +529,12 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             s = 'E'
         if sid:
             status[s].append(sid)
-    cursor = get_cursor(session)
+        session.close()
+    cursor = get_cursor()
     for k, v in status.items():
         if v:
-            # cursor.execute(
-            #     'update open_product_source set status="%s" where id in (%s) and status="%s";' % (k.lower(), ','.join(v), k))
             cursor.execute(
                 'update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
-    session.commit()
-    # session.close()
 
 
 def get_province_by_city(city, session=None):
@@ -816,20 +816,35 @@ def insert_to_carsource(item, session, logger):
     car_source.pub_time = item['time'] or item['created_on']
     car_source.model_detail_slug = item['detail_model']
     car_source.mile = item['mile']
-    car_source.status = 'sale'
+    # check is online/offline
+    car_source.status = 'review' if 'Q' in item['status'] else 'sale'
+    # add qs_tags, eval_price, gpj_index
+    car_source.qs_tags = get_qs_tags(item.get('quality_service'))
+    eval_price = get_eval_price(item)
+    if eval_price:
+        gpj_index = get_gpj_index(item['price'], eval_price)
 
+    def add_extra_cols(gpj_index):
+        if gpj_index:
+            car_source.eval_price = eval_price
+            car_source.gpj_index = gpj_index
+            car_source.process_status = 'S'
+    add_extra_cols(gpj_index)
     try:
         session.add(car_source)
         session.commit()
     except IntegrityError:
         session.rollback()
         logger.error(u'Dup car_source {0}'.format(car_source.url))
-        car_source = session.query(CarSource).filter_by(
-            url=car_source.url).first()
+        # car_source = session.query(CarSource).filter_by(url=car_source.url).first()
+        car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first()
+        # add_extra_cols(gpj_index)
+        session.merge(car_source)
+        session.commit()
     except Exception as e:
-        # session.rollback()
+        session.rollback()
+        print e
         # raise
-        # ipdb.set_trace()
         logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
         return
     else:
@@ -857,10 +872,8 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
     car_detail_info.quality_assurance = item.get('quality_service')
     car_detail_info.condition_score = item.get('condition_level')
     try:
-        # with session.begin_nested():
-            # session.merge(car_detail_info)
         session.add(car_detail_info)
-        # session.commit()
+        session.commit()
     except IntegrityError:
         session.rollback()
         msg = u'Dup car_detail_info for car_source: {0}'.format(car_source.id)
@@ -869,7 +882,6 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
         logger.error(u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
     else:
         logger.info(u'Add car_detail_info: {0}'.format(car_detail_info.id))
-    # return car_detail_info
 
 
 def insert_to_carimage(item, car_source, session, logger):
@@ -884,8 +896,10 @@ def insert_to_carimage(item, car_source, session, logger):
             logger.debug(u'Add CarImage {0}'.format(img))
         except IntegrityError:
             session.rollback()
-            msg = u'Dup CarImage for car_source: {0}'.format(car_source.id)
-            logger.error(msg)
+            logger.error(u'Dup CarImage for car_source: {0}'.format(car_source.id))
+            # car_image.id = session.query(car_image.id).filter_by(car=car_image).first()
+            # session.merge(car_image)
+            # session.commit()
         except Exception as e:
             logger.error(
                 u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
@@ -933,3 +947,91 @@ def upload_imgs(item, logger):
     if _urls:
         item['thumbnail'] = _urls[0]
     item['imgurls'] = ' '.join(_urls)
+
+
+def get_qs_tags(quality_service):
+    u'''
+>>> get_qs_tags(u'无重大事故 15天包退')
+u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+>>> get_qs_tags(u'14天可退1年质保')
+u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+>>> get_qs_tags(u'保证在 七天包退 延长质保')
+u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+>>> get_qs_tags(u'绝非事故车 7天可退 真车实价')
+u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+>>> get_qs_tags(u'通过无事故承诺的好车，无重大事故，无火烧，无水淹如若不符，15天全额包退')
+u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+>>> get_qs_tags(u'此车享受45天或1800公里先行赔付承诺保障')
+u'\u5148\u8d54\u4ed8'
+>>> get_qs_tags(u'14天包退，360天/20000公里保修')
+u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+    '''
+    if not quality_service:
+        return ''
+    tag_map = {
+        u'质保': u'[联延质保修]{2}',
+        u'可退换': u'[可包退换车款]{2,}',
+        u'无大事故': u'[发现绝非无重大]{1,3}事故车?',
+        u'先赔付': u'先行?赔付?',
+    }
+    tags = set()
+    for k, v in tag_map.items():
+        if re.search(v, quality_service):
+            tags.add(k)
+    return ' '.join(tags)
+
+
+def get_eval_price(item):
+    u'''
+curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.00&model=audi-a6&d_model=60270_autotis&year=2002&month=6&city=%E6%B2%88%E9%98%B3&volume=2.8&intent=cpo'
+>>> params = 'brand_slug=audi&mile=15.00&model_slug=audi-a6&model_detail_slug=60270_autotis&year=2002&month=6&city=沈阳&volume=2.8&intent=cpo&color='
+>>> item = {}
+>>> for p in params.split('&'):
+...     k, v = p.split('=')
+...     item[k] = v
+>>> get_eval_price(item)
+3.4827
+    '''
+
+    if 'model_detail_slug' not in item:
+        item['model_detail_slug'] = ''
+    st = item['source_type']
+    intent = 'buy'
+    if 'personal' in st:
+        intent = 'private'
+    elif 'cpo' == st:
+        intent = st
+    item['intent'] = intent
+
+    api = ('http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=%(brand_slug)s'
+        '&model=%(model_slug)s&d_model=%(model_detail_slug)s&volume=%(volume)s&year=%(year)s'
+        '&month=%(month)s&color=%(color)s&mile=%(mile)s&city=%(city)s&intent=%(intent)s')
+    api %= item
+    try:
+        r = requests.get(api, timeout=10)
+        if r and r.status_code == 200:
+            data = r.text.strip()
+            eval_price = json.loads(data)['deal_price']
+            return decimal(int(eval_price) / 10000.0)
+    except Exception as e:
+        print e, item['id']
+
+def decimal(value):
+    return float('%.1f' % value)
+
+def get_gpj_index(price, eval_price):
+    '''
+>>> get_gpj_index(11, 100.0)
+5.0
+>>> get_gpj_index(11, 10.0)
+8.0
+>>> get_gpj_index(9, 10.0)
+8.0
+>>> get_gpj_index(9, 9.1)
+9.8
+>>> get_gpj_index(3.4827, 4)
+7.4
+    '''
+    eval_price = float(eval_price)
+    delta = abs(float(price) - eval_price) / eval_price
+    return decimal(5 if delta > 0.25 else (10 - 20*delta))
