@@ -121,9 +121,9 @@ class GPJBaseSpider(scrapy.Spider):
                 #     if len(ids) < 50:
                 #         break
                 psize = 50
+                session = self.Session()
                 cursor = self.get_cursor()
                 update = 'update open_product_source set status="q" where id in (%s) and status="u";'
-                session = self.Session()
                 query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
                     domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
                 # print query.count()
@@ -153,7 +153,7 @@ class GPJBaseSpider(scrapy.Spider):
                     last_ids = tmp_ids
                 min_id = min(first_ids)
                 max_id = max(last_ids)
-                clean(session, min_id, max_id, [self.domain])
+                clean(self.Session(), min_id, max_id, [self.domain])
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']

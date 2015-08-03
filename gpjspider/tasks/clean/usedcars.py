@@ -25,7 +25,10 @@ from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
 from gpjspider.processors import souche
 import threading
 import re
-# import ipdb
+try:
+    import ipdb
+except ImportError:
+    import pdb as ipdb
 from time import sleep
 import requests
 import json
@@ -87,6 +90,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'cn2che.com',
         'used.xcar.com.cn',
         'iautos.cn',
+
         # 'hx2car.com',
         # 'che168.com',
         # 'cheshi.com',
@@ -104,23 +108,24 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # if sync:
     #     cursor.execute(update.format("','".join(domains)))
     status = 'Y'
-    # status = ' control'
+    # status = ' imgurls' # control imgurls
     # status = 'I'
     # status = '-model_slug'
     # status = '_'
-    # status = 'E' # E N P
+    # status = 'E' # E N P C
+    # status = 'C'
     start_date = datetime.today()
     # start_date -= timedelta(days=7)
     start_time = str(start_date)[:10]
     # print start_time
     sql = session.query(UsedCar.id).filter(
         UsedCar.created_on >= start_time,
+        # UsedCar.created_on < str(datetime.now())[:10],
         # UsedCar.created_on < '2015-07-23',
         # UsedCar.created_on < '2015-07-27',
         UsedCar.domain.in_(domains),
         # UsedCar.created_on >= '2015-07-9',
         # UsedCar.created_on >= '2015-07-6',
-        # UsedCar.created_on < str(datetime.now())[:10],
         # UsedCar.status.in_(['N', 'Y']),
         UsedCar.status.in_([status, 'I']),
         # UsedCar.status.in_([status, 'Y', 'I']),
@@ -133,7 +138,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # created_on>curdate()
     # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
     # created_on>subdate(now(), interval 2 hour)
-    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval 1 hour) and source_id=1 '
+    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval 3 hour) and source_id=1 '
         # 'and status="%s" '
         'and domain in (\'%s\');'
         )
@@ -155,9 +160,9 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # min_id, max_id = 21289949, 21877089
     # min_id, max_id = 21877164, 21877165
     # min_id, max_id = 22857674, 22857684
-    # min_id, max_id = 23735633, 23737035
-    # min_id = 21877089
-    # max_id = 22685092
+    # min_id, max_id = 23628009, 23818197
+    # min_id = 23778888
+    # max_id = 23778889
     # id_range = 2000
     id_range = 5000
     # id_range = 10000
@@ -165,20 +170,22 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # id_range = 50000
     # id_range = 500
     print min_id, max_id, max_id - min_id + 1
+    session.close()
+    session = None
     while min_id < max_id:
         mid = min_id + id_range
         if mid > max_id:
             mid = max_id
-        clean(session, min_id, mid, domains, status)
+        clean(min_id, mid, domains, status)
         min_id = mid
         # return
-    session.close()
     log('Done')
 
-WORKER = 10
-WORKER = 20
 WORKER = 40
+WORKER = 10
 WORKER = 5
+WORKER = 2
+# WORKER = 20
 # WORKER = 0
 
 # def inspect_reason(item, group, reason, detail=''):
@@ -190,9 +197,10 @@ WORKER = 5
 #     session.commit()
 
 
-def clean(session, min_id, max_id, domains=None, status='Y'):
+def clean(min_id, max_id, domains=None, status='Y', session=None):
     # print min_id, max_id
     # base query
+    session = session or Session()
     domains = domains or []
     base_query = session.query(UsedCar).filter(
         UsedCar.id >= min_id, UsedCar.id <= max_id,
@@ -213,7 +221,7 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
             if field == 'month':
                 filts.append(Column(field) > 12)
         elif field == 'imgurls':
-            filts.append(Column(field).like('http%'))
+            filts.append(~Column(field).like('http%'))
         # elif field in 'control'.split():
         #     filts.pop()
         q.filter(or_(*filts)).update(dict(status=' %s' %
@@ -230,7 +238,7 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
     iq = bq.filter_by(status=wait_status).filter(
         UsedCar.domain.in_(domains), UsedCar.control != None)
     good_cars = iq.filter_by(is_certifield_car=True).filter(
-        # UsedCar.phone != None, UsedCar.model_slug != None, UsedCar.imgurls != None, UsedCar.control != None,
+        ~UsedCar.phone.like('http%'),
         UsedCar.year > 2007, UsedCar.mile < 30)
     pool_run(good_cars, clean_usedcar)
 
@@ -262,11 +270,11 @@ def clean(session, min_id, max_id, domains=None, status='Y'):
     pool_run(trade_cars, clean_trade_car)
 
 
-def pool_run(query, meth, index=0, psize=10):
+def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
-    if remain == 0:
+    if not remain:
         return
-    # print remain
+    print remain
     # psize = 30
     # psize = 60
     # psize = 100
@@ -282,11 +290,11 @@ def pool_run(query, meth, index=0, psize=10):
             if WORKER:
                 if index % 500 == 0:
                     log(amount, '%s - %s' % (min(items), max(items)))
-                async_clean(meth, items)
+                async_clean(meth, items, cls)
             else:
                 # print 'sync cleaning'
                 log(amount, '%s - %s' % (min(items), max(items)))
-                sync_clean(meth, items)
+                sync_clean(meth, items, cls)
             amount -= 1
             items = []
         index += 1
@@ -294,9 +302,9 @@ def pool_run(query, meth, index=0, psize=10):
     if items:
         log(amount, '%s - %s' % (min(items), max(items)))
         if WORKER:
-            async_clean(meth, items)
+            async_clean(meth, items, cls)
         else:
-            sync_clean(meth, items)
+            sync_clean(meth, items, cls)
         # async_clean(meth, items)
         # sync_clean(meth, items)
 
@@ -369,15 +377,16 @@ def async_clean(func, items, *args, **kwargs):
 def sync_clean(func, items, *args, **kwargs):
     global WORKER
     WORKER -= 1
-    if isinstance(items[0], basestring):
+    cls = args[0]
+    if cls and isinstance(items[0], basestring):
         ids = items
         items = []
         session = Session()
-        for item in session.query(UsedCar).filter(UsedCar.id.in_(ids)).yield_per(10):
+        for item in session.query(cls).filter(cls.id.in_(ids)).yield_per(10):
             items.append(item.__dict__)
         session.close()
     # print 'sync_clean:', func.__name__
-    func(items, *args, **kwargs)
+    func(items, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
     #     where id in (%s);' % ','.join(ids))
     WORKER += 1
@@ -453,6 +462,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
         'S': [],
     }
     # global is_good
+    global AUTO_PHONE
     for item in items:
         if isinstance(item, UsedCarItem):
             item = item._values
@@ -474,9 +484,10 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 continue
             if is_trade_car(item):
                 push_trade_car(item, sid, session)
-            tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
-            if tel:
-                item['phone'] = tel[0]
+            if AUTO_PHONE:
+                tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
+                if tel:
+                    item['phone'] = tel[0]
             # 确保 time 正确
             if not item.get('time'):
                 item['time'] = item['created_on']
@@ -806,15 +817,19 @@ def imgurls(item, logger):
 # ==============================================================================
 # 数据库操作
 # ==============================================================================
-
+def add_extra_cols(car_source, gpj_index, eval_price):
+    if gpj_index:
+        car_source.eval_price = eval_price
+        car_source.gpj_index = gpj_index
+        car_source.process_status = 'S'
 
 def insert_to_carsource(item, session, logger):
     car_source = CarSource()
-    for attr in 'url title brand_slug model_slug mile year month control \
+    item['model_detail_slug'] = item.get('detail_model', '')
+    for attr in 'url title brand_slug model_slug model_detail_slug mile year month control \
         city price volume color thumbnail phone domain source_type province'.split():
         setattr(car_source, attr, item[attr])
     car_source.pub_time = item['time'] or item['created_on']
-    car_source.model_detail_slug = item['detail_model']
     car_source.mile = item['mile']
     # check is online/offline
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
@@ -823,22 +838,19 @@ def insert_to_carsource(item, session, logger):
     eval_price = get_eval_price(item)
     if eval_price:
         gpj_index = get_gpj_index(item['price'], eval_price)
-
-    def add_extra_cols(gpj_index):
-        if gpj_index:
-            car_source.eval_price = eval_price
-            car_source.gpj_index = gpj_index
-            car_source.process_status = 'S'
-    add_extra_cols(gpj_index)
+        add_extra_cols(car_source, gpj_index, eval_price)
     try:
         session.add(car_source)
+        # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
+        # session.merge(car_source)
         session.commit()
     except IntegrityError:
         session.rollback()
         logger.error(u'Dup car_source {0}'.format(car_source.url))
+        # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
+        car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
         # car_source = session.query(CarSource).filter_by(url=car_source.url).first()
-        car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first()
-        # add_extra_cols(gpj_index)
+        # car_source.thumbnail = item['thumbnail']
         session.merge(car_source)
         session.commit()
     except Exception as e:
@@ -886,24 +898,27 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
 
 def insert_to_carimage(item, car_source, session, logger):
     imgs = item['imgurls'].split()
+    car_images = car_source.images
+    amount = len(car_images)
+    index = 0
     for img in imgs:
-        car_image = CarImage()
-        car_image.car = car_source
+        if amount > index:
+            car_image = car_images[index]
+            index += 1
+        else:
+            car_image = CarImage(car=car_source)
         car_image.image = img
         try:
-            session.add(car_image)
-            session.commit()
+            session.merge(car_image)
             logger.debug(u'Add CarImage {0}'.format(img))
         except IntegrityError:
             session.rollback()
             logger.error(u'Dup CarImage for car_source: {0}'.format(car_source.id))
-            # car_image.id = session.query(car_image.id).filter_by(car=car_image).first()
-            # session.merge(car_image)
-            # session.commit()
         except Exception as e:
+            session.rollback()
             logger.error(
                 u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
-    # else:
+    session.commit()
     logger.info(u'Saved CarImages for car_source: {0}'.format(car_source.id))
 
 
@@ -992,9 +1007,6 @@ curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.
 >>> get_eval_price(item)
 3.4827
     '''
-
-    if 'model_detail_slug' not in item:
-        item['model_detail_slug'] = ''
     st = item['source_type']
     intent = 'buy'
     if 'personal' in st:
@@ -1002,13 +1014,12 @@ curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.
     elif 'cpo' == st:
         intent = st
     item['intent'] = intent
-
     api = ('http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=%(brand_slug)s'
         '&model=%(model_slug)s&d_model=%(model_detail_slug)s&volume=%(volume)s&year=%(year)s'
         '&month=%(month)s&color=%(color)s&mile=%(mile)s&city=%(city)s&intent=%(intent)s')
     api %= item
     try:
-        r = requests.get(api, timeout=10)
+        r = requests.get(api, timeout=20)
         if r and r.status_code == 200:
             data = r.text.strip()
             eval_price = json.loads(data)['deal_price']

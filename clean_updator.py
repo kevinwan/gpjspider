@@ -1,0 +1,1 @@
+scripts/clean_updator.py
