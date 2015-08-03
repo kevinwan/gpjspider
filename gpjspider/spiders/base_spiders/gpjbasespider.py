@@ -27,6 +27,7 @@ from gpjspider.models import UsedCar
 from gpjspider.tasks.clean.usedcars import clean, clean_normal_car
 import copy
 
+
 def debug():
     pdb.set_trace()
 
@@ -153,7 +154,7 @@ class GPJBaseSpider(scrapy.Spider):
                     last_ids = tmp_ids
                 min_id = min(first_ids)
                 max_id = max(last_ids)
-                clean(self.Session(), min_id, max_id, [self.domain])
+                clean(min_id, max_id, [self.domain], 'q', self.Session())
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']

@@ -76,7 +76,7 @@ item_rule = {
                 has(u'检测车型'),
             ),
             'processors': ['first', 'ganjihaoche.model_slug'],
-            'processors': ['first', 'after_colon'],
+            'processors': ['first', 'after_colon', 'ganjihaoche.model_slug'],
         },
         'city': {
             'xpath': (
@@ -179,6 +179,8 @@ rule = {
         # 'http://haoche.ganji.com/cc/1713365366x.htm',
         # 'http://haoche.ganji.com/nj/1512163128x.htm',
         # 'http://haoche.ganji.com/bj/1514507784x.htm',
+        # 'http://haoche.ganji.com/wh/1802111972x.htm',  # -model_slug 逍客-
+        # 'http://haoche.ganji.com/bj/1802168768x.htm',  # -model_slug, 夏利A+-两厢-
     ],
 
     'parse': parse_rule,

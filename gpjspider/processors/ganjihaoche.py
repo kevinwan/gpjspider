@@ -20,9 +20,12 @@ def model_slug(value):
     例子：
     1. 检测车型：马自达-马自达3星骋-1.6 手动 舒适型 2011款
     """
-    if value.startswith(u'检测车型'):
-        value = value.strip(u'检测车型：')
-    return value.split('-')[1]
+    # if value.startswith(u'检测车型'):
+        # value = value.strip(u'检测车型：')
+    # return value.split('-')[1]
+    value = value.replace(u'-两厢-','')
+    value = value.replace(u'-三厢-','')
+    return value.strip('-')
 
 
 def city_slug(value):
