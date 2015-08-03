@@ -154,7 +154,7 @@ class GPJBaseSpider(scrapy.Spider):
                     last_ids = tmp_ids
                 min_id = min(first_ids)
                 max_id = max(last_ids)
-                clean(min_id, max_id, [self.domain], 'q', self.Session())
+                clean(min_id, max_id, [self.domain])
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
