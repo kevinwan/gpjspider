@@ -26,7 +26,12 @@ def extract(value, regx, _type=None):
         print e
 
 
+def business_insurance(value):
+    return value if value != u'过保' else u'已过期'
+
+
 def model_slug(value):
+    value = extract(value, ur'年款\s?(.*)\s?\d\.\d')
     value = extract(value, ur'第.+代(.*)')
 
     if (u'-' in value) and (u'厢' in value):
@@ -70,10 +75,7 @@ def source_type(value):
 
 
 def quality_service(value):
-    normal_service = u'车辆合法，绝无火烧、水淹'
-    certified_service = u'事故、水浸、火烧车7天内全款退车。1年/2万公里质保，问题车15天包退。'
-
-    return certified_service if value == '1' else normal_service
+    return ' '.join(value) if isinstance(value, list) else value
 
 
 def transfer_owner(value):

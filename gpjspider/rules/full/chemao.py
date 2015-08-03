@@ -12,10 +12,10 @@ item_rule = {
             'required': True,
         },
         'dmodel': {
-            'xpath': (
-            ),
+            # 'xpath': (
+            # ),
             'default': '%(title)s',
-            'regex': u'年款(.*)\s?\d\.\d',
+            'regex': u'\d{4}年款.*',
         },
         'meta': {
             'xpath': (
@@ -95,14 +95,15 @@ item_rule = {
         'price_bn': {
             'xpath': (
                 text(has_cls('accred-price', '/del')),
-                has(u'新车价：'),
+                has(u'新车价：', prefix='//p'),
+                has(u'新车价(含购置税)', prefix='//p'),
             ),
             'regex': '：(.*)',
         },
         'brand_slug': {
-            'xpath': (
-
-            ),
+            # 'xpath': (
+            #
+            # ),
             'default': '%(title)s',
             'regex': '(.*)\s?\d{4}.*',
         },
@@ -146,13 +147,14 @@ item_rule = {
         },
         'mandatory_insurance': {
             'xpath': (
-                after_has(u'交强险到期日', 'td'),
+                after_has(u'交强险到期', 'td'),
             ),
         },
         'business_insurance': {
             'xpath': (
-                after_has(u'商险到期日', 'td'),
+                after_has(u'商险到期', 'td'),
             ),
+            'processors': ['first', 'strip', 'chemao.business_insurance']
         },
         'company_name': {
             'xpath': (
@@ -169,7 +171,7 @@ item_rule = {
         # },
         'examine_insurance': {
             'xpath': (
-                after_has(u'年检有效期'),
+                after_has(u'年检有效'),
             ),
         },
         'transfer_owner': {
@@ -201,17 +203,18 @@ item_rule = {
             ),
         },
         'source_type': {
-            'xpath': (
-
-            ),
+            # 'xpath': (
+            #
+            # ),
             'default': '%(is_certifield_car)s',
             'processors': ['chemao.source_type'],
         },
         'quality_service': {
             'xpath': (
-                exists(has_cls('cert')),
+                text(cls('service-tags', '//a')),
             ),
-            'processors': ['first', 'chemao.quality_service'],
+            'default': u'车辆合法，绝无火烧、水淹',
+            'processors': ['chemao.quality_service'],
         },
     },
 }
@@ -254,6 +257,9 @@ rule = {
         # 'http://www.chemao.com.cn/show-id-1194012.html',   # 非认证车
         # 'http://www.chemao.com.cn/show-id-1193806.html',
         # 'http://www.chemao.com.cn/show-id-1194586.html',
+        # 'http://www.chemao.com.cn/show-id-1196508.html',
+        # 'http://www.chemao.com.cn/show-id-1194395.html',
+        # 'http://www.chemao.com.cn/show-id-1201725.html',
     ],
     'base_url': 'http://www.chemao.com.cn',
     'per_page': 21,
