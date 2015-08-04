@@ -55,6 +55,7 @@ item_rule = {
                 attr(id_('car_id'), 'value'),
             ),
             'processors': ['first', 'chemao.phone'],
+            'before': u'转',
         },
         'color': {
             'xpath': (
@@ -260,6 +261,7 @@ rule = {
         # 'http://www.chemao.com.cn/show-id-1196508.html',
         # 'http://www.chemao.com.cn/show-id-1194395.html',
         # 'http://www.chemao.com.cn/show-id-1201725.html',
+        # 'http://www.chemao.com.cn/show-id-1205154.html',  # phone "4001666556转18853"
     ],
     'base_url': 'http://www.chemao.com.cn',
     'per_page': 21,
@@ -274,4 +276,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
