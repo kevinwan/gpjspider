@@ -45,7 +45,7 @@ def mile(value):
 
 
 def region(value):
-    return extract(value, ur'，(.*)') if value.find(u'，') != -1 else None
+    return extract(value, ur'，(.*)') if value.find(u'，') != -1 else value
 
 
 def volume(value):
