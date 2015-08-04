@@ -87,7 +87,6 @@ item_rule = {
                 text(cls('breadcrumb', '/a[4]')),
             ),
             'regex': u'二手(.*)',
-            'before': u'(进口)',
         },
         'model_url': {
             'xpath': (
