@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
 from gpjspider.tasks.spiders import *
-from gpjspider.tasks.clean.usedcars import clean_domain
+from gpjspider.tasks.clean.usedcars import clean_domain, clean_item
 import argparse
 
 def parse_args():
@@ -18,6 +19,16 @@ def parse_args():
 
 def main(name='test', type_='incr', update=False):
     # import ipdb;ipdb.set_trace()
+    sid=None
+    try:
+        sid=re.search('^\.(\d+)$', name).group(1)
+    except:
+        pass
+
+    if sid:
+        return clean_item(int(sid))
+    print '*'*80
+
     if name == '.':
         return clean_domain()
     # elif name.endswith('.com'):

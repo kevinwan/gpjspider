@@ -269,6 +269,14 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     )
     pool_run(trade_cars, clean_trade_car)
 
+def clean_item(item_id):
+    query = Session().query(UsedCar).filter_by(id=item_id)
+    print 'try to clean item', item_id
+    items=[]
+    for item in query:
+        items.append(item.__dict__)
+        print item.__dict__
+    clean_trade_car(items, do_not_push=True)
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
@@ -329,7 +337,7 @@ def push_trade_car(item, sid, session):
 class CleanException(Exception):
     pass
 
-def clean_trade_car(items):
+def clean_trade_car(items, do_not_push=False):
     for item in items:
         session = Session()
         detail = ''
@@ -349,9 +357,12 @@ def clean_trade_car(items):
             if not (item['brand_slug'] and item['model_slug']):
                 raise CleanException('empty_brand_or_model')
 
-            pushed, push_error = push_trade_car(item, sid, session)
-            if not pushed:
-                raise CleanException(push_error)
+            if not do_not_push:
+                pushed, push_error = push_trade_car(item, sid, session)
+                if not pushed:
+                    raise CleanException(push_error)
+            else:
+                print 'clean_trade_car pass', sid, item['phone']
         except CleanException as e:
             code = e.message
             for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug,url'.split(','):
@@ -361,6 +372,8 @@ def clean_trade_car(items):
             del f
             del detail
             get_tracker().captureMessage(e.message, extra=ctx, tags={'domain':item['domain'], })
+            # if do_not_push:
+            #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
 
             if 0:# 暂时使用sentry记录，不在保存在本地数据库
@@ -370,6 +383,8 @@ def clean_trade_car(items):
                 session.add(track)
                 session.commit()
             # print 'new clean_trade_car on'
+        except:
+            get_tracker().captureException()
         session.close()
 
 
@@ -402,8 +417,17 @@ def update_item(item, **kwargs):
         if not item.get(k):
             item[k] = v
 
+def first_mobile(s):
+    if s.startswith('http://'):
+        return s
+    import re
+    try:
+        return re.findall(r'\b1\d{10}\b', s)[0]
+    except:
+        return s
 
 def is_trade_car(item, throw_reason=False):
+    item['phone'] = first_mobile(item['phone'])
     criteria = (
         (item['source_type'] == 4, 'invalid_source_type',),
         (item['city'] in [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac'], 'invalid_city'),
@@ -429,7 +453,7 @@ def is_trade_car(item, throw_reason=False):
     if item['phone'].startswith('http'):
         if '#' in tel:
             if AUTO_PHONE and tel.endswith('#0.99'):
-                tel = tel.split('#')[1]
+                tel = first_mobile(tel.split('#')[1])
         else:
             # added by y10n
             # 识别手机号码的代码中出现错误的时候如果有错误没有被处理的时候我们应该在此捕获，不影响后续的清理
@@ -439,7 +463,7 @@ def is_trade_car(item, throw_reason=False):
                 # print item['id'], tel
             except Exception as e:
                 get_task_logger('is_trade_car').error(e, exc_info=True)
-                return False, ['captcha error', e.__class__.__name__, e.message]
+                return False, ['captcha error', tel, e.message or str(e)]
 
         item['phone'] = tel
     if throw_reason:
