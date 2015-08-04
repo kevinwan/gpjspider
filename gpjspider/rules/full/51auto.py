@@ -87,6 +87,7 @@ item_rule = {
                 text(cls('breadcrumb', '/a[4]')),
             ),
             'regex': u'二手(.*)',
+            'before': u'(进口)',
         },
         'model_url': {
             'xpath': (
@@ -258,6 +259,7 @@ rule = {
         #'http://www.51auto.com/buycar/2646783.html', # 个人车源
         #'http://www.51auto.com/buycar/2646898.html', # 商家车源
         #'http://www.51auto.com/buycar/2482736.html', # 品牌车商
+        # 'http://www.51auto.com/buycar/2623865.html',  # -model_slug（进口）
     ],
     'per_page': 24,
     'pages': 3000,
@@ -270,4 +272,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
