@@ -342,6 +342,7 @@ def clean_trade_car(items):
             item_is_trade_car, codes = is_trade_car(item, True)
             if not item_is_trade_car:
                 detail = ','.join(codes)
+                del codes
                 raise CleanException('is_not_trade_car')
 
             match_bmd(item, session=session)
@@ -353,9 +354,13 @@ def clean_trade_car(items):
                 raise CleanException(push_error)
         except CleanException as e:
             code = e.message
-            for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug'.split(','):
+            for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug,url'.split(','):
                 ctx[f] = item.get(f, None)
-            get_tracker().captureException(exta=ctx)
+            if detail:
+                ctx['detail']=detail
+            del f
+            del detail
+            get_tracker().captureMessage(e.message, extra=ctx, tags={'domain':item['domain'], })
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
 
             if 0:# 暂时使用sentry记录，不在保存在本地数据库
@@ -434,7 +439,7 @@ def is_trade_car(item, throw_reason=False):
                 # print item['id'], tel
             except Exception as e:
                 get_task_logger('is_trade_car').error(e, exc_info=True)
-                return False, ['captcha error', e.message]
+                return False, ['captcha error', e.__class__.__name__, e.message]
 
         item['phone'] = tel
     if throw_reason:
