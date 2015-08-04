@@ -372,8 +372,8 @@ def clean_trade_car(items, do_not_push=False):
             del f
             del detail
             get_tracker().captureMessage(e.message, extra=ctx, tags={'domain':item['domain'], })
-            if do_not_push:
-                ipdb.set_trace()
+            # if do_not_push:
+            #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
 
             if 0:# 暂时使用sentry记录，不在保存在本地数据库
