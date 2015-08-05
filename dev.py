@@ -21,18 +21,19 @@ def main(name='test', type_='incr', update=False):
     # import ipdb;ipdb.set_trace()
     sid=None
     try:
-        sid=re.search('^\.(\d+)$', name).group(1)
+        sid=re.search(r'^\.([a-zA-Z0-9\.-]+)$', name).group(1)
     except:
         pass
 
     if sid:
-        return clean_item(int(sid))
+        if sid.isdigit():
+            return clean_item(int(sid))
+        else:
+            return clean_domain(sid)
     print '*'*80
 
     if name == '.':
         return clean_domain()
-    # elif name.endswith('.com'):
-    #     clean_domain(name)
     else:
         try:
             eval('run_%s_spider' % type_)(name, update)
