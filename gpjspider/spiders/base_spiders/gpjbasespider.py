@@ -911,20 +911,18 @@ class GPJBaseSpider(scrapy.Spider):
         # print format_rule
         if format_rule == 'no':
             format_rule = _url
-        elif '%(' in format_rule:
-            format_rule %= dict(url=_url)
-
+        # elif '%(' in format_rule:
+        #     format_rule %= dict(url=_url)
         update = url_rule.get('replace')
         if update:
             a, b = update
             format_rule = re.sub(a, b, format_rule)
-        # pdb.set_trace()
         new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
             need_format = not format_rule.startswith('http')
             for url in urls:
                 if not url.startswith('http') or need_format:
-                    if '{0}' in url:
+                    if '{0}' in format_rule:
                         url = format_rule.format(url)
                     else:
                         url = urlparse.urljoin(_url, url)
