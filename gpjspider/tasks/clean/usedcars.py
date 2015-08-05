@@ -86,7 +86,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'baixing.com',
         'taoche.com',
         '51auto.com',
-        '273.com',
+        '273.cn',
         'cn2che.com',
         'used.xcar.com.cn',
         'iautos.cn',
@@ -342,6 +342,7 @@ def clean_trade_car(items, do_not_push=False):
         session = Session()
         detail = ''
         ctx = {}
+        tags={'domain':item['domain'], }
         for f in 'title,dmodel,model_slug,brand_slug'.split(','):
             ctx['origin_%s' % f] = unicode(item.get(f, None))
         sid = str(item['id'])
@@ -355,14 +356,21 @@ def clean_trade_car(items, do_not_push=False):
 
             match_bmd(item, session=session)
             if not (item['brand_slug'] and item['model_slug']):
+                tags['Car_Model']=ctx['origin_model_slug']
+                tags['Car_Brand']=ctx['origin_brand_slug']
                 raise CleanException('empty_brand_or_model')
-
+            elif type(item['model_slug']) in (float, long, int):
+                tags['Car_Model']=ctx['origin_model_slug']
+                tags['Car_Brand']=ctx['origin_brand_slug']
+                detail=u'{} - {}'.format(item['brand_slug'], item['model_slug'])
+                raise CleanException('duplicat_brand_or_model')
             if not do_not_push:
                 pushed, push_error = push_trade_car(item, sid, session)
                 if not pushed:
                     raise CleanException(push_error)
             else:
                 print 'clean_trade_car pass', sid, item['phone']
+                print ctx['origin_brand_slug'], ctx['origin_model_slug'] , '==>', item['brand_slug'], item['model_slug']
         except CleanException as e:
             code = e.message
             for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug,url'.split(','):
@@ -371,7 +379,7 @@ def clean_trade_car(items, do_not_push=False):
                 ctx['detail']=detail
             del f
             del detail
-            get_tracker().captureMessage(e.message, extra=ctx, tags={'domain':item['domain'], })
+            get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
             # if do_not_push:
             #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
