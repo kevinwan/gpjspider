@@ -296,6 +296,8 @@ parse_rule = {
         "xpath": (
             '//dd[@class="dot"][1]/a[@href]/@href',
             url(cls('list-tabs')),
+            url(cls('advpos')),
+            url(cls('list-tit')),
             '//a[@class="next"]/@href',
         ),
         'format': True,
@@ -319,15 +321,15 @@ rule = {
         'http://cd.58.com/ershouche/',
         'http://bj.58.com/ershouche/',
         'http://nj.58.com/ershouche/',
-        'http://sh.58.com/ershouche/',
+        # 'http://sh.58.com/ershouche/',
         'http://quanguo.58.com/ershouche/',
         'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
-        'http://faw-vw.58.com/ershouche/', # 一汽大众
+        'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
         'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
-        'http://svwuc.58.com/ershouche/', # 上海大众
         'http://ghac.58.com/ershouche/?sheng=quanguo&city=qg', # 喜悦二手车、本田
         'http://chengxin.58.com/ershouche/?sheng=quanguo&city=qg', # 诚新二手车
         'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
+        # 'http://svwuc.58.com/ershouche/', # 上海大众
         # 'http://quanguo.58.com/ershouche/0/',
         # 'http://quanguo.58.com/ershouche/1/',
         # 'http://quanguo.58.com/ershouche/?xbsx=1',
