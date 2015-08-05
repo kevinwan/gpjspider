@@ -26,14 +26,12 @@ item_rule = {
             'xpath': (
                 text(
                     cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
-                #u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
             ),
         },
         'month': {
             'xpath': (
                 text(
                     cls('br', u'/span[contains(text(), "上牌时间")]/following-sibling::em')),
-                #u'//li[@class="br"]/span[contains(text(), "上牌时间")]/../em/text()',
             ),
         },
         'mile': {
@@ -41,14 +39,12 @@ item_rule = {
                 text(
                     cls('br', u'/span[contains(text(), "行驶里程")]/following-sibling::em')),
                 u'//div[@class="info"]/ul/li[2]/em//text()',
-                #u'//li[@class="br"]/span[contains(text(), "行驶里程")]/../em/text()',
             ),
         },
         'volume': {
             'xpath': (
                 text(
                     cls('br', u'/span[contains(text(), "排量")]/following-sibling::em')),
-                #u'//li[@class="br"]/span[contains(text(), "排量")]/../em/text()',
             ),
             'default': '%(title)s',
         },
@@ -61,13 +57,11 @@ item_rule = {
         'color': {
             'xpath': (
                 after_has(u"颜色"),
-                #u'//td[contains(text(), "颜色")]/following-sibling::td/text()',
             ),
         },
         'control': {
             'xpath': (
                 after_has(u"变速箱"),
-                #u'//td[contains(text(), "变速箱")]/following-sibling::td/text()',
             ),
             'default': '%(title)s',
         },
@@ -89,7 +83,7 @@ item_rule = {
         'brand_slug': {
             # 'xpath': (
             #     text(cls('car-tit', '/p/a[3]')),
-            #     text(cls("tit", '/h1')),
+            #     # text(cls("tit", '/h1')),
             # ),
             'default': '%(title)s',
         },
@@ -101,7 +95,7 @@ item_rule = {
             # ],
             # 'xpath': (
             #     text(cls('car-tit', '/p/a[4]')),
-            #     text(cls("tit", '/h1')),
+            #     # text(cls("tit", '/h1')),
             # ),
             'default': '%(title)s',
             # 'processors': ['xin.model_slug'],
@@ -115,46 +109,39 @@ item_rule = {
         'city': {
             'xpath': (
                 has(u'销售城市', '/../em', 'li/span'),
-                #u'//li/span[contains(text(), "销售城市")]/../em/text()',
             ),
         },
         'description': {
             'xpath': (
                 text(cls('test-txt', '/ul/li')),
-                # u'//div[@class="test-txt"]/ul/li/text()',
             ),
             'processors': ['join'],
         },
         'imgurls': {
             'xpath': (
                 img(cls("carimg", "/div")),
-                #'//div[@class="carimg"]/div/img/@src',
             ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
                 after_has(u'保险到期时间', 'td', 'td'),
-                #u'//td[contains(text(), "保险到期时间")]/following-sibling::td/text()',
             ),
         },
         'company_name': {
             'xpath': (
                 text(cls("newcompany", "/p")),
-                #'//div[@class="newcompany"]/p/text()',
             ),
         },
         'company_url': {
             'xpath': (
                 url(cls("newcompany")),
-                #'//div[@class="newcompany"]/a/@href',
             ),
             'format': True,
         },
         'examine_insurance': {
             'xpath': (
                 after_has(u'年检有效期'),
-                #u'//td[contains(text(), "年检有效期")]/following-sibling::td/text()',
             ),
         },
         'transfer_owner': {

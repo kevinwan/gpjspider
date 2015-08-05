@@ -110,6 +110,7 @@ item_rule = {
         },
         'is_certifield_car': {
             'default': True,
+            'default': '%(quality_service)s',
         },
         'description': {
             'xpath': (
@@ -124,22 +125,22 @@ item_rule = {
         'business_insurance': {
             'xpath': (
                 after_has(u'商业险'),
-                after_has(u'商业险到期时间'),
                 #u'//li/span[contains(text(), "商业险到期时间")]/../text()',
             ),
         },
         'imgurls': {
             'xpath': (
-                # '//div[@class="container detail-gallery"]/div//img/@src',
+                attr(cls('container detail-gallery', '/div//img'), 'data-src'),
+                attr(cls('detail-box-bg', '/img'), 'data-src'),
                 attr(cls('container detail-gallery', '/div//img'), 'src'),
-                # '//div[@class="detail-box-bg"]/img/@src'
                 attr(cls('detail-box-bg', '/img'), 'src'),
             ),
             'processors': ['join']
         },
         'quality_service': {
             'xpath': (
-                u'//td[contains(text(), "\u670d\u52a1\u9879")]/following-sibling::td//td/text()[2]',
+                # u'//td[contains(text(), "\u670d\u52a1\u9879")]/following-sibling::td//td/text()[2]',
+                text(cls('promise-desc')),
             ),
             'processors': ['join'],
         },
@@ -150,6 +151,8 @@ item_rule = {
         },
         'source_type': {
             'default': 2,
+            # 'default': 4,
+            'default': SOURCE_TYPE_GONGPINGJIA,
         },
         'city': {
             'xpath': (
@@ -200,6 +203,12 @@ item_rule = {
             ),
             'processors': ['first', 'after_colon', 'gpjtime']
         },
+        'status': {
+            'xpath': (
+                exists(id_('sold_button')),
+            ),
+            # 'processors': ['first', 'ygche.status'],
+        },
     },
 }
 
@@ -227,6 +236,7 @@ rule = {
     'pages': 300,
     'start_urls': [
         'http://www.renrenche.com/cn/ershouche',
+        # 'http://www.renrenche.com/cn/car/12c9fa44d499fb6c',
         # 'http://www.renrenche.com/cn/car/824a070287b5e14f',
         # 'http://www.renrenche.com/cn/car/2f50736befc53e8d',
         # 'http://www.renrenche.com/cn/car/882c5b51c6a00d6d',

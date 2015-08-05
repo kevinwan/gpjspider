@@ -100,8 +100,10 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 '//*[contains(@class,"listtab")]//a[@href]/@href'
 >>> text(has_cls('report-main"]', '/p[1]'))
 '//*[contains(@class,"report-main"]")]/p[1]/text()'
->>> has(u'里程', '/span')
-
+>>> attr(cls('container detail-gallery', '/div//img'), 'src')
+'//*[@class="container detail-gallery"]/div//img/@src'
+>>> img(cls('container detail-gallery', '/div/'))
+'//*[@class="container detail-gallery"]/div//img[@src]/@src'
     '''
 
 def main():

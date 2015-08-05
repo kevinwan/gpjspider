@@ -26,17 +26,21 @@ LOG_LEVEL = 'debug'
 # 不可缺少
 SCRAPY_SETTINGS = "gpjspider.scrapy_settings"
 # redis 环境，和 broker 不同
-REDIS_CLUSTERS = [
-    {"host": "127.0.0.1", "port": "6379"},
-    {"host": "192.168.190.122", "port": "6379"},
-    # {"host": "127.0.0.1", "port": "6381"},
-    {"host": "127.0.0.1", "port": "6380"}
-]
 
+import getpass
+user = getpass.getuser()
+if user == 'gpjspider':
+    from scrapy_settings import REDIS_CONFIG as REDIS_CLUSTERS
+else:
+    REDIS_CLUSTERS = [
+        {"host": "127.0.0.1", "port": "6379"},
+    ]
 
 #==============================================================================
 # celery 配置
 #==============================================================================
+
+
 class GPJRouter(object):
 
     def route_for_task(self, task, args=None, kwargs=None):
@@ -143,7 +147,7 @@ CELERYBEAT_SCHEDULE = {
     #     'schedule': crontab(hour='15', minute='25'),
     #     'kwargs': {"rule_name": "che168"},
     # },
-    # # 认证车商二手车
+    # 认证车商二手车
     # "mcc_58_car": {
     #     'task': 'run_full_spider',
     #     'schedule': crontab(hour='*/8', minute='2'),

@@ -285,6 +285,7 @@ parse_rule = {
         'xpath': (
             url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
             url(cls('txt')),
+            url(cls('t')),
             # '//div[@class="area-con01"]/ul[@class="arealist"]//div[@class="txt"]/a/@href',
         ),
         'contains': ['/ershouche/', 'shtml', 'infoid'],
@@ -293,6 +294,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
+            '//dd[@class="dot"][1]/a[@href]/@href',
             url(cls('list-tabs')),
             '//a[@class="next"]/@href',
         ),
@@ -309,15 +311,16 @@ rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
-    # TODO: update spider for support
-    'spider': {
-        'domain': '58.com',
-        'download_delay': 2.5,
-    },
+    'base_url': '',
     # 'update': True,
 
     'start_urls': [
         'http://quanguo.58.com/ershouche/',
+        'http://www.58.com/ershouche/changecity/',
+        # 'http://cd.58.com/ershouche/',
+        # 'http://bj.58.com/ershouche/',
+        # 'http://nj.58.com/ershouche/',
+        # 'http://sh.58.com/ershouche/',
         'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         'http://faw-vw.58.com/ershouche/', # 一汽大众
         'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴

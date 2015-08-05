@@ -129,8 +129,11 @@ item_rule = {
         },
         'condition_detail': {
             'xpath': (
-                "//div[@class='cd-pc']/text()[4]",
+                # "//div[@class='cd-pc']/text()[4]",
+                text(cls('ad-tit', '/')),
             ),
+            'processors': ['join'],
+            'processors': ['concat'],
         },
         'contact': {
             'xpath': (
@@ -172,11 +175,14 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                text(cls('wyno')),
+                text(cls('z-box', '/')),
+                # text(cls('wyno')),
             ),
+            'processors': ['join'],
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
+            'default': SOURCE_TYPE_GONGPINGJIA,
         },
         'driving_license': {
             'xpath': (

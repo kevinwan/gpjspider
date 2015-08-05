@@ -26,6 +26,7 @@ import math
 from gpjspider.models import UsedCar
 from gpjspider.tasks.clean.usedcars import clean, clean_normal_car
 import copy
+import urlparse
 
 
 def debug():
@@ -907,8 +908,11 @@ class GPJBaseSpider(scrapy.Spider):
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
-        if '%(' in format_rule:
+        if format_rule == True:
+            format_rule = _url
+        elif '%(' in format_rule:
             format_rule %= dict(url=_url)
+
         update = url_rule.get('replace')
         if update:
             a, b = update
@@ -919,7 +923,10 @@ class GPJBaseSpider(scrapy.Spider):
             need_format = not format_rule.startswith('http')
             for url in urls:
                 if not url.startswith('http') or need_format:
-                    url = format_rule.format(url)
+                    if '{0}' in url:
+                        url = format_rule.format(url)
+                    else:
+                        url = urlparse.urljoin(format_rule, url)
                 new_urls.add(url)
             if meta_info and isinstance(meta_info, dict):
                 for url in meta_info.keys():

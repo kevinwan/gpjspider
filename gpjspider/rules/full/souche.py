@@ -10,7 +10,6 @@ item_rule = {
         },
         'title': {
             'xpath': (
-                #'//div[@class="detail_main_info"]/div/h1/ins/text()',
                 text(cls('detail_main_info', '/div/h1/ins')),
             ),
             'required': True,
@@ -20,14 +19,12 @@ item_rule = {
         },
         'year': {
             'xpath': (
-                #'//div[@class="car_detail clearfix"]/div[1]/strong/text()',
-                text(cls('car_detail clearfix', '/div[1]/strong')),
+                text(has_cls('car_detail', '/div[1]/strong')),
             ),
         },
         'month': {
             'xpath': (
-                #'//div[@class="car_detail clearfix"]/div[1]/strong/text()',
-                text(cls('car_detail clearfix', '/div[1]/strong')),
+                text(has_cls('car_detail', '/div[1]/strong')),
             ),
         },
         'mile': {
@@ -45,37 +42,32 @@ item_rule = {
         },
         'color': {
             'xpath': (
-                #u'//th[contains(text(), "颜色")]/../td[not(@class)]/text()',
                 has(u"颜色", '/../td[not(@class)]'),
             ),
         },
         'control': {
             'xpath': (
-                #u'//th[contains(text(), "变速箱")]/../td[not(@class)]/text()',
                 has(u"变速箱", '/../td[not(@class)]'),
             ),
+            'default': '%(title)s',
         },
         'price': {
             'xpath': (
-                #'//div[@class="detail_price_left clearfix"]/em/text()',
                 text(cls('detail_price_left clearfix', '/em')),
             ),
         },
         'price_bn': {
             'xpath': (
-                #'//label[@class="new"]/text()',
                 text(cls('new')),
             ),
         },
         'brand_slug': {
             'xpath': (
-                #'//div[@class="detail-map"]/a[last()-1]/text()',
                 text(cls('detail-map', '/a[last()-1]')),
             ),
         },
         'model_slug': {
             'xpath': (
-                #'//div[@class="detail-map"]/a[last()-1]/text()',
                 text(cls('detail-map', '/a[last()]')),
             ),
             'processors': ['first', 'clean_space'],
@@ -88,35 +80,28 @@ item_rule = {
         },
         'city': {
             'xpath': (
-                #'//div[@class="item"][3]/strong/text()',
                 text(cls('item', '[3]/strong')),
             ),
         },
         'description': {
             'xpath': (
-                #'//div[@class="sub_title"]/text()',
                 text(cls('sub_title')),
             ),
             'processors': ['souche.strip_and_join'],
         },
         'imgurls': {
             'xpath': (
-                #'//ul[@class="photosSmall"]/li/img/@data-original',
                 attr(cls('photosSmall', '/li/img/'), 'data-original'),
             ),
             'processors': ['join', 'souche.imgurls'],
         },
-        'contact': {
-            'xpath': (
-                #'//a[@class="shop-name"]/text()[1]',
-                # text(cls('shop-name')),
-            ),
-            #'processors': ['souche.second'],
-            #'default': '%(company_name)s',
-        },
+        # 'contact': {
+        #     'xpath': (
+        #         text(cls('shop-name')),
+        #     ),
+        # },
         'phone': {
             'xpath': (
-                #'//div[@class="phone-num"]/text()',
                 text(cls('phone-num')),
             ),
         },
@@ -124,11 +109,9 @@ item_rule = {
             'xpath': (
                 '//a[@class="shop-name"]/text()[1]',
             ),
-            #'default': '%(contact)s',
         },
         'company_url': {
             'xpath': (
-                #'//a[@class="shop-name"]/@href',
                 attr(cls('shop-name'), 'href'),
             ),
             'format': True,
@@ -174,7 +157,6 @@ item_rule = {
             ),
         },
         'is_certifield_car': {
-            #'default': '%(quality_service)s',
             'default': True,
         },
         'source_type': {
@@ -209,6 +191,7 @@ rule = {
     'start_urls': [
         'http://www.souche.com',
         # 'http://www.souche.com/henan/list-pg4',
+        # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=ADoyq2JQbW',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=f1441335-97a3-418f-abed-f5d9c1cedfaf',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=1e7072d8-c8fc-422c-bcbc-2b0dd011ade4',
         # 'http://www.souche.com/pages/choosecarpage/choose-car-detail.html?carId=82807b3d-58ee-4ec9-a126-1a9a6a1fe424',

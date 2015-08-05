@@ -23,7 +23,7 @@ item_rule = {
             ),
         },
         'dmodel': {
-            'defautl': '%(title)s',
+            'defaut': '%(title)s',
         },
         'year': {
             'xpath': (
@@ -258,6 +258,7 @@ rule = {
     },
     'start_urls': [
         'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
+        # 'http://www.iautos.cn/usedcar/4852558.html',
         #'http://www.iautos.cn/usedcar/4812772.html', # 个人
         #'http://www.iautos.cn/usedcar/4833120.html', # 商户
         #'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
@@ -272,4 +273,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
