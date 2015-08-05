@@ -908,7 +908,8 @@ class GPJBaseSpider(scrapy.Spider):
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
-        if format_rule == True:
+        # print format_rule
+        if format_rule == 'no':
             format_rule = _url
         elif '%(' in format_rule:
             format_rule %= dict(url=_url)
@@ -926,7 +927,8 @@ class GPJBaseSpider(scrapy.Spider):
                     if '{0}' in url:
                         url = format_rule.format(url)
                     else:
-                        url = urlparse.urljoin(format_rule, url)
+                        url = urlparse.urljoin(_url, url)
+                print url
                 new_urls.add(url)
             if meta_info and isinstance(meta_info, dict):
                 for url in meta_info.keys():
