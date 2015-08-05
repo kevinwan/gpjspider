@@ -181,6 +181,15 @@ rule = {
         # 'http://haoche.ganji.com/bj/1514507784x.htm',
         # 'http://haoche.ganji.com/wh/1802111972x.htm',  # -model_slug 逍客-
         # 'http://haoche.ganji.com/bj/1802168768x.htm',  # -model_slug, 夏利A+-两厢-
+        # 'http://haoche.ganji.com/cs/1792525820x.htm',  # -model_slug 1.6L
+        # 'http://haoche.ganji.com/cd/1533562332x.htm',  # -model_slug Cabrio-2012款
+        # 'http://haoche.ganji.com/hf/1792116461x.htm',  # -model_slug Cross
+        # 'http://haoche.ganji.com/qd/1792244639x.htm',  # -model_slug 1.2
+        # 'http://haoche.ganji.com/bj/1792974854x.htm',  # -model_slug none
+        # 'http://haoche.ganji.com/xa/1655751850x.htm',  # -model_slug 1.8L自动豪华
+        # 'http://haoche.ganji.com/jn/1524333078x.htm',  # -model_slug 2007款
+        # 'http://haoche.ganji.com/hz/1524440775x.htm',  # -model_slug 2.8T柴油多功能型短轴中顶
+        # 'http://haoche.ganji.com/nj/1525397832x.htm',  # -model_slug 穿梭汽油标准版HFC4GA3
     ],
 
     'parse': parse_rule,

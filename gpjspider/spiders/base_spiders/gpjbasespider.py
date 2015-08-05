@@ -21,7 +21,7 @@ import re
 import json
 from .utils import *
 from gpjspider.utils import get_mysql_cursor
-import pdb
+import ipdb, pdb
 import math
 from gpjspider.models import UsedCar
 from gpjspider.tasks.clean.usedcars import clean, clean_normal_car
@@ -673,6 +673,8 @@ class GPJBaseSpider(scrapy.Spider):
                 if 'processors' in field:
                     processors = field['processors']
                     process_step = 'processors'
+                # if field_name == 'model_slug':
+                   # ipdb.set_trace()
                 try:
                     if field_name in processors:
                         processors.remove(field_name)
