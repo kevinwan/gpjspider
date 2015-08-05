@@ -246,15 +246,12 @@ rule = {
     'name': u'爱卡汽车',
     'domain': 'used.xcar.com.cn',
     'base_url': 'http://used.xcar.com.cn',
-    'spider': {
-        'domain': 'used.xcar.com.cn',
-        'download_delay': 2.5,
-    },
     'start_urls': [
-        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time&page=2',
-        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-1-0/?sort=f5time&page=2',
-        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-2-0/?sort=f5time&page=2',
-        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-3-0/?sort=f5time&page=2',
+        # 'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time&page=2',
+        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time',
+        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-1-0/?sort=f5time',
+        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-2-0/?sort=f5time',
+        'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-3-0/?sort=f5time',
         # 'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time&page=2', # 只能从第二页开始，第一页网站报 500 错误
         #'http://used.xcar.com.cn/personal/2652840.htm', # 个人
         #'http://used.xcar.com.cn/shop/2540895.htm', # 商家、已售

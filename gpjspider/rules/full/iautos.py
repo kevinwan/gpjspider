@@ -234,12 +234,11 @@ parse_rule = {
         ),
         #'format': True,
         'step': 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     'next_page_url': {
         "xpath": (
             has_attr2(u'下一页', 'href'),
+            url(cls('addNav', '/')),
         ),
         'format': True,
         'step': 'parse',
@@ -252,12 +251,9 @@ rule = {
     'name': u'第一车网',
     'domain': 'iautos.cn',
     'base_url': 'http://so.iautos.cn',
-    'spider': {
-        'domain': 'iautos.cn',
-        'download_delay': 2.5,
-    },
     'start_urls': [
-        'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
+        'http://so.iautos.cn/quanguo/pasds9vepcatcpbnscac/',
+        # 'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
         # 'http://www.iautos.cn/usedcar/4852558.html',
         #'http://www.iautos.cn/usedcar/4812772.html', # 个人
         #'http://www.iautos.cn/usedcar/4833120.html', # 商户

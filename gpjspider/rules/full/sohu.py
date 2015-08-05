@@ -234,8 +234,6 @@ parse_rule = {
         #'contains': ['/buycar/carinfo'],
         # 'excluded': ['/autonomous/'],
         #'processors': ['clean_anchor'],
-        # 'update': True,
-        # 'category': 'usedcar',
     },
     'next_page_url': {
         'xpath': (
