@@ -1,39 +1,53 @@
 
 #*/5 5-23,1,3 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
-#*/9+1 5-23,1,3 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
-*/19 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
-#*/19 0-8 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/8 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/26 1-9 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/9 10-23,0 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/26 10-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/9 10-23,0 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/16 1-9 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#0 0 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
 #*/9 9-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
+#*/19 0-8 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
 #5 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s. >> /tmp/gpjspider/clean.log
 
 #10 22 * * * cd /tmp/gpjspider && rm *.pid full.*.log
 #10 22 * * * rm /tmp/gpjspider/*
 
-*/25 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
-*/25 0-5 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sbaixing
-*/25 0-5 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganji
-*/25 0-5 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto
+29 0 * * * rm /tmp/gpjspider/*.*.log
+#5-55/16 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
+#5-55/12 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
+#5-55/9 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
+*/25 0-5 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sbaixing
+#*/25 0-5 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganji
+5-55/25 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganji
+25 0-5 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto
+#*/9 * * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
 #*/15 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58
-*/10 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sbaixing
-*/18 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganji
-*/12 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto
-*/12 5-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sxin
-*/18 4-23 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -ssohu
-*/18 5-23 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sygche
-*/18 5-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganjihaoche
-*/25 5-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -ssouche
-*/25 5-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -staoche
-#*/12 5-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sche168
+*/8 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sbaixing
+*/16 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s273
+#*/18 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganji
+#*/30 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto
+#30 6-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto
+*/15 5-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sxin
+#*/18 4-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -ssohu
+*/18 5-23 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sygche
+*/18 5-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganjihaoche
+*/20 5-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -ssouche
+*/15 5-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -staoche
+#*/12 5-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sche168
 
 
-*/25 8-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -shaoche51
-*/25 9-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -srenrenche
-*/25 9-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s99haoche
+*/25 8-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -shaoche51
+*/25 9-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -srenrenche
+*/25 9-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s99haoche
 
-*/25 9-22 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -syouche
-#*/25 11-21/3 * * * cd ~/git/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -scheyipai
+*/25 9-22 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -syouche
+#*/25 11-21/3 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -scheyipai
 
 #52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s58 -tfull
+52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sbaixing -tfull
+#52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -s51auto -tfull
 52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sxin -tfull
 52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -staoche -tfull
 52 */2-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -ssouche -tfull
@@ -46,3 +60,5 @@
 54 */3-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -sganjihaoche -tfull
 54 */3-1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -syouche -tfull
 #54 */6+1 * * * cd ~/projects/gpjspider && ~/.virtualenvs/gpj/bin/python dev.py -scheyipai -tfull
+
+20 0,12 * * * cd ~/projects/gpjspider.working && ~/.virtualenvs/gpj/bin/scrapy runspider gpjspider/spiders/baiduhot.py  
