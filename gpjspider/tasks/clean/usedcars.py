@@ -89,11 +89,12 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'cn2che.com',
         'used.xcar.com.cn',
         'iautos.cn',
-        # '2sc.sohu.com', match error
+        '2sc.sohu.com',
 
         # 'hx2car.com',
         # 'che168.com',
         # 'cheshi.com',
+
         # 'c.cheyipai.com',
     ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
@@ -115,7 +116,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = 'E' # E N P C
     # status = 'C'
     start_date = datetime.today()
-    # start_date -= timedelta(days=7)
+    start_date -= timedelta(days=7)
     start_time = str(start_date)[:10]
     # print start_time
     sql = session.query(UsedCar.id).filter(

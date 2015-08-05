@@ -317,10 +317,10 @@ rule = {
     # 'update': True,
 
     'start_urls': [
-        # 'http://www.58.com/ershouche/changecity/',
-        'http://cd.58.com/ershouche/',
-        'http://bj.58.com/ershouche/',
-        'http://nj.58.com/ershouche/',
+        'http://www.58.com/ershouche/changecity/',
+        # 'http://cd.58.com/ershouche/',
+        # 'http://bj.58.com/ershouche/',
+        # 'http://nj.58.com/ershouche/',
         # 'http://sh.58.com/ershouche/',
         'http://quanguo.58.com/ershouche/',
         'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
