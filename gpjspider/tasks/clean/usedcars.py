@@ -186,7 +186,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
 WORKER = 40
 WORKER = 10
 WORKER = 5
-WORKER = 2
+WORKER = 3
+# WORKER = 2
 # WORKER = 20
 # WORKER = 0
 
@@ -263,7 +264,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         checker_runtime=1
     ).filter(
         UsedCar.domain.in_(domains),
-        UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title']),
+        UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title', '-price']),
         UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']),
         or_(UsedCar.phone.like('1%'), UsedCar.phone.like('http://%')),
         UsedCar.year > 1970,
