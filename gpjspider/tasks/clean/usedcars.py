@@ -116,7 +116,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = 'E' # E N P C
     # status = 'C'
     start_date = datetime.today()
-    start_date -= timedelta(days=7)
+    # start_date -= timedelta(days=7)
     start_time = str(start_date)[:10]
     # print start_time
     sql = session.query(UsedCar.id).filter(
