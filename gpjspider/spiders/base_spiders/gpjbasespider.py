@@ -928,7 +928,7 @@ class GPJBaseSpider(scrapy.Spider):
                         url = format_rule.format(url)
                     else:
                         url = urlparse.urljoin(_url, url)
-                print url
+                # print url
                 new_urls.add(url)
             if meta_info and isinstance(meta_info, dict):
                 for url in meta_info.keys():
