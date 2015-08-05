@@ -55,7 +55,6 @@ item_rule = {
                 attr(id_('car_id'), 'value'),
             ),
             'processors': ['first', 'chemao.phone'],
-            'before': u'转',
         },
         'color': {
             'xpath': (
