@@ -255,6 +255,7 @@ rule = {
         #'http://www.cn2che.com/sellcarinfo_1921892.html', # 个人车源
         #'http://www.cn2che.com/sellcarinfo_1838726.html', # 营运车辆
         #'http://www.cn2che.com/sellcarinfo_1921509.html', # 排量 9.725L
+        # 'http://www.cn2che.com/sellcarinfo_1931169.html',
     ],
 
     'parse': parse_rule,
@@ -265,4 +266,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

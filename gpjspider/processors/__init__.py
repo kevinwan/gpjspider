@@ -388,6 +388,8 @@ True
 >>> year_month(u'已到期').endswith('-1')
 True
     '''
+    if not value:
+        return
     regx = re.compile(ur'(\d{4}).(\d{1,2})')
     a = regx.findall(value)
     if a:
