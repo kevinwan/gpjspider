@@ -565,8 +565,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
         sid = str(item['id'])
         # print sid
         try:
-            # item = preprocess_item(item, session, logger)
-            preprocess_item(item, session, logger)
+            item = preprocess_item(item, session, logger)
+            # preprocess_item(item, session, logger)
             flag = is_normalized(item, logger, funcs)
             if flag is not True:
                 logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
@@ -579,8 +579,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             # if is_dup_car(item):
             #     status['T'].append(sid)
             #     continue
-            # if is_trade_car(item):
-            #     push_trade_car(item, sid, session)
+            if is_trade_car(item):
+                push_trade_car(item, sid, session)
             if AUTO_PHONE:
                 tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
                 if tel:
@@ -701,7 +701,8 @@ def match_bmd(item, domain=None, session=None):
         item['brand_slug'] = item['model_slug'] = None
     else:
         if isinstance(gpj_category, (int, long)):
-            item['model_slug'] = gpj_category
+            item['brand_slug'] = gpj_category
+            item['model_slug'] = None
         else:
             item['brand_slug'] = gpj_category.parent
             item['model_slug'] = gpj_category.slug
@@ -732,7 +733,13 @@ def is_normalized(item, logger, funcs=None):
     try:
         for func in funcs:
             if not func(item, logger):
-                return '-%s' % func.__name__
+                step = func.__name__
+                error = '-%s' % step
+                if step == 'model_slug':
+                    bs = item['brand_slug']
+                    if isinstance(bs, int):
+                        error += str(bs)
+                return error
         return True
     except Exception as e:
         print e, item.get(func.__name__)
@@ -910,8 +917,6 @@ def imgurls(item, logger):
     imgurls = item.get('imgurls')
     item['imgurls'] = souche.imgurls(imgurls)
     return imgurls and 'nopic' not in imgurls
-
-# funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
 
 # ==============================================================================
 # 数据库操作
