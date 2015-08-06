@@ -156,6 +156,7 @@ class GPJBaseSpider(scrapy.Spider):
                 min_id = min(first_ids)
                 max_id = max(last_ids)
                 clean(min_id, max_id, [self.domain])
+                session.close()
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
@@ -962,8 +963,7 @@ class GPJBaseSpider(scrapy.Spider):
         return new_urls
 
     def save_request(self, requests, url_category):
-        Session = get_mysql_connect()
-        session = Session()
+        session = self.Session()
         request_model = RequestModel()
         for request in requests:
             request_model = RequestModel()
@@ -988,4 +988,4 @@ class GPJBaseSpider(scrapy.Spider):
             else:
                 self.log(
                     u'Save request {0}'.format(request_model.url), log.INFO)
-            session.close()
+        session.close()
