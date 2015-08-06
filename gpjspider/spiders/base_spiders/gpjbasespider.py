@@ -933,8 +933,8 @@ class GPJBaseSpider(scrapy.Spider):
                 if not url.startswith('http') or need_format:
                     if '{0}' in format_rule:
                         url = format_rule.format(url)
-                    elif format_rule == True:
-                    # elif format_rule:
+                    # elif format_rule == True:
+                    elif format_rule:
                         url = urlparse.urljoin(format_rule, url)
                         # url = urlparse.urljoin(_url, url)
                 # print url

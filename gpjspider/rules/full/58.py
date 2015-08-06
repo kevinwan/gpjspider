@@ -161,7 +161,7 @@ item_rule = {
                 href(cls('dianpu_link')),
                 url(id_('jxs')),
             ),
-            'format': True,
+            # 'format': True,
         },
         # 'driving_license': {
         #     'xpath': (
@@ -296,8 +296,8 @@ parse_rule = {
         "xpath": (
             '//dd[@class="dot"][1]/a[@href]/@href',
             url(cls('list-tabs')),
-            url(cls('advpos')),
-            url(cls('list-tit')),
+            # url(cls('advpos')),
+            # url(cls('list-tit')),
             '//a[@class="next"]/@href',
         ),
         'format': True,
@@ -314,10 +314,12 @@ rule = {
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
     'base_url': '',
+    'base_url': '%(url)s',
     # 'update': True,
 
     'start_urls': [
         # 'http://www.58.com/ershouche/changecity/',
+        # 'http://cd.58.com/ershouche/',
         'http://quanguo.58.com/ershouche/',
         # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
@@ -366,6 +368,7 @@ rule = {
         # 'http://bj.58.com/ershouche/22646499851428x.shtml',
         # 'http://sjz.58.com/ershouche/22779478418210x.shtml',
         # 'http://zz.58.com/ershouche/22679581563812x.shtml',
+        # 'http://bj.58.com/ershouche/22891432673056x.shtml',
     ],
 
     'parse': parse_rule,
@@ -375,5 +378,5 @@ rule = {
     }
 }
 
-fmt_rule_urls(rule)
+# fmt_rule_urls(rule)
 # rule['parse'] = rule['parse_detail']
