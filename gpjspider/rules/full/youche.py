@@ -226,8 +226,12 @@ item_rule = {
 
 parse_rule = {
     "url": {
-        "xpath": (
-            '//ul[@class="ulConListPro"]/li/div/a/@href',
+        # "xpath": (
+        #     '//ul[@class="ulConListPro"]/li/div/a/@href',
+        # ),
+        "re": (
+            # r'http://www\.51auto\.com/buycar/\d+\.html',
+            r'http://www\.youche\.com/detail/\d+\.shtml',
         ),
         "step": 'parse_detail',
     },
