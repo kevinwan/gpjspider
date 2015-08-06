@@ -138,7 +138,7 @@ CLEAN_ITEM_CACHE_NUM = 30
 MYSQL_SQLALCHEMY_URL = {
     'drivername':   'mysql+mysqldb',
     'username':     'pingjia',
-    'password':     'De32wsxc',  # De32wsxc de32Wsxc
+    'password':     'De32wsxC',
     # 'host':         '211.149.206.212',
     # 'port':         '3306',
     'host':         '192.168.214.46',
