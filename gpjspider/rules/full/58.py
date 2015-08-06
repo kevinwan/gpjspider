@@ -322,7 +322,7 @@ rule = {
         # 'http://bj.58.com/ershouche/',
         # 'http://nj.58.com/ershouche/',
         # 'http://sh.58.com/ershouche/',
-        'http://quanguo.58.com/ershouche/',
+        # 'http://quanguo.58.com/ershouche/',
         # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
         # 'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴

@@ -326,7 +326,9 @@ def push_trade_car(item, sid, session):
         session.add(car)
         session.commit()
         session.query(UsedCar).filter_by(id=sid).update(
-            dict(checker_runtime_id=0, status='_t'), synchronize_session=False)
+            dict(checker_runtime_id=0,
+                # status='_t'
+                ), synchronize_session=False)
         return True, 'ok'
     except IntegrityError:
         session.rollback()
