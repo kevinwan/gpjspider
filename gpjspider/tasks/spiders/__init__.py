@@ -41,7 +41,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
     scrapy_setting = get_project_settings()
     scrapy_setting.set('LOG_ENABLED', True, priority='cmdline')
     scrapy_setting.set('LOG_FILE', logfile, priority='cmdline')
-    scrapy_setting.set('LOG_LEVEL', self.log_level.run_update_spider(), priority='cmdline')
+    scrapy_setting.set('LOG_LEVEL', self.log_level.upper(), priority='cmdline')
     jobdir = os.path.join(scrapy_setting.get('JOBDIR'), domain)
     # job_queue = os.path.join(jobdir, 'requests.queue')
     is_full = rule_name.startswith('full')
