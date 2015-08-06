@@ -691,7 +691,7 @@ def phone(value):
     '''
     if value and len(value) >= 10:
         if value.startswith('http://'):
-            # return value
+            return value
             try:
                 phone_info = ConvertPhonePic2Num(value).find_possible_num()
                 value += '#%s#%s' % phone_info

@@ -71,12 +71,12 @@ item_rule = {
                 text(cls('font46 color_ffffff font_weight')),
             ),
         },
-        'price_bn': {
-            'xpath': (
-                text(id_('carInfo_price_xcsf', '/em')),
-            ),
-            'default': '%(description)s',
-        },
+        # 'price_bn': {
+        #     'xpath': (
+        #         text(id_('carInfo_price_xcsf', '/em')),
+        #     ),
+        #     'default': '%(description)s',
+        # },
         'brand_slug': {
             'xpath': (
                 text(id_('carbrands')),
@@ -111,9 +111,9 @@ item_rule = {
         },
         'city': {
             'xpath': (
+                text(has_cls('breadCrumb', '//a[1]')),
                 text(has_cls('address')),
                 text(id_('curCity')),
-                text(cls('breadCrumb f12', '/*[1]/a')),
                 # '//meta[@name="location"]/@content',
             ),
             # 'processors': ['first', '58.city'],
@@ -318,9 +318,9 @@ rule = {
     # 'update': True,
 
     'start_urls': [
-        # 'http://www.58.com/ershouche/changecity/',
+        'http://www.58.com/ershouche/changecity/',
         # 'http://cd.58.com/ershouche/',
-        'http://quanguo.58.com/ershouche/',
+        # 'http://quanguo.58.com/ershouche/',
         # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
         # 'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
