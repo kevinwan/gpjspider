@@ -113,6 +113,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = 'I'
     # status = '-model_slug'
     # status = '_'
+    # status = '_t'
     # status = 'E' # E N P C
     # status = 'C'
     start_date = datetime.today()
