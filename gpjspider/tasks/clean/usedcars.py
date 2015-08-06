@@ -204,7 +204,8 @@ WORKER = 3
 def clean(min_id, max_id, domains=None, status='Y', session=None):
     # print min_id, max_id
     # base query
-    session = session or Session()
+    # session = session or Session()
+    session = Session()
     domains = domains or []
     base_query = session.query(UsedCar).filter(
         UsedCar.id >= min_id, UsedCar.id <= max_id,
@@ -272,6 +273,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         UsedCar.mile < 200
     )
     pool_run(trade_cars, clean_trade_car)
+    # session.close()
 
 def clean_item(item_id):
     query = Session().query(UsedCar).filter_by(id=item_id)
