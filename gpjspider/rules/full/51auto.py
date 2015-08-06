@@ -227,7 +227,7 @@ parse_rule = {
         'format': True,
         'format': '{url}',
         'format': '%(url)s',
-        'format': 'no',
+        # 'format': 'no',
         'regex': '(\d+)',
         'replace': ['(curentPage=\d+)', 'curentPage={0}'],
         "step": 'parse',

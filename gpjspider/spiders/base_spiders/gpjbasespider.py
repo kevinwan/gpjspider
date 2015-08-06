@@ -909,10 +909,10 @@ class GPJBaseSpider(scrapy.Spider):
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
         # print format_rule
-        if format_rule == 'no':
+        if format_rule == True:
             format_rule = _url
-        # elif '%(' in format_rule:
-        #     format_rule %= dict(url=_url)
+        elif '%(' in format_rule:
+            format_rule %= dict(url=_url)
         update = url_rule.get('replace')
         if update:
             a, b = update
