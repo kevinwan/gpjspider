@@ -252,8 +252,8 @@ rule = {
     # 'update': True,
 
     'start_urls': [
-        # 'http://www.ygche.com.cn/city.html',
-        'http://www.ygche.com.cn/detail/cd1047760.html',
+        'http://www.ygche.com.cn/city.html',
+        # 'http://www.ygche.com.cn/detail/cd1047760.html',
         # 'http://www.ygche.com.cn/nanning/list/',
         # 'http://www.ygche.com.cn/detail/gz1047261.html',
         # 'http://www.ygche.com.cn/detail/wh1047696.html',
@@ -292,4 +292,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
