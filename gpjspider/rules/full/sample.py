@@ -14,6 +14,7 @@ item_rule = {
         # OPT as follow:
         # a 避免标点    b 保持格式的统一与整洁
         # c smart tricks instead of more codes
+        # d less processors
 
         'title': {
             'xpath': (

@@ -95,6 +95,18 @@ item_rule = {
             # 'regex': u'.*二手(.*)'
             'after': u'二手',
         },
+        'model_url': {
+            'xpath': (
+                href(cls("crumbs", "/a[4]")),
+            ),
+            # 'xpath': [
+            #     href(cls("crumbs", "/a[1]")),
+            #     href(cls("crumbs", "/a[4]")),
+            # ],
+            'format': True,
+            # 'format': '%(url)s',
+            # 'processors': ['concat'],
+        },
         'city': {
             'xpath': (
                 text(cls("crumbs", "/a[2]")),
@@ -236,6 +248,8 @@ list_rule = {
 rule = {
     'name': u'好车无忧',
     'domain': 'haoche51.com',
+    # 'base_url': '',
+    # 'base_url': '%(url)s',
     'start_urls': [
         'http://bj.haoche51.com',
         # 'http://bj.haoche51.com/vehicle_list/p66.html',
@@ -243,6 +257,7 @@ rule = {
         # 'http://nj.haoche51.com/details/24703.html',
         # 'http://sh.haoche51.com/details/29401.html',
         # 'http://bj.haoche51.com/details/20936.html',
+        # 'http://zz.haoche51.com/details/41917.html',
     ],
     'per_page': 20,
     'pages': 250,
@@ -264,5 +279,6 @@ rule = {
         "item": item_rule
     },
 }
+# fmt_rule_urls(rule)
 
 # rule['parse'] = rule['parse_detail']
