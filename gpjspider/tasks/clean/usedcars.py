@@ -1019,6 +1019,7 @@ def insert_to_carimage(item, car_source, session, logger):
             car_image = CarImage(car=car_source)
         car_image.image = img
         try:
+            # with session.begin_nested()
             session.merge(car_image)
             session.commit()
             logger.debug(u'Add CarImage {0}'.format(img))
