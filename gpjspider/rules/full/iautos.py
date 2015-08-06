@@ -259,6 +259,7 @@ rule = {
         #'http://www.iautos.cn/usedcar/4833120.html', # 商户
         #'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
         #'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
+        # 'http://www.iautos.cn/usedcar/3262730.html',
     ],
 
     'parse': parse_rule,

@@ -35,6 +35,7 @@ if LOCAL_REDIS:
 __engine = None
 from sqlalchemy.pool import NullPool
 
+
 def get_mysql_engine():
     global __engine
     if not __engine:
@@ -43,14 +44,11 @@ def get_mysql_engine():
         # timeout = 10
         # timeout = 3600
         url = URL(**MYSQL_SQLALCHEMY_URL)
-        # __engine = sa.create_engine(url, poolclass=NullPool)
         __engine = sa.create_engine(
-            # url, pool_recycle=timeout, pool_size=20, max_overflow=100,
-            # echo_pool=False, echo=False)
-            url,
+            url, echo_pool=False, echo=False,
             poolclass=NullPool,
             # pool_recycle=timeout, pool_timeout=0, pool_size=1, max_overflow=0,
-            echo_pool=False, echo=False, )
+        )
         sa.event.listen(__engine, 'checkout', handle_checkout_event)
     return __engine
 
