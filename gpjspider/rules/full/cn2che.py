@@ -224,8 +224,6 @@ parse_rule = {
         ),
         #'format': True,
         'step': 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     'next_page_url': {
         "xpath": (
@@ -243,11 +241,8 @@ rule = {
     'name': u'中国二手车城',
     'domain': 'cn2che.com',
     'base_url': 'http://www.cn2che.com',
-    'spider': {
-        'domain': 'cn2che.com',
-        'download_delay': 2.5,
-    },
     'start_urls': [
+        'http://www.cn2che.com/buycar/cccpcmp1bcrmplos2/',
         'http://www.cn2che.com/buycar/cccpcmp1bcrmp1lo3s2/', # 全国、最新发布倒序、只看有图
         #'http://www.cn2che.com/sellcarinfo_1872380.html', # 排量 6.7L、已删除
         #'http://www.cn2che.com/sellcarinfo_1921877.html', # 排量 2996mL、在售、年检
@@ -255,6 +250,7 @@ rule = {
         #'http://www.cn2che.com/sellcarinfo_1921892.html', # 个人车源
         #'http://www.cn2che.com/sellcarinfo_1838726.html', # 营运车辆
         #'http://www.cn2che.com/sellcarinfo_1921509.html', # 排量 9.725L
+        # 'http://www.cn2che.com/sellcarinfo_1931169.html',
     ],
 
     'parse': parse_rule,
@@ -265,4 +261,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

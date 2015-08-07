@@ -23,7 +23,7 @@ item_rule = {
             ),
         },
         'dmodel': {
-            'defautl': '%(title)s',
+            'defaut': '%(title)s',
         },
         'year': {
             'xpath': (
@@ -234,12 +234,11 @@ parse_rule = {
         ),
         #'format': True,
         'step': 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     'next_page_url': {
         "xpath": (
             has_attr2(u'下一页', 'href'),
+            url(cls('addNav', '/')),
         ),
         'format': True,
         'step': 'parse',
@@ -252,16 +251,15 @@ rule = {
     'name': u'第一车网',
     'domain': 'iautos.cn',
     'base_url': 'http://so.iautos.cn',
-    'spider': {
-        'domain': 'iautos.cn',
-        'download_delay': 2.5,
-    },
     'start_urls': [
-        'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
+        'http://so.iautos.cn/quanguo/pasds9vepcatcpbnscac/',
+        # 'http://so.iautos.cn/quanguo/pasdsvepcatcp1bnscac/', # 全国、只看有图
+        # 'http://www.iautos.cn/usedcar/4852558.html',
         #'http://www.iautos.cn/usedcar/4812772.html', # 个人
         #'http://www.iautos.cn/usedcar/4833120.html', # 商户
         #'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
         #'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
+        # 'http://www.iautos.cn/usedcar/3262730.html',
     ],
 
     'parse': parse_rule,
@@ -272,4 +270,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

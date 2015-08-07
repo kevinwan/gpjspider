@@ -207,9 +207,9 @@ rule = {
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
     'start_urls': [
-        'http://china.baixing.com/ershouqiche/?imageFlag=1&todayOnly=1',
-        'http://china.baixing.com/ershouqiche/?imageFlag=1&todayOnly=1&cheshang=1', # 品牌车商
-        'http://china.baixing.com/ershouqiche/koala_1/?imageFlag=1&todayOnly=1', # 考拉二手车
+        'http://china.baixing.com/ershouqiche/?todayOnly=1',
+        'http://china.baixing.com/ershouqiche/?todayOnly=1&cheshang=1', # 品牌车商
+        'http://china.baixing.com/ershouqiche/koala_1/?todayOnly=1', # 考拉二手车
         # 'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
         # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
         # 'http://nanning.baixing.com/ershouqiche/a751473084.html',

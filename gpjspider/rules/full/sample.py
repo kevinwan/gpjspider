@@ -14,6 +14,7 @@ item_rule = {
         # OPT as follow:
         # a 避免标点    b 保持格式的统一与整洁
         # c smart tricks instead of more codes
+        # d less processors
 
         'title': {
             'xpath': (
@@ -236,6 +237,13 @@ item_rule = {
             'default': '{item}', # offer item for processors to handle
             'processors': ['58.source_type'],
         },
+        'status': {
+            'xpath': (
+                text(id_('sold_button')),
+                text(cls('already-buy')),
+            ),
+            # 'processors': ['first', 'ygche.status'],
+        },
     },
 }
 
@@ -293,3 +301,6 @@ rule = {
 fmt_rule_urls(rule)
 # 本地测试详情页面用
 # rule['parse'] = rule['parse_detail']
+{
+    'no model_url': 'rr ',
+}

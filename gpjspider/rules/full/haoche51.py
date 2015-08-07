@@ -95,6 +95,18 @@ item_rule = {
             # 'regex': u'.*二手(.*)'
             'after': u'二手',
         },
+        'model_url': {
+            'xpath': (
+                href(cls("crumbs", "/a[4]")),
+            ),
+            # 'xpath': [
+            #     href(cls("crumbs", "/a[1]")),
+            #     href(cls("crumbs", "/a[4]")),
+            # ],
+            'format': True,
+            # 'format': '%(url)s',
+            # 'processors': ['concat'],
+        },
         'city': {
             'xpath': (
                 text(cls("crumbs", "/a[2]")),
@@ -122,6 +134,7 @@ item_rule = {
         'imgurls': {
             'xpath': (
                 '//ul[@class="mrd_ul"]/li/a/img/@data-original',
+                '//div[@class="dtl-wrap scroll-anchor pmatrix"]/*/ul/li/img/@src',
                 # '//div[@class="dt-pictype"]/img/@data-original',
             ),
             # 'processors': ['join', 'raw_imgurls'],
@@ -129,8 +142,12 @@ item_rule = {
         },
         'condition_detail': {
             'xpath': (
-                "//div[@class='cd-pc']/text()[4]",
+                # "//div[@class='cd-pc']/text()[4]",
+                text(cls('ad-tit', '/')),
+                "//div[@class='checker-text']/text()[2]",
             ),
+            'processors': ['join'],
+            'processors': ['concat'],
         },
         'contact': {
             'xpath': (
@@ -147,18 +164,21 @@ item_rule = {
         'mandatory_insurance': {
             'xpath': (
                 has(u"交强险有效期", prefix="ul/li"),
+                has(u"交强险有效期", prefix="tr/td"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "交强")]/text()',
             ),
         },
         'business_insurance': {
             'xpath': (
                 has(u"商业险有效期", prefix="ul/li"),
+                has(u"商业险有效期", prefix="td"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "商业")]/text()',
             ),
         },
         'examine_insurance': {
             'xpath': (
                 has(u"年检有效期", prefix="ul/li"),
+                has(u"年检有效期", prefix="td"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "年检")]/text()',
             ),
         },
@@ -172,15 +192,19 @@ item_rule = {
         },
         'quality_service': {
             'xpath': (
-                text(cls('wyno')),
+                text(cls('z-box', '/')),
+                # text(cls('wyno')),
             ),
+            'processors': ['join'],
         },
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
+            'default': SOURCE_TYPE_GONGPINGJIA,
         },
         'driving_license': {
             'xpath': (
                 has(u"行驶证", prefix="li"),
+                has(u"行驶证", prefix="td"),
                 #u'//li[contains(text(), "行驶证")]/text()',
             ),
             # 'processors': ['first', 'haoche51.driving_license'],
@@ -189,6 +213,7 @@ item_rule = {
         'invoice': {
             'xpath': (
                 has(u"购车发票", prefix="li"),
+                has(u"购车发票", prefix="td"),
                 #u'//li[contains(text(), "购车发票")]/text()',
             ),
             # 'processors': ['first', 'haoche51.invoice'],
@@ -223,6 +248,8 @@ list_rule = {
 rule = {
     'name': u'好车无忧',
     'domain': 'haoche51.com',
+    # 'base_url': '',
+    # 'base_url': '%(url)s',
     'start_urls': [
         'http://bj.haoche51.com',
         # 'http://bj.haoche51.com/vehicle_list/p66.html',
@@ -230,6 +257,7 @@ rule = {
         # 'http://nj.haoche51.com/details/24703.html',
         # 'http://sh.haoche51.com/details/29401.html',
         # 'http://bj.haoche51.com/details/20936.html',
+        # 'http://zz.haoche51.com/details/41917.html',
     ],
     'per_page': 20,
     'pages': 250,
@@ -251,5 +279,6 @@ rule = {
         "item": item_rule
     },
 }
+# fmt_rule_urls(rule)
 
 # rule['parse'] = rule['parse_detail']

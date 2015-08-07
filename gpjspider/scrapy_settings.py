@@ -59,6 +59,8 @@ DOWNLOAD_DELAY = 0.25
 # DOWNLOAD_DELAY = 1.75
 # DOWNLOAD_DELAY = 1.5
 DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 3.2
+# DOWNLOAD_DELAY = 4
 # RANDOMIZE_DOWNLOAD_DELAY = True
 
 # 性能调优
@@ -134,18 +136,15 @@ CLEAN_ITEM_CACHE_NUM = 30
 # 数据库配置
 #==============================================================================
 MYSQL_SQLALCHEMY_URL = {
-    'drivername':    'mysql+mysqldb',
-    'username': 'pingjia',
-    'password': 'de32Wsxc', #De32wsxc
-    'host': '101.251.105.186',
-    # 'username':      'pingjia',
-    # 'password':      'De32wsxc',
-    # 'host':          '211.149.206.212',
-    'port':          '3306',
-    # 'host':          '211.149.214.46',
-    # 'port':          '8066',
-    'database':      'pingjia',
-    'query':         {'charset': 'utf8'},
+    'drivername':   'mysql+mysqldb',
+    'username':     'pingjia',
+    'password':     'De32wsxC',
+    # 'host':         '211.149.206.212',
+    # 'port':         '3306',
+    'host':         '192.168.214.46',
+    'port':          '8066',
+    'database':     'pingjia',
+    'query':        {'charset': 'utf8'},
 }
 
 

@@ -241,8 +241,6 @@ rule = {
             ),
             'step': 'parse_detail',
             # 'format': '{0}?page=72',
-            # 'update': True,
-            # 'category': 'usedcar',
         },
         'next_page_url': {
             'xpath': (

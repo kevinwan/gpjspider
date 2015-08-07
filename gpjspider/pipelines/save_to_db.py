@@ -96,6 +96,7 @@ class SaveToMySQLBySqlalchemyPipeline(object):
         else:
             item['id'] = o.id
             spider.log(u'Saved Item: {0}'.format(url))
+        session.close()
         # TODO: clean fields
         for field_name in item.fields.keys():
             item[field_name] = getattr(o, field_name)

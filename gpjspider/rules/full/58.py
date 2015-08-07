@@ -71,12 +71,12 @@ item_rule = {
                 text(cls('font46 color_ffffff font_weight')),
             ),
         },
-        'price_bn': {
-            'xpath': (
-                text(id_('carInfo_price_xcsf', '/em')),
-            ),
-            'default': '%(description)s',
-        },
+        # 'price_bn': {
+        #     'xpath': (
+        #         text(id_('carInfo_price_xcsf', '/em')),
+        #     ),
+        #     'default': '%(description)s',
+        # },
         'brand_slug': {
             'xpath': (
                 text(id_('carbrands')),
@@ -111,9 +111,9 @@ item_rule = {
         },
         'city': {
             'xpath': (
+                text(has_cls('breadCrumb', '//a[1]')),
                 text(has_cls('address')),
                 text(id_('curCity')),
-                text(cls('breadCrumb f12', '/*[1]/a')),
                 # '//meta[@name="location"]/@content',
             ),
             # 'processors': ['first', '58.city'],
@@ -161,7 +161,7 @@ item_rule = {
                 href(cls('dianpu_link')),
                 url(id_('jxs')),
             ),
-            'format': True,
+            # 'format': True,
         },
         # 'driving_license': {
         #     'xpath': (
@@ -285,6 +285,7 @@ parse_rule = {
         'xpath': (
             url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
             url(cls('txt')),
+            url(cls('t')),
             # '//div[@class="area-con01"]/ul[@class="arealist"]//div[@class="txt"]/a/@href',
         ),
         'contains': ['/ershouche/', 'shtml', 'infoid'],
@@ -293,7 +294,10 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
+            '//dd[@class="dot"][1]/a[@href]/@href',
             url(cls('list-tabs')),
+            # url(cls('advpos')),
+            # url(cls('list-tit')),
             '//a[@class="next"]/@href',
         ),
         'format': True,
@@ -309,22 +313,21 @@ rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
-    # TODO: update spider for support
-    'spider': {
-        'domain': '58.com',
-        'download_delay': 2.5,
-    },
+    'base_url': '',
+    'base_url': '%(url)s',
     # 'update': True,
 
     'start_urls': [
+        # 'http://www.58.com/ershouche/changecity/',
+        # 'http://cd.58.com/ershouche/',
         'http://quanguo.58.com/ershouche/',
-        'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
-        'http://faw-vw.58.com/ershouche/', # 一汽大众
-        'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
-        'http://svwuc.58.com/ershouche/', # 上海大众
-        'http://ghac.58.com/ershouche/?sheng=quanguo&city=qg', # 喜悦二手车、本田
-        'http://chengxin.58.com/ershouche/?sheng=quanguo&city=qg', # 诚新二手车
-        'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
+        # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
+        # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
+        # 'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
+        # 'http://ghac.58.com/ershouche/?sheng=quanguo&city=qg', # 喜悦二手车、本田
+        # 'http://chengxin.58.com/ershouche/?sheng=quanguo&city=qg', # 诚新二手车
+        # 'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
+        # 'http://svwuc.58.com/ershouche/', # 上海大众
         # 'http://quanguo.58.com/ershouche/0/',
         # 'http://quanguo.58.com/ershouche/1/',
         # 'http://quanguo.58.com/ershouche/?xbsx=1',
@@ -365,6 +368,7 @@ rule = {
         # 'http://bj.58.com/ershouche/22646499851428x.shtml',
         # 'http://sjz.58.com/ershouche/22779478418210x.shtml',
         # 'http://zz.58.com/ershouche/22679581563812x.shtml',
+        # 'http://bj.58.com/ershouche/22891432673056x.shtml',
     ],
 
     'parse': parse_rule,
@@ -374,5 +378,5 @@ rule = {
     }
 }
 
-fmt_rule_urls(rule)
+# fmt_rule_urls(rule)
 # rule['parse'] = rule['parse_detail']

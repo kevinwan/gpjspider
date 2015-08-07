@@ -224,8 +224,6 @@ parse_rule = {
         ),
         'format': True,
         "step": 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     "next_page_url": {
         "xpath": (
@@ -242,16 +240,13 @@ rule = {
     'name': u'华夏二手车',
     'domain': 'hx2car.com',
     'base_url': 'http://hx2car.com',
-    'spider': {
-        'domain': 'hx2car.com',
-        'download_delay': 2.5,
-    },
     'start_urls': [
-        'http://hx2car.com/car/verify/f0010000ytdzsejckbmgl100000',
-        'http://hx2car.com/car/essence/f0010000ytdzsejckbmgl100000',
-        'http://hx2car.com/car/personal/f0010000ytdzsejckbmgl100000',
-        'http://hx2car.com/car/stores/f0010000ytdzsejckbmgl100000',
-        'http://hx2car.com/car/tradeallcar/f0010000ytdzsejckbmgl100000',
+        # 'http://hx2car.com/car/verify/f0010000ytdzsejckbmgl100000',
+        'http://hx2car.com/car/verify/f0000000ytdzsejckbmgl100000',
+        'http://hx2car.com/car/essence/f0000000ytdzsejckbmgl100000',
+        'http://hx2car.com/car/personal/f0000000ytdzsejckbmgl100000',
+        'http://hx2car.com/car/stores/f0000000ytdzsejckbmgl100000',
+        'http://hx2car.com/car/tradeallcar/f0000000ytdzsejckbmgl100000',
         # 'http://hx2car.com/car/search.htm', # 列表首页、初审
         #'http://hx2car.com/details/143127330', # 个人二手车
         #'http://hx2car.com/details/142977479', # 精品二手车

@@ -13,3 +13,4 @@ docs/.build/
 sftp-config.json
 *test.py
 *schedule
+fabfile.py

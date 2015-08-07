@@ -313,7 +313,7 @@ Decimal('6.8')
         value = re.sub(',', '', value)
         if not u'万' in value:
             v = extract(value, ur'(\d+|[\d\.]{3,})公里', float)
-            v /= 10000
+            # v /= 10000
         else:
             v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', float)
         v = str(v)
@@ -388,6 +388,8 @@ True
 >>> year_month(u'已到期').endswith('-1')
 True
     '''
+    if not value:
+        return
     regx = re.compile(ur'(\d{4}).(\d{1,2})')
     a = regx.findall(value)
     if a:

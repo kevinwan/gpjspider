@@ -26,6 +26,7 @@ import math
 from gpjspider.models import UsedCar
 from gpjspider.tasks.clean.usedcars import clean, clean_normal_car
 import copy
+import urlparse
 
 
 def debug():
@@ -155,6 +156,7 @@ class GPJBaseSpider(scrapy.Spider):
                 min_id = min(first_ids)
                 max_id = max(last_ids)
                 clean(min_id, max_id, [self.domain])
+                session.close()
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
@@ -737,8 +739,18 @@ class GPJBaseSpider(scrapy.Spider):
                             )
                             self.log(m, log.WARNING)
                     if 'format' in field and not value.startswith('http') and value.startswith('/'):
-                        value = field['format'].format(value)
-                except:
+                        fmt_rule = field['format']
+                        if fmt_rule == True:
+                            fmt_rule = response.url
+                        elif isinstance(fmt_rule, str) and '%(' in fmt_rule:
+                            fmt_rule %= dict(url=_url)
+                        if '{0}' in fmt_rule:
+                            value = fmt_rule.format(value)
+                        if fmt_rule:
+                            value = urlparse.urljoin(fmt_rule, value)
+                        # ipdb.set_trace()
+                except Exception as e:
+                    print e
                     pass
                 if field_name == item_rule.get('debug'):
                     pdb.set_trace()
@@ -907,19 +919,26 @@ class GPJBaseSpider(scrapy.Spider):
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
-        if '%(' in format_rule:
+        if format_rule == True:
+            format_rule = _url
+        elif isinstance(format_rule, str) and '%(' in format_rule:
             format_rule %= dict(url=_url)
         update = url_rule.get('replace')
         if update:
             a, b = update
             format_rule = re.sub(a, b, format_rule)
-        # pdb.set_trace()
         new_urls, del_urls = set(), set()
         if isinstance(format_rule, basestring):
             need_format = not format_rule.startswith('http')
             for url in urls:
                 if not url.startswith('http') or need_format:
-                    url = format_rule.format(url)
+                    if '{0}' in format_rule:
+                        url = format_rule.format(url)
+                    # elif format_rule == True:
+                    elif format_rule:
+                        url = urlparse.urljoin(format_rule, url)
+                        # url = urlparse.urljoin(_url, url)
+                # print url
                 new_urls.add(url)
             if meta_info and isinstance(meta_info, dict):
                 for url in meta_info.keys():
@@ -944,8 +963,7 @@ class GPJBaseSpider(scrapy.Spider):
         return new_urls
 
     def save_request(self, requests, url_category):
-        Session = get_mysql_connect()
-        session = Session()
+        session = self.Session()
         request_model = RequestModel()
         for request in requests:
             request_model = RequestModel()
@@ -970,4 +988,4 @@ class GPJBaseSpider(scrapy.Spider):
             else:
                 self.log(
                     u'Save request {0}'.format(request_model.url), log.INFO)
-            session.close()
+        session.close()

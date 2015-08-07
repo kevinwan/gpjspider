@@ -36,11 +36,11 @@ item_rule = {
             ),
             'regex': u'(\d{1,2})月',
         },
-        #'time': {
-            #'xpath': (
-                #text(cls('f10 pr-5')),
-            #),
-        #},
+        # 'time': {
+        # 'xpath': (
+        # text(cls('f10 pr-5')),
+        # ),
+        # },
         'mile': {
             'xpath': (
                 before_has(u'行驶里程'),
@@ -139,14 +139,14 @@ item_rule = {
             ),
             'regex': u'过户发票：(.*)',
         },
-        #'maintenance_record': {
-            #'xpath': (
-                #_has(u'保养方式'),
-            #),
-        #},
+        # 'maintenance_record': {
+        # 'xpath': (
+        # _has(u'保养方式'),
+        # ),
+        # },
         'quality_service': {
             'xpath': (
-               '//*[@class="section-safe"]/span//text()',
+                '//*[@class="section-safe"]/span//text()',
             ),
             'processors': ['join'],
         },
@@ -167,11 +167,11 @@ item_rule = {
             ),
             'regex': u'交强险截止日期：(.*)',
         },
-        #'business_insurance': {
-            #'xpath': (
-                #_has(u'商业险'),
-            #),
-        #},
+        # 'business_insurance': {
+        # 'xpath': (
+        # _has(u'商业险'),
+        # ),
+        # },
         'examine_insurance': {
             'xpath': (
                 has(u'车辆年审'),
@@ -185,11 +185,11 @@ item_rule = {
             'regex': u'过户次数：(.*)',
         },
         'is_certifield_car': {
-             'default': False,
-             'default': '%(quality_service)s',
-             'default_fail': None,
+            'default': False,
+            'default': '%(quality_service)s',
+            'default_fail': None,
         },
-        'source_type': { # 本网站含 品牌认证、商家认证、个人二手车
+        'source_type': {  # 本网站含 品牌认证、商家认证、个人二手车
             'xpath': (
                 '//title/text()',
             ),
@@ -201,10 +201,10 @@ item_rule = {
             ),
             'regex': u'车辆用途：(.*)',
         },
-        #'condition_level': {
-            #'xpath':(
-            #),
-        #},
+        # 'condition_level': {
+        #     'xpath':(
+        #     ),
+        # },
         'condition_detail': {
             'xpath': (
                 has_attr2(u'准新车', 'title'),
@@ -227,6 +227,7 @@ parse_rule = {
         'format': True,
         'format': '{url}',
         'format': '%(url)s',
+        # 'format': 'no',
         'regex': '(\d+)',
         'replace': ['(curentPage=\d+)', 'curentPage={0}'],
         "step": 'parse',
@@ -239,25 +240,21 @@ rule = {
     'name': u'51汽车',
     'domain': '51auto.com',
     'base_url': 'http://www.51auto.com',
-    'spider': {
-        'domain': '51auto.com',
-        'download_delay': 2.5,
-    },
     'start_urls': [
-        # 'http://www.51auto.com/quanguo/pabmdcig0f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=2',
-        'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
-        'http://www.51auto.com/quanguo/pabmdcig1f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
-        'http://www.51auto.com/quanguo/pabmdcig2f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
-        'http://www.51auto.com/quanguo/pabmdcig0f?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
-        # # 'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2&page=10',
+        # 'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig1f?searchtype=searcarlist&orderValue=record_time&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig2f?searchtype=searcarlist&orderValue=record_time&curentPage=1&isgotopage=1',
+        'http://www.51auto.com/quanguo/pabmdcig0f?searchtype=searcarlist&orderValue=record_time&curentPage=1&isgotopage=1',
+        # 'http://www.51auto.com/quanguo/search/?img=y&onsale=y&ordering=publishTime&direction=2&page=10',
         # 'http://hx2car.com/car/search.htm?carFlag=essence&more=f0010000ytdzsejckbmgl100000',
-        #'http://www.51auto.com/buycar/2618559.html',
-        #'http://www.51auto.com/buycar/2622130.html', # 准新车，有商家检测
-        #'http://www.51auto.com/buycar/2645362.html', # 无相关检测
-        #'http://www.51auto.com/buycar/2641587.html', # 商家、过户次数未知、无检测
-        #'http://www.51auto.com/buycar/2646783.html', # 个人车源
-        #'http://www.51auto.com/buycar/2646898.html', # 商家车源
-        #'http://www.51auto.com/buycar/2482736.html', # 品牌车商
+        # 'http://www.51auto.com/buycar/2618559.html',
+        # 'http://www.51auto.com/buycar/2622130.html', # 准新车，有商家检测
+        # 'http://www.51auto.com/buycar/2645362.html', # 无相关检测
+        # 'http://www.51auto.com/buycar/2641587.html', # 商家、过户次数未知、无检测
+        # 'http://www.51auto.com/buycar/2646783.html', # 个人车源
+        # 'http://www.51auto.com/buycar/2646898.html', # 商家车源
+        # 'http://www.51auto.com/buycar/2482736.html', # 品牌车商
         # 'http://www.51auto.com/buycar/2623865.html',  # -model_slug（进口）
     ],
     'per_page': 24,

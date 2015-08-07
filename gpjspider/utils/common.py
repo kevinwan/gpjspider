@@ -28,3 +28,12 @@ def create_incr_spider_class(class_name, spider_name):
 
 def create_update_spider_class(class_name, spider_name):
     return type(class_name, (GPJUpdateSpider,), {'name': spider_name})
+
+
+import md5
+
+
+def _md5(value):
+    m = md5.new()
+    m.update(value)
+    return m.hexdigest()

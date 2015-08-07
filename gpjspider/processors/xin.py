@@ -43,6 +43,4 @@ def source_type(value):
     #     return SOURCE_TYPE_MANUFACTURER
 
 def status(value):
-    import ipdb; ipdb.set_trace()
-    print value
     return value and 'Q' or 'Y'

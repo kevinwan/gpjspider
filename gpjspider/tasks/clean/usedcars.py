@@ -71,7 +71,6 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     session = Session()
     cursor = get_cursor(session)
     domains = domain and [domain] or [
-        # 'c.cheyipai.com',
         'xin.com',
         'haoche.ganji.com',
         '99haoche.com',
@@ -86,15 +85,17 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'baixing.com',
         'taoche.com',
         '51auto.com',
-        '273.com',
+        '273.cn',
         'cn2che.com',
         'used.xcar.com.cn',
         'iautos.cn',
+        '2sc.sohu.com',
 
         # 'hx2car.com',
         # 'che168.com',
         # 'cheshi.com',
-        # '2sc.sohu.com',
+
+        # 'c.cheyipai.com',
     ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)
@@ -112,6 +113,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = 'I'
     # status = '-model_slug'
     # status = '_'
+    # status = '_t'
     # status = 'E' # E N P C
     # status = 'C'
     start_date = datetime.today()
@@ -161,6 +163,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # min_id, max_id = 21877164, 21877165
     # min_id, max_id = 22857674, 22857684
     # min_id, max_id = 23628009, 23818197
+    # min_id, max_id = 23627225, 23798031
     # min_id = 23778888
     # max_id = 23778889
     # id_range = 2000
@@ -184,7 +187,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
 WORKER = 40
 WORKER = 10
 WORKER = 5
-WORKER = 2
+WORKER = 3
+# WORKER = 2
 # WORKER = 20
 # WORKER = 0
 
@@ -200,7 +204,8 @@ WORKER = 2
 def clean(min_id, max_id, domains=None, status='Y', session=None):
     # print min_id, max_id
     # base query
-    session = session or Session()
+    # session = session or Session()
+    session = Session()
     domains = domains or []
     base_query = session.query(UsedCar).filter(
         UsedCar.id >= min_id, UsedCar.id <= max_id,
@@ -261,13 +266,14 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         checker_runtime=1
     ).filter(
         UsedCar.domain.in_(domains),
-        UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title']),
+        UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title', '-price']),
         UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']),
         or_(UsedCar.phone.like('1%'), UsedCar.phone.like('http://%')),
         UsedCar.year > 1970,
         UsedCar.mile < 200
     )
     pool_run(trade_cars, clean_trade_car)
+    # session.close()
 
 def clean_item(item_id):
     query = Session().query(UsedCar).filter_by(id=item_id)
@@ -282,7 +288,7 @@ def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
     if not remain:
         return
-    print remain
+    # print remain
     # psize = 30
     # psize = 60
     # psize = 100
@@ -323,7 +329,9 @@ def push_trade_car(item, sid, session):
         session.add(car)
         session.commit()
         session.query(UsedCar).filter_by(id=sid).update(
-            dict(checker_runtime_id=0, status='_t'), synchronize_session=False)
+            dict(checker_runtime_id=0,
+                # status='_t'
+                ), synchronize_session=False)
         return True, 'ok'
     except IntegrityError:
         session.rollback()
@@ -342,6 +350,7 @@ def clean_trade_car(items, do_not_push=False):
         session = Session()
         detail = ''
         ctx = {}
+        tags={'domain':item['domain'], }
         for f in 'title,dmodel,model_slug,brand_slug'.split(','):
             ctx['origin_%s' % f] = unicode(item.get(f, None))
         sid = str(item['id'])
@@ -355,14 +364,21 @@ def clean_trade_car(items, do_not_push=False):
 
             match_bmd(item, session=session)
             if not (item['brand_slug'] and item['model_slug']):
+                tags['Car_Model']=ctx['origin_model_slug']
+                tags['Car_Brand']=ctx['origin_brand_slug']
                 raise CleanException('empty_brand_or_model')
-
+            elif type(item['model_slug']) in (float, long, int):
+                tags['Car_Model']=ctx['origin_model_slug']
+                tags['Car_Brand']=ctx['origin_brand_slug']
+                detail=u'{} - {}'.format(item['brand_slug'], item['model_slug'])
+                raise CleanException('duplicat_brand_or_model')
             if not do_not_push:
                 pushed, push_error = push_trade_car(item, sid, session)
                 if not pushed:
                     raise CleanException(push_error)
             else:
                 print 'clean_trade_car pass', sid, item['phone']
+                print ctx['origin_brand_slug'], ctx['origin_model_slug'] , '==>', item['brand_slug'], item['model_slug']
         except CleanException as e:
             code = e.message
             for f in 'domain,id,volume,phone,city,source_type,model_slug,brand_slug,url'.split(','):
@@ -371,7 +387,7 @@ def clean_trade_car(items, do_not_push=False):
                 ctx['detail']=detail
             del f
             del detail
-            get_tracker().captureMessage(e.message, extra=ctx, tags={'domain':item['domain'], })
+            get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
             # if do_not_push:
             #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
@@ -470,12 +486,67 @@ def is_trade_car(item, throw_reason=False):
         return True, []
     return True
 
+from gpjspider.utils import get_redis_cluster
+redis = get_redis_cluster()
+
+def is_dup_psid(psid):
+    clean_count = redis.zincrby('clean_psid', psid)
+    if clean_count > 3:
+        print psid, clean_count
+    return clean_count > 1
+
+def is_dup_car(item):
+    '''
+    1. get car_hash
+    2. if in cur_* set
+    3.  add car_hash in cur_date set,
+        # had dur_key set: [cur_date, cur_week, cur_month, cur_year] #, last_year
+        had clean_psid zcard: [psid, psid, ...]
+        had dur_key set: [cur_date, cur_week, cur_month, cur_year] #, last_year
+        update dur_hset: {cur_date, cur_week, cur_month, cur_year}
+        add %(cur_date)s+car_hash list: [ps_id, ps_id, ...]
+    '''
+    from gpjspider.utils.common import _md5
+    # time = item['time'] or item['created_on']
+    # check ps id
+    psid = item['id']
+    check_psid = False
+    if is_dup_psid(psid) and check_psid:
+        return True
+    time = datetime.today()
+    cur_date = str(time)[:10]
+    # week_num = time.isocalendar()[1]
+    # cur_week = '%s_%s' % (time.year, week_num)
+    # cur_month = cur_date[:7]
+    # cur_year = time.year
+    # last_year = time.year - 1
+    car_info = '%(brand_slug)s#%(model_slug)s#%(city)s#%(year)s#%(mile)s#%(price)s' % item
+    car_md5 = _md5(car_info)
+    # keys = [cur_date, cur_week, cur_month, cur_year] #, last_year
+    keys = redis.lrange('dur_keys', 0, -1)
+    dur_key = None
+    for key in keys:
+        if redis.sismember(key, car_md5):
+            dur_key = key
+            break
+
+    # add car md5 for new car
+    if not dur_key:
+        dur_key = keys[0]
+        redis.sadd(cur_date, car_md5)
+
+    info_key = 'info_' + dur_key
+    if not redis.hsetnx(info_key, car_md5, psid):
+        # record dup car info
+        old = redis.hmget(info_key, car_md5)
+        redis.hsetnx(info_key, car_md5, '%s %s' % (old, psid))
+        redis.zincrby('stats_dup_car', car_md5)
+        return True
+
 
 def clean_normal_car(items):
-    # global funcs
     funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
     clean_usedcar(items, False, funcs)
-is_good = True
 
 
 @app.task(name="clean_usedcar", bind=True, base=GPJSpiderTask)
@@ -489,8 +560,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
         'P': [],
         'E': [],
         'S': [],
+        'T': [],
     }
-    # global is_good
     global AUTO_PHONE
     for item in items:
         if isinstance(item, UsedCarItem):
@@ -500,8 +571,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
         sid = str(item['id'])
         # print sid
         try:
-            # item = preprocess_item(item, session, logger)
-            preprocess_item(item, session, logger)
+            item = preprocess_item(item, session, logger)
+            # preprocess_item(item, session, logger)
             flag = is_normalized(item, logger, funcs)
             if flag is not True:
                 logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
@@ -511,6 +582,9 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                         status[key] = []
                     status[key].append(sid)
                 continue
+            # if is_dup_car(item):
+            #     status['T'].append(sid)
+            #     continue
             if is_trade_car(item):
                 push_trade_car(item, sid, session)
             if AUTO_PHONE:
@@ -559,7 +633,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             # return
             if not car_source:
                 logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
-                s = 'S'
+                # s = 'S'
             else:
                 logger.error(u'清理source.id={0}成功'.format(sid))
                 s = 'C'
@@ -578,6 +652,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
 
 
 def get_province_by_city(city, session=None):
+    # redis.hmget('city', city)
     res = get_cursor(session).execute(
         'SELECT b.name FROM open_city a, open_city b WHERE a.name="%s" and a.parent=b.id;' % city).fetchone()
     return res[0] if res else None
@@ -586,6 +661,7 @@ def get_province_by_city(city, session=None):
 def preprocess_item(item, session, logger):
     # todo: 将 city 进行匹配
     if item.get('city'):
+        # add cache for c p
         item['city'] = item['city'].strip(u' 市')
         province = get_province_by_city(item['city'], session)
         if province:
@@ -624,14 +700,15 @@ def preprocess_item(item, session, logger):
 def match_bmd(item, domain=None, session=None):
     domain = domain or item['domain']
     gpj_category = get_gpj_category(
-        item['brand_slug'], item['model_slug'], domain, item.get('model_url'), session)
+        item['brand_slug'], item['model_slug'], domain, session, item.get('model_url'))
     if not gpj_category:
         # logger.warning(u'No match model for: {0},{1},{2}'.format(
             # item['brand_slug'], item['model_slug'], domain))
         item['brand_slug'] = item['model_slug'] = None
     else:
         if isinstance(gpj_category, (int, long)):
-            item['model_slug'] = gpj_category
+            item['brand_slug'] = gpj_category
+            item['model_slug'] = None
         else:
             item['brand_slug'] = gpj_category.parent
             item['model_slug'] = gpj_category.slug
@@ -662,7 +739,13 @@ def is_normalized(item, logger, funcs=None):
     try:
         for func in funcs:
             if not func(item, logger):
-                return '-%s' % func.__name__
+                step = func.__name__
+                error = '-%s' % step
+                if step == 'model_slug':
+                    bs = item['brand_slug']
+                    if isinstance(bs, int):
+                        error += str(bs)
+                return error
         return True
     except Exception as e:
         print e, item.get(func.__name__)
@@ -841,8 +924,6 @@ def imgurls(item, logger):
     item['imgurls'] = souche.imgurls(imgurls)
     return imgurls and 'nopic' not in imgurls
 
-# funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
-
 # ==============================================================================
 # 数据库操作
 # ==============================================================================
@@ -869,19 +950,21 @@ def insert_to_carsource(item, session, logger):
         gpj_index = get_gpj_index(item['price'], eval_price)
         add_extra_cols(car_source, gpj_index, eval_price)
     try:
+        # query = session.query(CarSource.id).filter_by(url=car_source.url)
+        # if query.count():
+        #     car_source.id = query.first().id
+        #     session.merge(car_source)
+        # else:
         session.add(car_source)
-        # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
-        # session.merge(car_source)
         session.commit()
     except IntegrityError:
         session.rollback()
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
-        car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
-        # car_source = session.query(CarSource).filter_by(url=car_source.url).first()
-        # car_source.thumbnail = item['thumbnail']
-        session.merge(car_source)
-        session.commit()
+        car_source = session.query(CarSource).filter_by(url=car_source.url).first()
+        # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
+        # session.merge(car_source)
+        # session.commit()
     except Exception as e:
         session.rollback()
         print e
@@ -938,7 +1021,9 @@ def insert_to_carimage(item, car_source, session, logger):
             car_image = CarImage(car=car_source)
         car_image.image = img
         try:
+            # with session.begin_nested()
             session.merge(car_image)
+            session.commit()
             logger.debug(u'Add CarImage {0}'.format(img))
         except IntegrityError:
             session.rollback()
@@ -947,7 +1032,6 @@ def insert_to_carimage(item, car_source, session, logger):
             session.rollback()
             logger.error(
                 u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
-    session.commit()
     logger.info(u'Saved CarImages for car_source: {0}'.format(car_source.id))
 
 
