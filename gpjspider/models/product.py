@@ -270,6 +270,7 @@ class CarSource(Base):
     mile = Column(DECIMAL(precision=5, scale=2), doc=u'行驶里程')
     year = Column(Integer, nullable=True, default=2000, doc=u'上牌年份')
     month = Column(Integer, nullable=True, default=6, doc=u'上牌月份')
+    dealer_id = Column(Integer, nullable=True, default=0, doc=u'匹配的商家')
     control = Column(String(32), index=True, nullable=True, doc=u'变速箱')
     city = Column(String(50), index=True, nullable=True, doc=u'城市')
     price = Column(

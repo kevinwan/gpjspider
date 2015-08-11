@@ -35,6 +35,13 @@ import json
 AUTO_PHONE = False
 
 
+class CleanException(Exception):
+    pass
+
+class MatchDealerException(Exception):
+    pass
+
+
 class async(object):
 
     ''' Decorator that turns a callable function into a thread.'''
@@ -63,6 +70,56 @@ def log(msg, *args):
         print arg,
     print ''
 
+
+@app.task(name="update_sell_dealer", bind=True, base=GPJSpiderTask)
+def update_sell_dealer(self, item_id):
+    session = Session()
+    item = session.query(CarSource).filter_by(id=item_id).first().__dict__
+    try:
+        item.update(session.query(CarDetailInfo).filter_by(car_id=item_id).first().__dict__)
+    except:
+        pass
+    dealer_id = None
+    msg = ''
+    try:
+        dealer_id = match_dealer(item, reraise=True)
+    except Exception as e:
+        msg=e.message
+        
+    if dealer_id:
+        session.query(CarSource).filter_by(id=item_id).update(dict(dealer_id=dealer_id), synchronize_session=False)          
+        log('[update_sell_dealers]updated', item_id,  dealer_id)
+    else:
+        dealer_id = 0
+        if not msg:
+            msg='not_enough_infomation'
+        log('[update_sell_dealers]fail', item_id, msg)      
+    session.close()
+
+@app.task(name="update_sell_dealers", bind=True, base=GPJSpiderTask)
+def update_sell_dealers(self, step=5, limit=None, async=False):
+    log('update sell dealers')
+    session = Session()
+    cursor = get_cursor(session)
+    base_query = session.query(CarSource.id)
+    min_id = base_query.order_by(CarSource.pub_time.asc()).limit(1).scalar()
+    max_id = base_query.order_by(CarSource.pub_time.desc()).limit(1).scalar()
+    # step = 5
+    log('min_id', min_id)
+    log('max_id', max_id)
+    i=0
+    for row in base_query.filter(CarSource.id>=min_id, CarSource.id<=max_id, CarSource.dealer_id==0).order_by(CarSource.id.asc()).yield_per(step):
+        # log('processing ', row.id)
+        item_id = str(row.id)
+        if async:
+            update_sell_dealer.delay(item_id)
+        else:
+            update_sell_dealer(item_id)
+        i+=1
+        if limit and i>limit:
+            break
+    log('done, close connection')
+    session.close()
 
 @app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
 # def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
@@ -275,6 +332,67 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     pool_run(trade_cars, clean_trade_car)
     # session.close()
 
+
+def match_dealer(item, reraise=False):
+    '''
+    根据数据的车商名字和城市来匹配到具体的raw_sell_dealer然后更新数据的这条信息
+    '''
+    try:
+        if not (item['city'] and item['company_name']):
+            return None
+    except:
+        return None
+    from gpjspider.models.usedcars import RawSellDealer
+    session = Session()
+    ctx= dict(company_name=item['company_name'])
+    tags={
+        'city':item['city'],
+        'domain':item['domain'],
+        'operation':'MatchDealer',
+    }
+    dealer_id = None
+    try:
+        query = session.query(RawSellDealer.dealer_id).filter(
+            RawSellDealer.city==item['city'], 
+            RawSellDealer.domain==item['domain'], 
+            or_(
+                RawSellDealer.company_name==item['company_name'],  
+                RawSellDealer.company_name=="'%s'" % item['company_name']
+            )
+        )
+        cnt = query.count()
+        
+        if cnt<1:
+            raise MatchDealerException('NoMatchedRawSeller')
+        elif cnt>1:
+            ctx['count']=cnt
+            raise MatchDealerException('DuplicateRawSeller')
+        # when cnt==1 we go on
+        dealer_id = query.scalar()
+        if not dealer_id:
+            raise MatchDealerException('EmptyRawSeller')
+    except MatchDealerException as e:
+        get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
+        if reraise:
+            raise e
+        print e.message
+        for k, v in ctx.items():
+            print k, v
+        for k, v in tags.items():
+            print k, v            
+    except Exception as e:
+        get_tracker().captureException(extra=ctx, tags=tags)  
+        if reraise:
+            raise e        
+        print e.message
+    finally:
+        session.close()
+    if not reraise:
+        print dealer_id
+    return dealer_id
+
+
+
 def clean_item(item_id):
     query = Session().query(UsedCar).filter_by(id=item_id)
     print 'try to clean item', item_id
@@ -283,6 +401,19 @@ def clean_item(item_id):
         items.append(item.__dict__)
         print item.__dict__
     clean_trade_car(items, do_not_push=True)
+
+
+def match_item_dealer(item_id):
+    query = Session().query(UsedCar).filter_by(id=item_id)
+    print 'try to match delaer for item', item_id
+    items=[]
+    for item in query:
+        items.append(item.__dict__)
+        # print item.__dict__
+        ditem = item.__dict__
+        print ditem['id'], ditem['city'], ditem['company_name'], ditem['domain']
+        ditem['dealer_id']=match_dealer(ditem)
+    print 'done'
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
@@ -342,8 +473,6 @@ def push_trade_car(item, sid, session):
         return False, e.message
 
 
-class CleanException(Exception):
-    pass
 
 def clean_trade_car(items, do_not_push=False):
     for item in items:
@@ -945,6 +1074,12 @@ def insert_to_carsource(item, session, logger):
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
     # add qs_tags, eval_price, gpj_index
     car_source.qs_tags = get_qs_tags(item.get('quality_service'))
+    
+    # 根据数据的基本信息，从数据库中匹配商家信息
+    try:
+        car_source.dealer_id = match_dealer(item, reraise=True)
+    except:
+        pass
     eval_price = get_eval_price(item)
     if eval_price:
         gpj_index = get_gpj_index(item['price'], eval_price)

@@ -120,3 +120,26 @@ class UsedCar(Base):
     source = Column("source_id", Integer, default=1)
     detail_model = Column("detail_model_id", Integer, default=None)
     checker_runtime = Column("checker_runtime_id", Integer, default=1)
+
+
+
+
+class RawSellDealer(Base):
+    """
+    商家匹配
+    """
+    __tablename__ = u'raw_sell_dealer'
+
+    id = Column(Integer, primary_key=True)
+    dealer_id = Column(Integer, doc=u'匹配的id', nullable=True, )
+    company_name = Column(String(50), nullable=True, doc=u'名称')
+    company_url = Column(String(500), nullable=True, default='')
+    city = Column(String(32), nullable=True, doc=u'城市')
+    contact = Column(String(32), nullable=True, doc=u'联系人')
+    phone = Column(String(32), nullable=True, doc=u'电话')
+    address = Column(String(256), nullable=True, doc=u'详细地址')
+    domain = Column(String(32), nullable=True, doc=u'来源网站')
+    status = Column(Integer, doc=u'状态', default=0)
+
+    def __unicode__(self):
+        return u'<RawSellDealer {0} {1} - {2} >'.format(self.company_name, self.city, self.dealer_id)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import re
 from gpjspider.tasks.spiders import *
-from gpjspider.tasks.clean.usedcars import clean_domain, clean_item
+from gpjspider.tasks.clean.usedcars import clean_domain, clean_item, match_item_dealer
 import argparse
 
 
@@ -25,14 +25,20 @@ def parse_args():
 def main(name='test', type_='incr', update=False):
     # import ipdb;ipdb.set_trace()
     sid = None
+    act = None
     try:
-        sid = re.search(r'^\.([a-zA-Z0-9\.-]+)$', name).group(1)
+        act,sid = re.search(r'^(\.|%)([a-zA-Z0-9\.-]+)$', name).groups()
     except:
         pass
 
-    if sid:
+    print act, sid
+    if act and sid:
         if sid.isdigit():
-            return clean_item(int(sid))
+            if act=='.':
+                method = clean_item
+            elif act=='%':
+                method = match_item_dealer
+            return method(int(sid))
         else:
             return clean_domain(sid)
     print '*' * 80
