@@ -21,8 +21,6 @@ if __name__ == '__main__':
         from gpjspider.tasks.clean.usedcars import update_dup_car
         from gpjspider.models.product import CarSource
         from gpjspider.utils import get_mysql_connect
-        from gpjspider.utils import get_redis_cluster
-        redis = get_redis_cluster()
         session = get_mysql_connect()()
         sql='''
         SELECT
@@ -42,6 +40,7 @@ if __name__ == '__main__':
         for row in session.execute(sql):
             for item_id in row[2].split(','):
                 update_dup_car(CarSource.__name__, item_id)
+            break
         min_id = session.query(CarSource.id).order_by(CarSource.id.asc()).limit(1).scalar()
         max_id = session.query(CarSource.id).order_by(CarSource.id.desc()).limit(1).scalar()
         print 'car_source min_id: ', min_id, ' max_id: ', max_id

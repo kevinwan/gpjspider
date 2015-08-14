@@ -314,6 +314,8 @@ class CarSource(Base):
 
     @classmethod
     def mark_offline(cls, session, old_item_ids=None):
+        from gpjspider.utils.misc import  filter_item_ids
+        old_item_ids = filter_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
             # 旧的标记未已经下线，把新的标记未上线
             session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='review'), synchronize_session=False)

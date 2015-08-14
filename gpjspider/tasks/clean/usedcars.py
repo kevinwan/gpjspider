@@ -23,6 +23,8 @@ from gpjspider.utils.constants import QINIU_IMG_BUCKET
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
 from gpjspider.processors import souche
+from gpjspider.utils.misc import filter_item_ids
+
 import threading
 import re
 try:
@@ -120,12 +122,16 @@ def test_dup_car():
     for item in items:
         clean_item(item['id'])
 
+REDIS_DUP_SIG_KEY='dup_car_sig_%s'
+REDIS_DUP_STAT_KEY='dup_car_stat'
+REDIS_DUP_CHECKED_KEY='dup_car_checked'
+
 @app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
 def update_dup_car(self, klass_name, item_id):
-    if redis.sismember('dup_checked', item_id):
+    if redis.sismember(REDIS_DUP_CHECKED_KEY, item_id):
         log('[update_dup_car]checked', item_id)
         return
-    redis.sadd('dup_checked', item_id)
+    redis.sadd(REDIS_DUP_CHECKED_KEY, item_id)
     found=False
     for klass in DUP_CAR_CHECK_TYPES:
         if klass_name==klass.__name__:
@@ -138,14 +144,14 @@ def update_dup_car(self, klass_name, item_id):
     if row is None:
         raise Exception('%s<%s> not exists' % (klass.__name__, item_id))
     item=row.__dict__
-    old_item_ids = get_dup_car_items(item)
+    old_item_ids = get_dup_car_items(item, klass_name)
+    old_item_ids = filter_item_ids(old_item_ids, klass_name)
     if old_item_ids:
         klass.mark_duplicate(session, item_id, old_item_ids)
         log('[update_dup_car]duplicate', item_id, ','.join(map(str, old_item_ids)))
     else:
         log('[update_dup_car]pass', item_id)
     session.close()
-
 
 @app.task(name="update_dup_cars", bind=True, base=GPJSpiderTask)
 def update_dup_cars(self, step=5, limit=None, async=False):
@@ -717,14 +723,15 @@ def make_item_sig(item):
 
 
 
-def get_dup_car_items(item):
+def get_dup_car_items(item, klass_name):
     detail, sig = make_item_sig(item)
-    rk = 'dupcar_%s' % sig
-    if redis.exists(rk) and redis.sismember(rk, item['id']):
-        redis.zincrby('dupcar_stat', sig)
+    rk = REDIS_DUP_SIG_KEY % sig
+    item_id = '%s:%s' % (klass_name, item['id'])
+    if redis.exists(rk) and redis.sismember(rk, item_id):
+        redis.zincrby(REDIS_DUP_STAT_KEY, sig)
     else:
-        redis.sadd(rk, item['id'])
-    return [i for i in redis.smembers(rk) if not i==str(item['id'])]
+        redis.sadd(rk, item_id)
+    return [i for i in redis.smembers(rk) if not i==item_id]
 
 def is_dup_car_redis2(item):
     detail, sig = make_item_sig(item)
