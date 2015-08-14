@@ -3,7 +3,7 @@
 二手车模型
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, CHAR
 from sqlalchemy import Boolean, DateTime, Enum, DECIMAL
 from gpjspider.utils.constants import SOURCE_TYPE_OLD_SPIDER
 
@@ -143,3 +143,19 @@ class RawSellDealer(Base):
 
     def __unicode__(self):
         return u'<RawSellDealer {0} {1} - {2} >'.format(self.company_name, self.city, self.dealer_id)
+#
+# class CarFingerprint(Base):
+#     """
+#     车辆指纹数据
+#     """
+#     __tablename__ = u'car_fingerprint'
+#
+#     id = Column(Integer, primary_key=True)
+#     detail = Column(String(500), nullable=False, default='', doc=u'详细数据')
+#     sig = Column(CHAR(32), unique=True, nullable=False, doc=u'摘要指纹')
+#     cnt = Column(Integer, doc=u'数量', default=0)
+#
+#     def __unicode__(self):
+#         return u'<CarFingerprint {0} {1} >'.format(self.defailt, self.cnt)
+#
+
