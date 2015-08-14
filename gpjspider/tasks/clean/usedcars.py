@@ -122,9 +122,9 @@ def test_dup_car():
     for item in items:
         clean_item(item['id'])
 
-REDIS_DUP_SIG_KEY='1dup_car_sig_%s'
-REDIS_DUP_STAT_KEY='1dup_car_stat'
-REDIS_DUP_CHECKED_KEY='1dup_car_checked'
+REDIS_DUP_SIG_KEY='dup_car_sig_%s'
+REDIS_DUP_STAT_KEY='dup_car_stat'
+REDIS_DUP_CHECKED_KEY='dup_car_checked'
 
 @app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
 def update_dup_car(self, klass_name, item_id):
@@ -712,7 +712,6 @@ def is_dup_psid(psid):
 
 def make_item_sig(item):
     from gpjspider.utils.common import _md5
-    # print item
     if not item.has_key('brand_slug'):
         item['brand_slug'] = item['brand']
     if not item.has_key('model_slug'):
@@ -723,7 +722,7 @@ def make_item_sig(item):
 
 
 
-def get_dup_car_items(item, klass_name):
+def get_dup_car_items(item, klass_name='UsedCar'):
     detail, sig = make_item_sig(item)
     rk = REDIS_DUP_SIG_KEY % sig
     item_id = '%s:%s' % (klass_name, item['id'])
@@ -851,7 +850,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             flag = is_normalized(item, logger, funcs)
             if flag is not True:
                 logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
-                print 'flag not match'
+                log('flag not match',sid)
                 if sid:
                     key = flag if isinstance(flag, basestring) else 'P'
                     if key not in status:
@@ -868,19 +867,19 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             old_item_ids = get_dup_car_items(item)
             if old_item_ids:
                 status['T'].append(sid)
-                print 'IS_DUP_CAR', old_item_ids
+                log('IS_DUP_CAR', old_item_ids ,sid)
                 get_tracker().captureMessage('IS_DUP_CAR', extra=item)
             item_is_trade_car,errors=is_trade_car(item, True)
             if item_is_trade_car:
                 if old_item_ids and TradeCar.last_dup_item_is_alive(session, old_item_ids):
                     # 重复车源，旧的车源还在存活期类，则不进入
-                    log('duplicated and old item is alive, no push_trade_car')
+                    log('duplicated and old item is alive, no push_trade_car',sid)
                     pass
                 else:
-                    log('new item, do push_trade_car')
+                    log('new item, do push_trade_car',sid)
                     push_trade_car(item, sid, session)
             else:
-                log('is_trade_car, false', errors)
+                log('is_trade_car, false', errors,sid)
             if AUTO_PHONE:
                 tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
                 if tel:
@@ -922,7 +921,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             # upload_imgs(item, logger)
             if old_item_ids:
                 # 重复的旧的车源标记为下线
-                log('duplicated,mark old items as offline before insert_to_carsource')
+                log('duplicated,mark old items as offline before insert_to_carsource',sid)
                 CarSource.mark_offline(session, old_item_ids)
             # 保存到产品表
             car_source = insert_to_carsource(item, session, logger)
@@ -1270,14 +1269,14 @@ def insert_to_carsource(item, session, logger):
         # session.commit()
     except Exception as e:
         session.rollback()
-        print e
+        print e,item['id']
         # raise
         logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
         return
     else:
         logger.info(u'Saved car_source {0}'.format(car_source.url))
-    insert_to_cardetailInfo(item, car_source, session, logger)
-    insert_to_carimage(item, car_source, session, logger)
+        insert_to_cardetailInfo(item, car_source, session, logger)
+        insert_to_carimage(item, car_source, session, logger)
     return car_source
 
 
