@@ -32,6 +32,11 @@ except ImportError:
 from time import sleep
 import requests
 import json
+from gpjspider.utils import get_redis_cluster
+redis = get_redis_cluster()
+Session = get_mysql_connect()
+
+
 AUTO_PHONE = False
 # 需要检查去重的产品表
 DUP_CAR_CHECK_TYPES=(
@@ -75,7 +80,6 @@ class async(object):
         thread.start()
         return True
 
-Session = get_mysql_connect()
 
 
 def log(msg, *args):
@@ -118,6 +122,10 @@ def test_dup_car():
 
 @app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
 def update_dup_car(self, klass_name, item_id):
+    if redis.sismember('dup_checked', item_id):
+        log('[update_dup_car]checked', item_id)
+        return
+    redis.sadd('dup_checked', item_id)
     found=False
     for klass in DUP_CAR_CHECK_TYPES:
         if klass_name==klass.__name__:
@@ -688,8 +696,7 @@ def is_trade_car(item, throw_reason=False):
         return True, []
     return True
 
-from gpjspider.utils import get_redis_cluster
-redis = get_redis_cluster()
+
 
 def is_dup_psid(psid):
     clean_count = redis.zincrby('clean_psid', psid)
