@@ -314,18 +314,20 @@ class CarSource(Base):
 
     @classmethod
     def mark_offline(cls, session, old_item_ids=None):
-        from gpjspider.utils.misc import  filter_item_ids
-        old_item_ids = filter_item_ids(old_item_ids, cls.__name__)
+        from gpjspider.utils.misc import  conver_item_ids
+        old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
-            # 旧的标记未已经下线，把新的标记未上线
+            # 旧的标记下线
             session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='review'), synchronize_session=False)
+            return True
+        return False
 
     @classmethod
     def mark_duplicate(cls, session, item_id, old_item_ids=None):
         if old_item_ids:
             # 旧的标记未已经下线，把新的标记未上线
-            cls.mark_offline(session, old_item_ids)
-            session.query(cls).filter_by(id=item_id).update(dict(status='sale'), synchronize_session=False)
+            if cls.mark_offline(session, old_item_ids):
+                session.query(cls).filter_by(id=item_id).update(dict(status='sale'), synchronize_session=False)
         else:
             session.query(cls).filter_by(id=item_id).update(dict(status='review'), synchronize_session=False)
 
@@ -587,6 +589,8 @@ class TradeCar(Base):
 
     @classmethod
     def last_dup_item_is_alive(cls, session, old_item_ids=None):
+        from gpjspider.utils.misc import  conver_item_ids
+        old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
             expire_time = datetime.now() - timedelta(**TRADE_CAR_ALIVE_DURATION)
             old_item_ids = map(int, old_item_ids)

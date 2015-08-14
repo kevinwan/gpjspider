@@ -122,9 +122,9 @@ def test_dup_car():
     for item in items:
         clean_item(item['id'])
 
-REDIS_DUP_SIG_KEY='dup_car_sig_%s'
-REDIS_DUP_STAT_KEY='dup_car_stat'
-REDIS_DUP_CHECKED_KEY='dup_car_checked'
+REDIS_DUP_SIG_KEY='1dup_car_sig_%s'
+REDIS_DUP_STAT_KEY='1dup_car_stat'
+REDIS_DUP_CHECKED_KEY='1dup_car_checked'
 
 @app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
 def update_dup_car(self, klass_name, item_id):
