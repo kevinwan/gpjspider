@@ -195,7 +195,7 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
         driver = webdriver.PhantomJS(port=5503)
         driver.get(url)
         url = driver.current_url
-        if url.startswith('http://www.che168.com/personal/') or url.startswith('http://www.che168.com/dealer/'):
+        if url.startswith('http://a.che168.com/personal/') or url.startswith('http://a.che168.com/dealer/'):
             web_page = requests.get(url)
             response = Selector(text=web_page.text)
             sales = response.xpath(domain_dict[domain][0][0]).extract()
@@ -203,7 +203,7 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                 if sales[0] == '1':
                     return 'offline'
                 else:
-                    sales = response.xpath(domain_dict[domain][0][1]).extract()
+                    sales = response.xpath(domain_dict[domain][0][2]).extract()
                     if sales:
                         if sales[0] == '0':
                             return 'offline'
