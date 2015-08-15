@@ -74,7 +74,7 @@ domain_dict = {
     ],
     'che168.com': [
         [
-            'boolean(//div[@class="wrong_page"])',
+            u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")])',
             'boolean(//i[@class="list-sale"])',
             'boolean(//div[@class="cardet-head-2sc"]/div[@class="info"]/h3/a/text() and //div[@class="cardet-info-2sc"]/h3/span[@class="price"])'
         ],
@@ -195,7 +195,7 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
         driver = webdriver.PhantomJS(port=5503)
         driver.get(url)
         url = driver.current_url
-        if url.startswith('http://a.che168.com/personal/') or url.startswith('http://a.che168.com/dealer/'):
+        if url.startswith('http://m.che168.com/personal/') or url.startswith('http://m.che168.com/dealer/'):
             web_page = requests.get(url)
             response = Selector(text=web_page.text)
             sales = response.xpath(domain_dict[domain][0][0]).extract()
