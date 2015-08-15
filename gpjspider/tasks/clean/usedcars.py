@@ -55,6 +55,13 @@ DUP_CAR_CHECK_FIELDS=(
     'price',
     'phone',
 )
+from gpjspider.utils.constants import (
+    REDIS_DUP_SIG_KEY,
+    REDIS_DUP_STAT_KEY,
+    REDIS_DUP_CHECKED_KEY,
+    CLEAN_ITEM_HOUR_LIMIT,
+)
+
 
 class CleanException(Exception):
     pass
@@ -122,9 +129,6 @@ def test_dup_car():
     for item in items:
         clean_item(item['id'])
 
-REDIS_DUP_SIG_KEY='dup_car_sig_%s'
-REDIS_DUP_STAT_KEY='dup_car_stat'
-REDIS_DUP_CHECKED_KEY='dup_car_checked'
 
 @app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
 def update_dup_car(self, klass_name, item_id):
@@ -283,11 +287,11 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # created_on>curdate()
     # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
     # created_on>subdate(now(), interval 2 hour)
-    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval 3 hour) and source_id=1 '
+    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval %d hour) and source_id=1 '
         # 'and status="%s" '
         'and domain in (\'%s\');'
         )
-    max_id = cursor.execute(select % ('max',
+    max_id = cursor.execute(select % ('max', CLEAN_ITEM_HOUR_LIMIT
         #status,
         "','".join(domains)
         )).fetchone()[0]
@@ -384,17 +388,21 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     bq = session.query(UsedCar.id).filter(UsedCar.id >= min_id,
         UsedCar.id <= max_id, UsedCar.source_type != 1).filter_by(source=1)
     iq = bq.filter_by(status=wait_status).filter(
-        UsedCar.domain.in_(domains), UsedCar.control != None)
-    good_cars = iq.filter_by(is_certifield_car=True).filter(
+        UsedCar.domain.in_(domains), UsedCar.control != None)#.filter_by(is_certifield_car=True).
+    good_cars = iqfilter(
         ~UsedCar.phone.like('http%'),
-        UsedCar.year > 2007, UsedCar.mile < 30)
+        UsedCar.year > 2007, 
+        UsedCar.mile < 30
+    )
     pool_run(good_cars, clean_usedcar)
 
     # filter normal car_source
     # TODO: push all
     # log('filter normal car_source..')
-    normal_cars = iq.filter_by(is_certifield_car=True).filter(
-        UsedCar.year > 1970, UsedCar.mile < 200)
+    normal_cars = iq.filter(
+            UsedCar.year > 1970, 
+            UsedCar.mile < 200
+    )
 
     pool_run(normal_cars, clean_normal_car)
 
@@ -541,6 +549,13 @@ def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
 
 
 def push_trade_car(item, sid, session):
+    old_trade_car_item_ids = get_dup_car_items(item, 'TradeCar', is_new=True)
+    if old_trade_car_item_ids and TradeCar.last_dup_item_is_alive(session, old_trade_car_item_ids):
+        # 重复车源，旧的车源还在存活期类，则不进入
+        log('duplicated and old item is alive, no push_trade_car',sid)
+        return False, 'old duplicated item is alive, stop push trade_car'
+    else:
+        log('new item, do push_trade_car',sid)    
     try:
         car = TradeCar.init(item)
         session.add(car)
@@ -549,6 +564,7 @@ def push_trade_car(item, sid, session):
             dict(checker_runtime_id=0,
                 # status='_t'
                 ), synchronize_session=False)
+        update_dup_car_items(item, 'TradeCar', car.id)
         return True, 'ok'
     except IntegrityError:
         session.rollback()
@@ -720,17 +736,30 @@ def make_item_sig(item):
     sig = _md5(car_info.encode('utf-8'))
     return car_info, sig
 
+def update_dup_car_items(item, klass_name, klass_id):
+    detail, sig = make_item_sig(item)
+    rk = REDIS_DUP_SIG_KEY % sig    
+    item_id = '%s:%s' % (klass_name,klass_id)
+    pip = redis.pipeline()
+    if pip.exists(rk) and pip.sismember(rk, item_id):
+        pip.zincrby(REDIS_DUP_STAT_KEY, sig)
+    pip.sadd(rk, item_id)
+    pip.execute()
 
-
-def get_dup_car_items(item, klass_name='UsedCar'):
+def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
     detail, sig = make_item_sig(item)
     rk = REDIS_DUP_SIG_KEY % sig
-    item_id = '%s:%s' % (klass_name, item['id'])
-    if redis.exists(rk) and redis.sismember(rk, item_id):
-        redis.zincrby(REDIS_DUP_STAT_KEY, sig)
+    if not is_new:
+        item_id = '%s:%s' % (klass_name, item['id'])
+        if redis.exists(rk) and redis.sismember(rk, item_id):
+            redis.zincrby(REDIS_DUP_STAT_KEY, sig)
+        else:
+            redis.sadd(rk, item_id)
+        item_ids = [i for i in redis.smembers(rk)  if not i==item_id]
     else:
-        redis.sadd(rk, item_id)
-    return [i for i in redis.smembers(rk) if not i==item_id]
+        item_ids = redis.smembers(rk) 
+    item_ids = [x[1] for x in [i.split(':')  for i in item_ids] if x[0]==klass_name]
+    return item_ids
 
 def is_dup_car_redis2(item):
     detail, sig = make_item_sig(item)
@@ -864,19 +893,13 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             #     print 'IS_DUP_CAR'
             #     get_tracker().captureMessage('IS_DUP_CAR', extra=item)
             #     continue
-            old_item_ids = get_dup_car_items(item)
-            if old_item_ids:
-                status['T'].append(sid)
-                log('IS_DUP_CAR', old_item_ids ,sid)
-                get_tracker().captureMessage('IS_DUP_CAR', extra=item)
+            # old_item_ids = get_dup_car_items(item)
+            # if old_item_ids:
+            #     status['T'].append(sid)
+            #     log('IS_DUP_CAR', old_item_ids ,sid)
+            #     get_tracker().captureMessage('IS_DUP_CAR', extra=item)
             item_is_trade_car,errors=is_trade_car(item, True)
             if item_is_trade_car:
-                if old_item_ids and TradeCar.last_dup_item_is_alive(session, old_item_ids):
-                    # 重复车源，旧的车源还在存活期类，则不进入
-                    log('duplicated and old item is alive, no push_trade_car',sid)
-                    pass
-                else:
-                    log('new item, do push_trade_car',sid)
                     push_trade_car(item, sid, session)
             else:
                 log('is_trade_car, false', errors,sid)
@@ -919,17 +942,13 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             # 业务判断通过，后续处理
             upload_img(item, logger)
             # upload_imgs(item, logger)
-            if old_item_ids:
-                # 重复的旧的车源标记为下线
-                log('duplicated,mark old items as offline before insert_to_carsource',sid)
-                CarSource.mark_offline(session, old_item_ids)
             # 保存到产品表
             car_source = insert_to_carsource(item, session, logger)
             # print car_source.id
             # return
             if not car_source:
                 logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
-                # s = 'S'
+                s = 'S'
             else:
                 logger.error(u'清理source.id={0}成功'.format(sid))
                 s = 'C'
@@ -1242,6 +1261,9 @@ def insert_to_carsource(item, session, logger):
     # add qs_tags, eval_price, gpj_index
     car_source.qs_tags = get_qs_tags(item.get('quality_service'))
     
+    if 0:# debug only
+        import time
+        car_source.url='%s%s' %(car_source.url, time.time())
     # 根据数据的基本信息，从数据库中匹配商家信息
     try:
         car_source.dealer_id = match_dealer(item, reraise=True)
@@ -1257,9 +1279,15 @@ def insert_to_carsource(item, session, logger):
         #     car_source.id = query.first().id
         #     session.merge(car_source)
         # else:
+        old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)        
         session.add(car_source)
         session.commit()
+        if old_car_source_item_ids:
+            # 重复的旧的车源标记为下线
+            log('duplicated,mark old items as offline before insert_to_carsource',item['id'], car_source.id, old_car_source_item_ids)
+            CarSource.mark_offline(session, old_car_source_item_ids)        
     except IntegrityError:
+        log('duplicated')
         session.rollback()
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
@@ -1275,6 +1303,7 @@ def insert_to_carsource(item, session, logger):
         return
     else:
         logger.info(u'Saved car_source {0}'.format(car_source.url))
+        update_dup_car_items(item, 'CarSource', car_source.id)
         insert_to_cardetailInfo(item, car_source, session, logger)
         insert_to_carimage(item, car_source, session, logger)
     return car_source

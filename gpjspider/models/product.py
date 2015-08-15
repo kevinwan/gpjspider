@@ -17,10 +17,6 @@ from sqlalchemy.orm.session import object_session
 
 from . import Base
 
-TRADE_CAR_ALIVE_DURATION = {
-    'days': 12,
-}
-
 class CategoryDict(Base):
 
     """
@@ -314,8 +310,8 @@ class CarSource(Base):
 
     @classmethod
     def mark_offline(cls, session, old_item_ids=None):
-        from gpjspider.utils.misc import  conver_item_ids
-        old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
+        # from gpjspider.utils.misc import  conver_item_ids
+        # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
             # 旧的标记下线
             session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='review'), synchronize_session=False)
@@ -589,12 +585,13 @@ class TradeCar(Base):
 
     @classmethod
     def last_dup_item_is_alive(cls, session, old_item_ids=None):
-        from gpjspider.utils.misc import  conver_item_ids
-        old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
+        # from gpjspider.utils.misc import  conver_item_ids
+        # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
+        from gpjspider.utils.constants import TRADE_CAR_ALIVE_DAYS
         if old_item_ids:
-            expire_time = datetime.now() - timedelta(**TRADE_CAR_ALIVE_DURATION)
+            expire_time = datetime.now() - timedelta(days=TRADE_CAR_ALIVE_DAYS)
             old_item_ids = map(int, old_item_ids)
-            cnt =session.query(cls).filter(cls.car_id.in_(old_item_ids), cls.created_on>expire_time).count()
+            cnt =session.query(cls).filter(cls.id.in_(old_item_ids), cls.created_on>expire_time).count()
             if cnt>0:
                 return True
         return False

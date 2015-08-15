@@ -27,18 +27,17 @@ def main(name='test', type_='incr', update=False):
     sid = None
     act = None
     try:
-        act,sid = re.search(r'^(\.|%)([a-zA-Z0-9\.-]+)$', name).groups()
+        act,sid = re.search(r'^(\.|%)([a-zA-Z0-9,\.-]+)$', name).groups()
     except:
         pass
 
-    print act, sid
     if act and sid:
-        if sid.isdigit():
+        if sid.isdigit() or ',' in sid:
             if act=='.':
                 method = clean_item
             elif act=='%':
                 method = match_item_dealer
-            return method(int(sid))
+            return [method(int(_sid)) for _sid in sid.split(',')]
         else:
             return clean_domain(sid)
     print '*' * 80
