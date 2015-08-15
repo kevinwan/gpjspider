@@ -23,6 +23,8 @@ from gpjspider.utils.constants import QINIU_IMG_BUCKET
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
 from gpjspider.processors import souche
+from gpjspider.utils.misc import filter_item_ids
+
 import threading
 import re
 try:
@@ -32,7 +34,40 @@ except ImportError:
 from time import sleep
 import requests
 import json
+from gpjspider.utils import get_redis_cluster
+redis = get_redis_cluster()
+Session = get_mysql_connect()
+
+
 AUTO_PHONE = False
+# 需要检查去重的产品表
+DUP_CAR_CHECK_TYPES=(
+    # TradeCar,
+    CarSource,
+)
+# 需要检查去重的产品表字段（如果表里没有对应的字段则会给出对应的)
+DUP_CAR_CHECK_FIELDS=(
+    'brand_slug',
+    'model_slug',
+    'city',
+    'year',
+    'mile',
+    'price',
+    'phone',
+)
+from gpjspider.utils.constants import (
+    REDIS_DUP_SIG_KEY,
+    REDIS_DUP_STAT_KEY,
+    REDIS_DUP_CHECKED_KEY,
+    CLEAN_ITEM_HOUR_LIMIT,
+)
+
+
+class CleanException(Exception):
+    pass
+
+class MatchDealerException(Exception):
+    pass
 
 
 class async(object):
@@ -54,7 +89,6 @@ class async(object):
         thread.start()
         return True
 
-Session = get_mysql_connect()
 
 
 def log(msg, *args):
@@ -63,6 +97,119 @@ def log(msg, *args):
         print arg,
     print ''
 
+
+@app.task(name="update_sell_dealer", bind=True, base=GPJSpiderTask)
+def update_sell_dealer(self, item_id):
+    session = Session()
+    item = session.query(CarSource).filter_by(id=item_id).first().__dict__
+    try:
+        item.update(session.query(CarDetailInfo).filter_by(car_id=item_id).first().__dict__)
+    except:
+        pass
+    dealer_id = None
+    msg = ''
+    try:
+        dealer_id = match_dealer(item, reraise=True)
+    except Exception as e:
+        msg=e.message
+        
+    if dealer_id:
+        session.query(CarSource).filter_by(id=item_id).update(dict(dealer_id=dealer_id), synchronize_session=False)          
+        log('[update_sell_dealers]updated', item_id,  dealer_id)
+    else:
+        dealer_id = 0
+        if not msg:
+            msg='not_enough_infomation'
+        log('[update_sell_dealers]fail', item_id, msg)      
+    session.close()
+
+def test_dup_car():
+    session = Session()
+    items=TradeCar.mock_dup_car(session)
+    for item in items:
+        clean_item(item['id'])
+
+
+@app.task(name="update_dup_car", bind=True, base=GPJSpiderTask)
+def update_dup_car(self, klass_name, item_id):
+    if redis.sismember(REDIS_DUP_CHECKED_KEY, item_id):
+        log('[update_dup_car]checked', item_id)
+        return
+    redis.sadd(REDIS_DUP_CHECKED_KEY, item_id)
+    found=False
+    for klass in DUP_CAR_CHECK_TYPES:
+        if klass_name==klass.__name__:
+            found=True
+            break
+    if not found:
+        raise Exception('Unkown dup car type')
+    session = Session()
+    row = session.query(klass).filter_by(id=item_id).first()
+    if row is None:
+        raise Exception('%s<%s> not exists' % (klass.__name__, item_id))
+    item=row.__dict__
+    old_item_ids = get_dup_car_items(item, klass_name)
+    old_item_ids = filter_item_ids(old_item_ids, klass_name)
+    if old_item_ids:
+        klass.mark_duplicate(session, item_id, old_item_ids)
+        log('[update_dup_car]duplicate', item_id, ','.join(map(str, old_item_ids)))
+    else:
+        log('[update_dup_car]pass', item_id)
+    session.close()
+
+@app.task(name="update_dup_cars", bind=True, base=GPJSpiderTask)
+def update_dup_cars(self, step=5, limit=None, async=False):
+    log('update_dup_cars')
+    session = Session()
+    cursor = get_cursor(session)
+    for klass in DUP_CAR_CHECK_TYPES:
+        log('checking type', klass.__name__)
+        base_query = session.query(klass.id)
+        min_id = base_query.order_by(klass.id.asc()).limit(1).scalar()
+        max_id = base_query.order_by(klass.id.desc()).limit(1).scalar()
+        # step = 5
+        log('min_id', min_id)
+        log('max_id', max_id)
+        i=0
+        for row in base_query.filter(klass.id>=min_id, klass.id<=max_id).order_by(klass.id.asc()).yield_per(step):
+            # log('processing ', row.id)
+            item_id = str(row.id)
+            if async:
+                update_dup_car.delay(klass.__name__, item_id)
+            else:
+                update_dup_car(klass.__name__, item_id)
+            i+=1
+            if limit and i>limit:
+                break
+        log('checked type', klass.__name__)
+    log('done, close connection')
+    session.close()
+
+
+@app.task(name="update_sell_dealers", bind=True, base=GPJSpiderTask)
+def update_sell_dealers(self, step=5, limit=None, async=False):
+    log('update sell dealers')
+    session = Session()
+    cursor = get_cursor(session)
+    base_query = session.query(CarSource.id)
+    min_id = base_query.order_by(CarSource.pub_time.asc()).limit(1).scalar()
+    max_id = base_query.order_by(CarSource.pub_time.desc()).limit(1).scalar()
+    # step = 5
+    log('min_id', min_id)
+    log('max_id', max_id)
+    i=0
+    for row in base_query.filter(CarSource.id>=min_id, CarSource.id<=max_id, CarSource.dealer_id==0).order_by(CarSource.id.asc()).yield_per(step):
+        # log('processing ', row.id)
+        item_id = str(row.id)
+        if async:
+            update_sell_dealer.delay(item_id)
+        else:
+            update_sell_dealer(item_id)
+        i+=1
+        if limit and i>limit:
+            break
+    log('done, close connection')
+    session.close()
 
 @app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
 # def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
@@ -140,11 +287,11 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # created_on>curdate()
     # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
     # created_on>subdate(now(), interval 2 hour)
-    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval 3 hour) and source_id=1 '
+    select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval %d hour) and source_id=1 '
         # 'and status="%s" '
         'and domain in (\'%s\');'
         )
-    max_id = cursor.execute(select % ('max',
+    max_id = cursor.execute(select % ('max', CLEAN_ITEM_HOUR_LIMIT,
         #status,
         "','".join(domains)
         )).fetchone()[0]
@@ -252,15 +399,21 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     if domains:
         iq = iq.filter(UsedCar.domain.in_(domains))
     good_cars = iq.filter_by(is_certifield_car=True).filter(
+        UsedCar.domain.in_(domains), UsedCar.control != None)#.filter_by(is_certifield_car=True).
+    good_cars = iq.filter(
         ~UsedCar.phone.like('http%'),
-        UsedCar.year > 2007, UsedCar.mile < 30)
+        UsedCar.year > 2007, 
+        UsedCar.mile < 30
+    )
     pool_run(good_cars, clean_usedcar)
 
     # filter normal car_source
     # TODO: push all
     # log('filter normal car_source..')
-    normal_cars = iq.filter_by(is_certifield_car=True).filter(
-        UsedCar.year > 1970, UsedCar.mile < 200)
+    normal_cars = iq.filter(
+            UsedCar.year > 1970, 
+            UsedCar.mile < 200
+    )
 
     pool_run(normal_cars, clean_normal_car)
 
@@ -286,14 +439,88 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     pool_run(trade_cars, clean_trade_car)
     # session.close()
 
+
+def match_dealer(item, reraise=False):
+    '''
+    根据数据的车商名字和城市来匹配到具体的raw_sell_dealer然后更新数据的这条信息
+    '''
+    try:
+        if not (item['city'] and item['company_name']):
+            return None
+    except:
+        return None
+    from gpjspider.models.usedcars import RawSellDealer
+    session = Session()
+    ctx= dict(company_name=item['company_name'])
+    tags={
+        'city':item['city'],
+        'domain':item['domain'],
+        'operation':'MatchDealer',
+    }
+    dealer_id = None
+    try:
+        query = session.query(RawSellDealer.dealer_id).filter(
+            RawSellDealer.city==item['city'], 
+            RawSellDealer.domain==item['domain'], 
+            or_(
+                RawSellDealer.company_name==item['company_name'],  
+                RawSellDealer.company_name=="'%s'" % item['company_name']
+            )
+        )
+        cnt = query.count()
+        
+        if cnt<1:
+            raise MatchDealerException('NoMatchedRawSeller')
+        elif cnt>1:
+            ctx['count']=cnt
+            raise MatchDealerException('DuplicateRawSeller')
+        # when cnt==1 we go on
+        dealer_id = query.scalar()
+        if not dealer_id:
+            raise MatchDealerException('EmptyRawSeller')
+    except MatchDealerException as e:
+        get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
+        if reraise:
+            raise e
+        print e.message
+        for k, v in ctx.items():
+            print k, v
+        for k, v in tags.items():
+            print k, v            
+    except Exception as e:
+        get_tracker().captureException(extra=ctx, tags=tags)  
+        if reraise:
+            raise e        
+        print e.message
+    finally:
+        session.close()
+    if not reraise:
+        print dealer_id
+    return dealer_id
+
+
+
 def clean_item(item_id):
     query = Session().query(UsedCar).filter_by(id=item_id)
     print 'try to clean item', item_id
     items=[]
     for item in query:
         items.append(item.__dict__)
-        print item.__dict__
-    clean_trade_car(items, do_not_push=True)
+    clean_normal_car(items)
+    # clean_trade_car(items, do_not_push=True)
+
+
+def match_item_dealer(item_id):
+    query = Session().query(UsedCar).filter_by(id=item_id)
+    print 'try to match delaer for item', item_id
+    items=[]
+    for item in query:
+        items.append(item.__dict__)
+        # print item.__dict__
+        ditem = item.__dict__
+        print ditem['id'], ditem['city'], ditem['company_name'], ditem['domain']
+        ditem['dealer_id']=match_dealer(ditem)
+    print 'done'
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
@@ -335,6 +562,13 @@ def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
 
 
 def push_trade_car(item, sid, session):
+    old_trade_car_item_ids = get_dup_car_items(item, 'TradeCar', is_new=True)
+    if old_trade_car_item_ids and TradeCar.last_dup_item_is_alive(session, old_trade_car_item_ids):
+        # 重复车源，旧的车源还在存活期类，则不进入
+        log('duplicated and old item is alive, no push_trade_car',sid)
+        return False, 'old duplicated item is alive, stop push trade_car'
+    else:
+        log('new item, do push_trade_car',sid)    
     try:
         car = TradeCar.init(item)
         session.add(car)
@@ -343,6 +577,7 @@ def push_trade_car(item, sid, session):
             dict(checker_runtime_id=0,
                 # status='_t'
                 ), synchronize_session=False)
+        update_dup_car_items(item, 'TradeCar', car.id)
         return True, 'ok'
     except IntegrityError:
         session.rollback()
@@ -353,8 +588,6 @@ def push_trade_car(item, sid, session):
         return False, e.message
 
 
-class CleanException(Exception):
-    pass
 
 def clean_trade_car(items, do_not_push=False):
     for item in items:
@@ -410,7 +643,7 @@ def clean_trade_car(items, do_not_push=False):
                 session.add(track)
                 session.commit()
             # print 'new clean_trade_car on'
-        except:
+        except Exception as e:
             get_tracker().captureException()
         session.close()
 
@@ -455,8 +688,9 @@ def first_mobile(s):
 
 def is_trade_car(item, throw_reason=False):
     item['phone'] = first_mobile(item['phone'])
+    valid_source_types = (4, 'cpersonal', 'personal')
     criteria = (
-        (item['source_type'] == 4, 'invalid_source_type',),
+        (item['source_type'] in valid_source_types, 'invalid_source_type',),
         (item['city'] in [u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac'], 'invalid_city'),
         (item['volume'], 'empty_volume',),
         (item['phone'], 'empty_phone',),
@@ -497,8 +731,7 @@ def is_trade_car(item, throw_reason=False):
         return True, []
     return True
 
-from gpjspider.utils import get_redis_cluster
-redis = get_redis_cluster()
+
 
 def is_dup_psid(psid):
     clean_count = redis.zincrby('clean_psid', psid)
@@ -506,7 +739,73 @@ def is_dup_psid(psid):
         print psid, clean_count
     return clean_count > 1
 
-def is_dup_car(item):
+def make_item_sig(item):
+    from gpjspider.utils.common import _md5
+    if not item.has_key('brand_slug'):
+        item['brand_slug'] = item['brand']
+    if not item.has_key('model_slug'):
+        item['model_slug'] = item['model']
+    car_info = u'#'.join([unicode(item[field]) for field in DUP_CAR_CHECK_FIELDS])
+    sig = _md5(car_info.encode('utf-8'))
+    return car_info, sig
+
+def update_dup_car_items(item, klass_name, klass_id):
+    detail, sig = make_item_sig(item)
+    rk = REDIS_DUP_SIG_KEY % sig    
+    item_id = '%s:%s' % (klass_name,klass_id)
+    pip = redis.pipeline()
+    if pip.exists(rk) and pip.sismember(rk, item_id):
+        pip.zincrby(REDIS_DUP_STAT_KEY, sig)
+    pip.sadd(rk, item_id)
+    pip.execute()
+
+def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
+    detail, sig = make_item_sig(item)
+    rk = REDIS_DUP_SIG_KEY % sig
+    if not is_new:
+        item_id = '%s:%s' % (klass_name, item['id'])
+        if redis.exists(rk) and redis.sismember(rk, item_id):
+            redis.zincrby(REDIS_DUP_STAT_KEY, sig)
+        else:
+            redis.sadd(rk, item_id)
+        item_ids = [i for i in redis.smembers(rk)  if not i==item_id]
+    else:
+        item_ids = redis.smembers(rk) 
+    item_ids = [x[1] for x in [i.split(':')  for i in item_ids] if x[0]==klass_name]
+    return item_ids
+
+def is_dup_car_redis2(item):
+    detail, sig = make_item_sig(item)
+    rk = 'dupcar_%s' % sig
+    found= False
+    if redis.exists(rk) and redis.sismember(rk, item['id']):
+        redis.zincrby('dupcar_stat', sig)
+        found=True
+    else:
+        redis.sadd(rk, item['id'])
+    return found
+#
+# def is_dup_car_mysql(item):
+#     from gpjspider.models.usedcars import CarFingerprint
+#     session = Session()
+#     detail, sig = make_item_sig(item)
+#     found = False
+#     if 1:
+#     # try:
+#         cfp = session.query(CarFingerprint).filter_by(sig=sig).first()
+#         if cfp is not None:
+#             session.query(CarFingerprint).filter_by(id=cfp.id).update(dict(cnt=cfp.cnt+1), synchronize_session=False)
+#             found=True
+#     # except Exception as e:
+#         else:
+#             get_tracker().captureException()
+#             cfp = CarFingerprint(sig=sig, detail=detail, cnt=1)
+#             session.add(cfp)
+#     session.commit()
+#     return found
+#
+
+def is_dup_car_redis(item):
     '''
     1. get car_hash
     2. if in cur_* set
@@ -517,7 +816,6 @@ def is_dup_car(item):
         update dur_hset: {cur_date, cur_week, cur_month, cur_year}
         add %(cur_date)s+car_hash list: [ps_id, ps_id, ...]
     '''
-    from gpjspider.utils.common import _md5
     # time = item['time'] or item['created_on']
     # check ps id
     psid = item['id']
@@ -526,14 +824,17 @@ def is_dup_car(item):
         return True
     time = datetime.today()
     cur_date = str(time)[:10]
+    # Y-m-d
     # week_num = time.isocalendar()[1]
     # cur_week = '%s_%s' % (time.year, week_num)
     # cur_month = cur_date[:7]
     # cur_year = time.year
     # last_year = time.year - 1
-    car_info = '%(brand_slug)s#%(model_slug)s#%(city)s#%(year)s#%(mile)s#%(price)s' % item
-    car_md5 = _md5(car_info)
+
+    car_info, car_md5 = make_item_sig(item)
     # keys = [cur_date, cur_week, cur_month, cur_year] #, last_year
+    # @todo update dur_keys, do not make it fat
+
     keys = redis.lrange('dur_keys', 0, -1)
     dur_key = None
     for key in keys:
@@ -553,6 +854,10 @@ def is_dup_car(item):
         redis.hsetnx(info_key, car_md5, '%s %s' % (old, psid))
         redis.zincrby('stats_dup_car', car_md5)
         return True
+
+def is_dup_car(item):
+    return is_dup_car_redis2(item)
+    # return is_dup_car_mysql(item)
 
 
 def clean_normal_car(items):
@@ -587,17 +892,30 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             flag = is_normalized(item, logger, funcs)
             if flag is not True:
                 logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
+                log('flag not match',sid)
                 if sid:
                     key = flag if isinstance(flag, basestring) else 'P'
                     if key not in status:
                         status[key] = []
                     status[key].append(sid)
                 continue
+
+            # 20150815, 逻辑改变，如果重复，将旧的记录标为下线，新的上线
             # if is_dup_car(item):
             #     status['T'].append(sid)
+            #     print 'IS_DUP_CAR'
+            #     get_tracker().captureMessage('IS_DUP_CAR', extra=item)
             #     continue
-            if is_trade_car(item):
-                push_trade_car(item, sid, session)
+            # old_item_ids = get_dup_car_items(item)
+            # if old_item_ids:
+            #     status['T'].append(sid)
+            #     log('IS_DUP_CAR', old_item_ids ,sid)
+            #     get_tracker().captureMessage('IS_DUP_CAR', extra=item)
+            item_is_trade_car,errors=is_trade_car(item, True)
+            if item_is_trade_car:
+                    push_trade_car(item, sid, session)
+            else:
+                log('is_trade_car, false', errors,sid)
             if AUTO_PHONE:
                 tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
                 if tel:
@@ -637,14 +955,13 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             # 业务判断通过，后续处理
             upload_img(item, logger)
             # upload_imgs(item, logger)
-
             # 保存到产品表
             car_source = insert_to_carsource(item, session, logger)
             # print car_source.id
             # return
             if not car_source:
                 logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
-                # s = 'S'
+                s = 'S'
             else:
                 logger.error(u'清理source.id={0}成功'.format(sid))
                 s = 'C'
@@ -956,6 +1273,15 @@ def insert_to_carsource(item, session, logger):
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
     # add qs_tags, eval_price, gpj_index
     car_source.qs_tags = get_qs_tags(item.get('quality_service'))
+    
+    if 0:# debug only
+        import time
+        car_source.url='%s%s' %(car_source.url, time.time())
+    # 根据数据的基本信息，从数据库中匹配商家信息
+    try:
+        car_source.dealer_id = match_dealer(item, reraise=True)
+    except:
+        pass
     eval_price = get_eval_price(item)
     if eval_price:
         gpj_index = get_gpj_index(item['price'], eval_price)
@@ -966,9 +1292,15 @@ def insert_to_carsource(item, session, logger):
         #     car_source.id = query.first().id
         #     session.merge(car_source)
         # else:
+        old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)        
         session.add(car_source)
         session.commit()
+        if old_car_source_item_ids:
+            # 重复的旧的车源标记为下线
+            log('duplicated,mark old items as offline before insert_to_carsource',item['id'], car_source.id, old_car_source_item_ids)
+            CarSource.mark_offline(session, old_car_source_item_ids)        
     except IntegrityError:
+        log('duplicated')
         session.rollback()
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
@@ -978,14 +1310,15 @@ def insert_to_carsource(item, session, logger):
         # session.commit()
     except Exception as e:
         session.rollback()
-        print e
+        print e,item['id']
         # raise
         logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
         return
     else:
         logger.info(u'Saved car_source {0}'.format(car_source.url))
-    insert_to_cardetailInfo(item, car_source, session, logger)
-    insert_to_carimage(item, car_source, session, logger)
+        update_dup_car_items(item, 'CarSource', car_source.id)
+        insert_to_cardetailInfo(item, car_source, session, logger)
+        insert_to_carimage(item, car_source, session, logger)
     return car_source
 
 

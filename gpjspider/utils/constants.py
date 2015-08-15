@@ -27,3 +27,16 @@ SOURCE_TYPE_ODEALER = 5
 # 七牛文件上传 bucket 定义
 #=============================================================================
 QINIU_IMG_BUCKET = 'gongpingjia'
+
+
+
+REDIS_DUP_SIG_KEY='dup_car_sig_%s'
+REDIS_DUP_STAT_KEY='dup_car_stat'
+REDIS_DUP_CHECKED_KEY='dup_car_checked'
+REDIS_DUP_CACHE_OPEN_PRODUCT_SOURCE=False
+
+TRADE_CAR_ALIVE_DAYS = 7
+
+CLEAN_ITEM_HOUR_LIMIT=3# 
+#during import we increase the time range
+#CLEAN_ITEM_HOUR_LIMIT=30*2*24 # 

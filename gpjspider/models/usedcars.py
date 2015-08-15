@@ -3,7 +3,7 @@
 二手车模型
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text, CHAR
 from sqlalchemy import Boolean, DateTime, Enum, DECIMAL
 from gpjspider.utils.constants import SOURCE_TYPE_OLD_SPIDER
 
@@ -123,3 +123,39 @@ class UsedCar(Base):
     last_update = Column(DateTime, default=None, doc=u'上次更新时间时间')
     next_update = Column(DateTime, default=None, doc=u'下次更新时间时间')
     update_count = Column(Integer, default=0, doc=u'更新次数')
+
+
+class RawSellDealer(Base):
+    """
+    商家匹配
+    """
+    __tablename__ = u'raw_sell_dealer'
+
+    id = Column(Integer, primary_key=True)
+    dealer_id = Column(Integer, doc=u'匹配的id', nullable=True, )
+    company_name = Column(String(50), nullable=True, doc=u'名称')
+    company_url = Column(String(500), nullable=True, default='')
+    city = Column(String(32), nullable=True, doc=u'城市')
+    contact = Column(String(32), nullable=True, doc=u'联系人')
+    phone = Column(String(32), nullable=True, doc=u'电话')
+    address = Column(String(256), nullable=True, doc=u'详细地址')
+    domain = Column(String(32), nullable=True, doc=u'来源网站')
+    status = Column(Integer, doc=u'状态', default=0)
+
+    def __unicode__(self):
+        return u'<RawSellDealer {0} {1} - {2} >'.format(self.company_name, self.city, self.dealer_id)
+#
+# class CarFingerprint(Base):
+#     """
+#     车辆指纹数据
+#     """
+#     __tablename__ = u'car_fingerprint'
+#
+#     id = Column(Integer, primary_key=True)
+#     detail = Column(String(500), nullable=False, default='', doc=u'详细数据')
+#     sig = Column(CHAR(32), unique=True, nullable=False, doc=u'摘要指纹')
+#     cnt = Column(Integer, doc=u'数量', default=0)
+#
+#     def __unicode__(self):
+#         return u'<CarFingerprint {0} {1} >'.format(self.defailt, self.cnt)
+#

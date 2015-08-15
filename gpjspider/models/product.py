@@ -9,14 +9,13 @@
 [15/4/14 17:13:10] 彭博: model_detail_normal存的公平价款型和第三方款型的映射信息
 """
 
-from datetime import datetime
+from datetime import datetime,timedelta
 from sqlalchemy import Column, Integer, String, DateTime, Enum, Text, DECIMAL, Boolean
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.session import object_session
 
 from . import Base
-
 
 class CategoryDict(Base):
 
@@ -270,6 +269,7 @@ class CarSource(Base):
     mile = Column(DECIMAL(precision=5, scale=2), doc=u'行驶里程')
     year = Column(Integer, nullable=True, default=2000, doc=u'上牌年份')
     month = Column(Integer, nullable=True, default=6, doc=u'上牌月份')
+    dealer_id = Column(Integer, nullable=True, default=0, doc=u'匹配的商家')
     control = Column(String(32), index=True, nullable=True, doc=u'变速箱')
     city = Column(String(50), index=True, nullable=True, doc=u'城市')
     price = Column(
@@ -307,6 +307,26 @@ class CarSource(Base):
         return u'<CarSource {0}>'.format(self.id)
 
     __str__ = __unicode__
+
+    @classmethod
+    def mark_offline(cls, session, old_item_ids=None):
+        # from gpjspider.utils.misc import  conver_item_ids
+        # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
+        if old_item_ids:
+            # 旧的标记下线
+            session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='review'), synchronize_session=False)
+            return True
+        return False
+
+    @classmethod
+    def mark_duplicate(cls, session, item_id, old_item_ids=None):
+        if old_item_ids:
+            # 旧的标记未已经下线，把新的标记未上线
+            if cls.mark_offline(session, old_item_ids):
+                session.query(cls).filter_by(id=item_id).update(dict(status='sale'), synchronize_session=False)
+        else:
+            session.query(cls).filter_by(id=item_id).update(dict(status='review'), synchronize_session=False)
+
 
 
 class CarDetailInfo(Base):
@@ -550,7 +570,10 @@ class TradeCar(Base):
         else:
             trade_car.mile = int(10000 * mile)
         # trade_car.created_on = item['time']
-        trade_car.created_on = item['created_on']
+        # trade_car.created_on = item['created_on']
+        # 150813 @yibo
+        trade_car.created_on = datetime.now()
+
         trade_car.color = item['color'] or ''
         if item['detail_model']:
             detail_model_slug = item['detail_model']
@@ -559,6 +582,66 @@ class TradeCar(Base):
                                           str(item['volume']).replace('.', '_')])
         trade_car.model_detail = detail_model_slug
         return trade_car
+
+    @classmethod
+    def last_dup_item_is_alive(cls, session, old_item_ids=None):
+        # from gpjspider.utils.misc import  conver_item_ids
+        # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
+        from gpjspider.utils.constants import TRADE_CAR_ALIVE_DAYS
+        if old_item_ids:
+            expire_time = datetime.now() - timedelta(days=TRADE_CAR_ALIVE_DAYS)
+            old_item_ids = map(int, old_item_ids)
+            cnt =session.query(cls).filter(cls.id.in_(old_item_ids), cls.created_on>expire_time).count()
+            if cnt>0:
+                return True
+        return False
+
+    @classmethod
+    def mock_dup_car(cls, session):
+        from .usedcars import UsedCar
+        import time
+        ts = str(time.time())
+        expire_time = datetime.now() - timedelta(**TRADE_CAR_ALIVE_DURATION)
+
+        # should go in
+        base_query = session.query(cls.car_id)
+            # .filter(cls.city.in_([u'北京',u'成都', u'南京']))
+        car_id = base_query.filter(cls.created_on<expire_time).order_by(cls.id.desc()).limit(1).scalar()
+
+        data = {k:v for k,v in session.query(UsedCar).filter_by(id=car_id).first().__dict__.items() if not k.startswith('_')}
+        del data['id']
+
+
+        data['url']='%s#should_go_in%s' % (data['url'],ts)
+        data['created_on']=datetime.now()
+        data['source_type']=4
+        data['city']=u'成都'
+
+
+        expired_item=UsedCar(**data)
+        session.add(expired_item)
+
+        # should not go in
+        car_id = base_query.filter(cls.created_on>expire_time).order_by(cls.id.asc()).limit(1).scalar()
+
+        data = {k:v for k,v in session.query(UsedCar).filter_by(id=car_id).first().__dict__.items() if not k.startswith('_')}
+        del data['id']
+        data['url']='%s#should_not_go_in%s' % (data['url'],ts)
+        data['created_on']=datetime.now()
+        data['source_type']=4
+        data['city']=u'成都'
+        alive_item=UsedCar(**data)
+        session.add(alive_item)
+
+        session.commit()
+        return [expired_item, alive_item]
+
+    @classmethod
+    def mark_duplicate(cls, session, item_id, old_item_ids=None):
+        '''
+        去重接口会调用这里，忽略即可
+        '''
+        pass
 
 class ReasonTrack(Base):
     __tablename__ = 'open_clean_track'
