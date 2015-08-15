@@ -291,7 +291,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         # 'and status="%s" '
         'and domain in (\'%s\');'
         )
-    max_id = cursor.execute(select % ('max', CLEAN_ITEM_HOUR_LIMIT
+    max_id = cursor.execute(select % ('max', CLEAN_ITEM_HOUR_LIMIT,
         #status,
         "','".join(domains)
         )).fetchone()[0]
