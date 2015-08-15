@@ -39,4 +39,4 @@ TRADE_CAR_ALIVE_DAYS = 7
 
 CLEAN_ITEM_HOUR_LIMIT=3# 
 #during import we increase the time range
-CLEAN_ITEM_HOUR_LIMIT=30*2*24 # 
+#CLEAN_ITEM_HOUR_LIMIT=30*2*24 # 
