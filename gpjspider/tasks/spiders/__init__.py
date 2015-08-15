@@ -3,6 +3,7 @@
 关于爬虫调度的任务
 """
 import os
+import multiprocessing
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from celery.utils.log import get_task_logger
@@ -51,14 +52,16 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
     if has_run:
         if is_full:
             time.sleep(30)
-        if domain in ('ganji.com', 'baixing.com', '51auto.com', 'taoche.com', '58.com'): # 58.com 'baixing.com', '51auto.com', 'taoche.com'
+        # 58.com 'baixing.com', '51auto.com', 'taoche.com'
+        if domain in ('ganji.com', 'baixing.com', '51auto.com', 'taoche.com', '58.com'):
             print 'already run..'
             return
         if os.path.exists(jobdir):
             jobdir2 = '%s.%s' % (jobdir, pid)
             os.makedirs(jobdir2)
             # os.system('cd {0} && ln -s %s/requests.seen %s/' % (jobdir, jobdir2))
-            os.system('cd %s && ln -s ../%s/requests.seen .' % (jobdir2, domain))
+            os.system('cd %s && ln -s ../%s/requests.seen .' %
+                      (jobdir2, domain))
             jobdir = jobdir2
 
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')
@@ -84,7 +87,8 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
             os.remove(pidfile)
         elif jobdir2:
             shutil.rmtree(jobdir2)
-        os.system('cd /tmp/gpjspider && tail -n26 {0} >> {1}.stats'.format(logfile, rule_name))
+        os.system(
+            'cd /tmp/gpjspider && tail -n26 {0} >> {1}.stats'.format(logfile, rule_name))
         # os.system('''cd /tmp/gpjspider && (egrep {0}.log "Dup |Found|scraped|\(302|\(503" > {0}.stats;\
         #     tail -n26 {0}.log > {0}.stats)'''.format(rule_name))
 
@@ -127,3 +131,18 @@ def run_update_spider(self, rule_name, update):
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
     rule = import_update_rule(rule_name)
     crawl(self, logger, logfile, spider_class, rule, rule_name, update)
+
+
+@app.task(name="run_all_spider_update", bind=True, base=GPJSpiderTask)
+def run_all_spider_update(self, rule_names):
+    for rule_name in rule_names:
+        spider_class = create_incr_spider_class(
+            'IncrAutoSpider', 'incr.' + rule_name
+        )
+        logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
+        rule = import_incr_rule(rule_name)
+        p = multiprocessing.Process(
+            target=crawl,
+            args=(self, None, logfile, spider_class, rule, rule_name, 'True')
+        )
+        p.start()

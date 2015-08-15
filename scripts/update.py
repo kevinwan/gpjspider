@@ -293,7 +293,7 @@ def update_sale_status(uponline=False, site=None, days=None):
     rule_names = []    # 记录需要更新的网站
     num = 1
     for item in query.yield_per(50):
-        # time.sleep(3)
+        time.sleep(3)
         sales_status = get_sales_status(item.domain, item.url)
         time_now = datetime.datetime.now()
         if sales_status == 'offline':

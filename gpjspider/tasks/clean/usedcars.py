@@ -207,9 +207,14 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     # session = session or Session()
     session = Session()
     domains = domains or []
+    # base_query = session.query(UsedCar).filter(
+        # UsedCar.id >= min_id, UsedCar.id <= max_id,
+        # UsedCar.domain.in_(domains), UsedCar.source_type != 1).filter_by(source=1)
     base_query = session.query(UsedCar).filter(
         UsedCar.id >= min_id, UsedCar.id <= max_id,
-        UsedCar.domain.in_(domains), UsedCar.source_type != 1).filter_by(source=1)
+        UsedCar.source_type != 1).filter_by(source=1)
+    if domains:
+        base_query = base_query.filter(UsedCar.domain.in_(domains))
     # mark status=I, processing
     wait_status = 'I'
     base_query.filter_by(
@@ -240,8 +245,12 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     # log('filter good car_source..')
     bq = session.query(UsedCar.id).filter(UsedCar.id >= min_id,
         UsedCar.id <= max_id, UsedCar.source_type != 1).filter_by(source=1)
+    # iq = bq.filter_by(status=wait_status).filter(
+        # UsedCar.domain.in_(domains), UsedCar.control != None)
     iq = bq.filter_by(status=wait_status).filter(
-        UsedCar.domain.in_(domains), UsedCar.control != None)
+        UsedCar.control != None)
+    if domains:
+        iq = iq.filter(UsedCar.domain.in_(domains))
     good_cars = iq.filter_by(is_certifield_car=True).filter(
         ~UsedCar.phone.like('http%'),
         UsedCar.year > 2007, UsedCar.mile < 30)
@@ -265,13 +274,15 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         source_type=4,
         checker_runtime=1
     ).filter(
-        UsedCar.domain.in_(domains),
+        # UsedCar.domain.in_(domains),
         UsedCar.status.in_([end_status, ' control', ' imgurls', ' mile', ' title', '-price']),
         UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']),
         or_(UsedCar.phone.like('1%'), UsedCar.phone.like('http://%')),
         UsedCar.year > 1970,
         UsedCar.mile < 200
     )
+    if domains:
+        trade_cars = trade_cars.filter(UsedCar.domain.in_(domains))
     pool_run(trade_cars, clean_trade_car)
     # session.close()
 
