@@ -389,7 +389,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         UsedCar.id <= max_id, UsedCar.source_type != 1).filter_by(source=1)
     iq = bq.filter_by(status=wait_status).filter(
         UsedCar.domain.in_(domains), UsedCar.control != None)#.filter_by(is_certifield_car=True).
-    good_cars = iqfilter(
+    good_cars = iq.filter(
         ~UsedCar.phone.like('http%'),
         UsedCar.year > 2007, 
         UsedCar.mile < 30
