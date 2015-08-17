@@ -7,7 +7,6 @@ import requests
 import argparse
 sys.path.append("..")
 from sqlalchemy import func
-from selenium import webdriver
 from scrapy.selector import Selector
 from gpjspider.models import UsedCar, CarSource, CarDetailInfo
 from gpjspider.utils import get_mysql_connect
@@ -75,8 +74,8 @@ domain_dict = {
     'che168.com': [
         [
             u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")])',
-            'boolean(//i[@class="list-sale"])',
-            'boolean(//div[@class="cardet-head-2sc"]/div[@class="info"]/h3/a/text() and //div[@class="cardet-info-2sc"]/h3/span[@class="price"])'
+            'boolean(//div[@class="plaint-list"])',
+            'boolean(//input[@id="hf_CarStatue"]/@value=15)'
         ],
         '1', 'che168'],    # 302
     'chemao.com.cn': [
@@ -152,7 +151,8 @@ domain_dict = {
     ],
     'taoche.com': [
         [
-            'boolean(//p[@class="tc14-cyyis"])'
+            'boolean(//p[@class="tc14-cyyis"])',
+            u'boolean(//div[@class="box worry"])'
         ],
         '1', 'taoche'
     ],    # 302
@@ -191,32 +191,6 @@ domain_dict = {
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
-    if domain == 'che168.com':
-        driver = webdriver.PhantomJS(port=5503)
-        driver.get(url)
-        url = driver.current_url
-        if url.startswith('http://m.che168.com/personal/') or url.startswith('http://m.che168.com/dealer/'):
-            web_page = requests.get(url)
-            response = Selector(text=web_page.text)
-            sales = response.xpath(domain_dict[domain][0][0]).extract()
-            if sales:
-                if sales[0] == '1':
-                    return 'offline'
-                else:
-                    sales = response.xpath(domain_dict[domain][0][2]).extract()
-                    if sales:
-                        if sales[0] == '0':
-                            return 'offline'
-        else:
-            web_page = requests.get(url)
-            response = Selector(text=web_page.text)
-            xpaths = [domain_dict[domain][0][0], domain_dict[domain][0][1]]
-            for xpath in xpaths:
-                sales = response.xpath(xpath).extract()
-                if sales:
-                    if sales[0] == domain_dict[domain][1]:
-                        return 'offline'
-        return 'online'
     web_page = requests.get(url)
     if domain == 'zg2sc.cn' and not web_page.content:
         return 'offline'
@@ -261,7 +235,7 @@ def get_update_time(item):    # 计算下次更新时间,待优化
 # 更新原始表和业务表的车源的销售状态
 def update_sale_status(uponline=False, site=None, days=None):
     session = Session()
-    # 计算需要更新的车源的创建时间,按天依次递减查询数据
+    # 计算需要更新的车源对应的创建时间,按每三小时分块依次递减查询数据
     time_now = datetime.datetime.now()
     if not days:
         after_time = session.query(func.min(UsedCar.created_on)).scalar()
@@ -279,9 +253,10 @@ def update_sale_status(uponline=False, site=None, days=None):
         second=0,
         microsecond=0
     ) + datetime.timedelta(days=1)
-    day_up = day_on - datetime.timedelta(seconds=3600)
+    day_up = day_on - datetime.timedelta(seconds=10800)
+    num = 1
     while day_up >= after_time:
-        # 查询一天内需要更新的车源
+        # 查询三小时需要更新的车源
         query = session.query(UsedCar)
         if site:
             site_dict = {value[2]: key for key, value in domain_dict.items()}
@@ -300,13 +275,15 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.last_update != None,
             UsedCar.next_update <= time_now
         )
-        print after_time, day_up, day_on, query.count()
-        day_up = day_up - datetime.timedelta(seconds=3600)
-        day_on = day_on - datetime.timedelta(seconds=3600)
+        num_per_hour = 1
+        num_this_hour = query.count()
+        if num_this_hour > 0:
+            print '\n', '[' + str(after_time) + ']', '[' + str(day_up) + ']-[' + str(day_on) + ']', num_this_hour
+        day_up = day_up - datetime.timedelta(seconds=10800)
+        day_on = day_on - datetime.timedelta(seconds=10800)
         rule_names = []    # 记录需要更新的网站
-        num = 1
         for item in query.yield_per(50):
-            time.sleep(3)
+            time.sleep(1)
             sales_status = get_sales_status(item.domain, item.url)
             time_now = datetime.datetime.now()
             if sales_status == 'offline':
@@ -348,7 +325,8 @@ def update_sale_status(uponline=False, site=None, days=None):
                 },
                 synchronize_session=False
             )
-            print num, item.id, item.url, sales_status
+            print num, num_per_hour, item.id, item.url, sales_status
+            num_per_hour = num_per_hour + 1
             num = num + 1
         session.commit()
     session.close()
