@@ -261,83 +261,97 @@ def get_update_time(item):    # 计算下次更新时间,待优化
 # 更新原始表和业务表的车源的销售状态
 def update_sale_status(uponline=False, site=None, days=None):
     session = Session()
+    # 计算需要更新的车源的创建时间,按天依次递减查询数据
     time_now = datetime.datetime.now()
-    # 查询需要更新的车源
-    query = session.query(UsedCar)
-    if days:
-        before_time = time_now.replace(
-            hour=0,
-            minute=0,
-            second=0,
-            microsecond=0
-        ) - datetime.timedelta(
-            days=days
-        )
+    if not days:
+        after_time = session.query(func.min(UsedCar.created_on)).scalar()
+    else:
+        after_time = time_now - datetime.timedelta(days=days - 1)
+    after_time = after_time.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    )
+    day_on = time_now.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
+    ) + datetime.timedelta(days=1)
+    day_up = day_on - datetime.timedelta(days=1)
+    while day_up >= after_time:
+        print after_time.date(), day_up.date(), day_on.date()
+        # 查询一天内需要更新的车源
+        query = session.query(UsedCar)
+        if site:
+            site_dict = {value[2]: key for key, value in domain_dict.items()}
+            domain = site_dict[site]
+            query = query.filter(UsedCar.domain == domain)
         query = query.filter(
             UsedCar.created_on != None,
-            UsedCar.created_on > before_time
+            UsedCar.created_on >= day_up,
+            UsedCar.created_on < day_on
         )
-    if site:
-        site_dict = {value[2]: key for key, value in domain_dict.items()}
-        domain = site_dict[site]
-        query = query.filter(UsedCar.domain == domain)
-    query = query.filter(
-        UsedCar.status != 'Q',
-        UsedCar.status != 'u',
-        UsedCar.status != 'I',
-        UsedCar.next_update != None,
-        UsedCar.last_update != None,
-        UsedCar.next_update <= time_now
-    )
-    print query.count()
-    rule_names = []    # 记录需要更新的网站
-    num = 1
-    for item in query.yield_per(50):
-        time.sleep(3)
-        sales_status = get_sales_status(item.domain, item.url)
-        time_now = datetime.datetime.now()
-        if sales_status == 'offline':
-            status = 'Q'    # 已下线的变为'Q'
-            # 同步更新car_source状态
-            session.query(CarSource).filter(
-                CarSource.url == item.url
-            ).update({CarSource.status: 'review'}, synchronize_session=False)
-            # 同步更新car_detail_info的update_time字段
-            session.query(CarDetailInfo).filter(
-                CarSource.url == item.url,
-                CarDetailInfo.car_id == CarSource.id
-            ).update(
+        day_up = day_up - datetime.timedelta(days=1)
+        day_on = day_on - datetime.timedelta(days=1)
+        query = query.filter(
+            UsedCar.status != 'Q',
+            UsedCar.status != 'u',
+            UsedCar.status != 'I',
+            UsedCar.next_update != None,
+            UsedCar.last_update != None,
+            UsedCar.next_update <= time_now
+        )
+        print query.count()
+        rule_names = []    # 记录需要更新的网站
+        num = 1
+        for item in query.yield_per(50):
+            time.sleep(3)
+            sales_status = get_sales_status(item.domain, item.url)
+            time_now = datetime.datetime.now()
+            if sales_status == 'offline':
+                status = 'Q'    # 已下线的变为'Q'
+                # 同步更新car_source状态
+                session.query(CarSource).filter(
+                    CarSource.url == item.url
+                ).update({CarSource.status: 'review'}, synchronize_session=False)
+                # 同步更新car_detail_info的update_time字段
+                session.query(CarDetailInfo).filter(
+                    CarSource.url == item.url,
+                    CarDetailInfo.car_id == CarSource.id
+                ).update(
+                    {
+                        CarDetailInfo.update_time: time_now,
+                        CarDetailInfo.car_id: CarSource.id
+                    },
+                    synchronize_session=False
+                )
+            else:
+                if uponline:
+                    status = 'u'  # 未下线的变为'u'
+                    rule_name = domain_dict[item.domain][2]
+                    if rule_name not in rule_names:
+                        rule_names.append(rule_name)
+                else:
+                    status = item.status
+            # 更新单条记录
+            if not item.update_count:
+                update_count = 0
+            else:
+                update_count = item.update_count
+            query.filter(UsedCar.url == item.url).update(
                 {
-                    CarDetailInfo.update_time: time_now,
-                    CarDetailInfo.car_id: CarSource.id
+                    UsedCar.status: status,
+                    UsedCar.last_update: time_now,
+                    UsedCar.next_update: get_update_time(item),
+                    UsedCar.update_count: update_count + 1
                 },
                 synchronize_session=False
             )
-        else:
-            if uponline:
-                status = 'u'  # 未下线的变为'u'
-                rule_name = domain_dict[item.domain][2]
-                if rule_name not in rule_names:
-                    rule_names.append(rule_name)
-            else:
-                status = item.status
-        # 更新单条记录
-        if not item.update_count:
-            update_count = 0
-        else:
-            update_count = item.update_count
-        query.filter(UsedCar.url == item.url).update(
-            {
-                UsedCar.status: status,
-                UsedCar.last_update: time_now,
-                UsedCar.next_update: get_update_time(item),
-                UsedCar.update_count: update_count + 1
-            },
-            synchronize_session=False
-        )
-        print num, item.id, item.url, sales_status
-        num = num + 1
-    session.commit()
+            print num, item.id, item.url, sales_status
+            num = num + 1
+        session.commit()
     session.close()
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
