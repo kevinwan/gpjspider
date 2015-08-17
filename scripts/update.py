@@ -281,7 +281,6 @@ def update_sale_status(uponline=False, site=None, days=None):
     ) + datetime.timedelta(days=1)
     day_up = day_on - datetime.timedelta(seconds=3600)
     while day_up >= after_time:
-        print after_time, day_up, day_on
         # 查询一天内需要更新的车源
         query = session.query(UsedCar)
         if site:
@@ -293,8 +292,6 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on
         )
-        day_up = day_up - datetime.timedelta(seconds=3600)
-        day_on = day_on - datetime.timedelta(seconds=3600)
         query = query.filter(
             UsedCar.status != 'Q',
             UsedCar.status != 'u',
@@ -303,7 +300,9 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.last_update != None,
             UsedCar.next_update <= time_now
         )
-        print query.count()
+        print after_time, day_up, day_on, query.count()
+        day_up = day_up - datetime.timedelta(seconds=3600)
+        day_on = day_on - datetime.timedelta(seconds=3600)
         rule_names = []    # 记录需要更新的网站
         num = 1
         for item in query.yield_per(50):
