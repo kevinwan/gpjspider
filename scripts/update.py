@@ -279,9 +279,9 @@ def update_sale_status(uponline=False, site=None, days=None):
         second=0,
         microsecond=0
     ) + datetime.timedelta(days=1)
-    day_up = day_on - datetime.timedelta(days=1)
+    day_up = day_on - datetime.timedelta(seconds=3600)
     while day_up >= after_time:
-        print after_time.date(), day_up.date(), day_on.date()
+        print after_time, day_up, day_on
         # 查询一天内需要更新的车源
         query = session.query(UsedCar)
         if site:
@@ -293,8 +293,8 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on
         )
-        day_up = day_up - datetime.timedelta(days=1)
-        day_on = day_on - datetime.timedelta(days=1)
+        day_up = day_up - datetime.timedelta(seconds=3600)
+        day_on = day_on - datetime.timedelta(seconds=3600)
         query = query.filter(
             UsedCar.status != 'Q',
             UsedCar.status != 'u',
