@@ -274,7 +274,7 @@ def update_sale_status(uponline=False, site=None, days=None):
             days=days
         )
         query = query.filter(
-            UsedCar.created_on is not None,
+            UsedCar.created_on != None,
             UsedCar.created_on > before_time
         )
     if site:
