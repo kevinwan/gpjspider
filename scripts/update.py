@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
 import ipdb
-import time
 import datetime
 import requests
 import argparse
@@ -189,9 +188,25 @@ domain_dict = {
     ]    # 404
 }
 
+auth = requests.auth.HTTPProxyAuth('gaoge', 'gaoge911911')
+proxies = {'http': 'http://us-il.proxymesh.com:31280'}
+
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
-    web_page = requests.get(url)
+    for error_count in [0, 1, 2, 3, 4]:
+        try:
+            web_page = requests.get(url, proxies=proxies, auth=auth, timeout=5)
+            if web_page.status_code == 407:
+                web_page = requests.get(url)
+        except Exception as e:
+            error_count = error_count + 1
+            if error_count == 5:
+                file_object = open('update.log', 'a')
+                file_object.write('\n' + url + ' ' + ''.join(e.args))
+                file_object.close()
+                return 'online'
+        else:
+            break
     if domain == 'zg2sc.cn' and not web_page.content:
         return 'offline'
     if domain in ['jcjp.com.cn', 'zg2sc.cn']:
@@ -290,61 +305,91 @@ def update_sale_status(uponline=False, site=None, days=None):
         num_per_hour = 1
         num_this_hour = query.count()
         # if num_this_hour > 0:
-        print '\n', '[' + str(after_time) + ']', '[' + str(day_up) + ']-[' + str(day_on) + ']', num_this_hour
+        log_str = ' '.join([
+            '\n\n' + '[' + str(after_time) + ']',
+            '[' + str(day_up) + ']-[' + str(day_on) + ']',
+            str(num_this_hour)
+        ])
+        file_object = open('update.log', 'a')
+        file_object.write(log_str)
+        file_object.close()
         day_up = day_up - datetime.timedelta(seconds=3600)
         day_on = day_on - datetime.timedelta(seconds=3600)
         rule_names = []    # 记录需要更新的网站
         items = query.all()
         session.close()
         for item in items:
-            time.sleep(1)
-            session = Session()
-            sales_status = get_sales_status(item.domain, item.url)
-            time_now = datetime.datetime.now()
-            if sales_status == 'offline':
-                status = 'Q'    # 已下线的变为'Q'
-                # 同步更新car_source状态
-                session.query(CarSource).filter(
-                    CarSource.url == item.url
-                ).update({CarSource.status: 'review'}, synchronize_session=False)
-                # 同步更新car_detail_info的update_time字段
-                session.query(CarDetailInfo).filter(
-                    CarSource.url == item.url,
-                    CarDetailInfo.car_id == CarSource.id
-                ).update(
-                    {
-                        CarDetailInfo.update_time: time_now,
-                        CarDetailInfo.car_id: CarSource.id
-                    },
-                    synchronize_session=False
-                )
-            else:
-                if uponline:
-                    status = 'u'  # 未下线的变为'u'
-                    rule_name = domain_dict[item.domain][2]
-                    if rule_name not in rule_names:
-                        rule_names.append(rule_name)
+            for error_count in [0, 1, 2, 3, 4]:
+                try:
+                    session = Session()
+                    sales_status = get_sales_status(item.domain, item.url)
+                    time_now = datetime.datetime.now()
+                    if sales_status == 'offline':
+                        status = 'Q'    # 已下线的变为'Q'
+                        # 同步更新car_source状态
+                        session.query(CarSource).filter(
+                            CarSource.url == item.url
+                        ).update(
+                            {CarSource.status: 'review'},
+                            synchronize_session=False
+                        )
+                        # 同步更新car_detail_info的update_time字段
+                        session.query(CarDetailInfo).filter(
+                            CarSource.url == item.url,
+                            CarDetailInfo.car_id == CarSource.id
+                        ).update(
+                            {
+                                CarDetailInfo.update_time: time_now,
+                                CarDetailInfo.car_id: CarSource.id
+                            },
+                            synchronize_session=False
+                        )
+                    else:
+                        if uponline:
+                            status = 'u'  # 未下线的变为'u'
+                            rule_name = domain_dict[item.domain][2]
+                            if rule_name not in rule_names:
+                                rule_names.append(rule_name)
+                        else:
+                            status = item.status
+                    # 更新单条记录
+                    if not item.update_count:
+                        update_count = 0
+                    else:
+                        update_count = item.update_count
+                    session.query(UsedCar).filter(UsedCar.url == item.url).update(
+                        {
+                            UsedCar.status: status,
+                            UsedCar.last_update: time_now,
+                            UsedCar.next_update: get_update_time(item),
+                            UsedCar.update_count: update_count + 1
+                        },
+                        synchronize_session=False
+                    )
+                    log_str = ' '.join([
+                        '\n' + str(num),
+                        str(num_per_hour),
+                        sales_status,
+                        str(item.id),
+                        item.url,
+                        '[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']'
+                    ])
+                    file_object = open('update.log', 'a')
+                    file_object.write(log_str)
+                    file_object.close()
+                    num_per_hour = num_per_hour + 1
+                    num = num + 1
+                    session.commit()
+                    session.close()
+                except Exception as e:
+                    session.close()
+                    error_count = error_count + 1
+                    if error_count == 5:
+                        file_object = open('update.log', 'a')
+                        file_object.write('\n' + item.url + ' ' + ''.join(e.args))
+                        file_object.close()
                 else:
-                    status = item.status
-            # 更新单条记录
-            if not item.update_count:
-                update_count = 0
-            else:
-                update_count = item.update_count
-            session.query(UsedCar).filter(UsedCar.url == item.url).update(
-                {
-                    UsedCar.status: status,
-                    UsedCar.last_update: time_now,
-                    UsedCar.next_update: get_update_time(item),
-                    UsedCar.update_count: update_count + 1
-                },
-                synchronize_session=False
-            )
-            print num, num_per_hour, sales_status, item.id, item.url, time_now
-            num_per_hour = num_per_hour + 1
-            num = num + 1
-            session.commit()
-            session.close()
+                    break
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
