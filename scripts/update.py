@@ -257,9 +257,9 @@ def update_sale_status(uponline=False, site=None, days=None):
     num = 1
     session.close()
     while day_up >= after_time:
-        session = Session()
         # ipdb.set_trace()
         # 查询三小时需要更新的车源
+        session = Session()
         query = session.query(
             UsedCar.domain,
             UsedCar.url,
@@ -284,6 +284,7 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.status != 'I',
             UsedCar.next_update != None,
             UsedCar.last_update != None,
+            UsedCar.update_count == 0,
             UsedCar.next_update <= time_now
         )
         num_per_hour = 1
@@ -293,8 +294,11 @@ def update_sale_status(uponline=False, site=None, days=None):
         day_up = day_up - datetime.timedelta(seconds=3600)
         day_on = day_on - datetime.timedelta(seconds=3600)
         rule_names = []    # 记录需要更新的网站
-        for item in query.yield_per(50):
+        items = query.all()
+        session.close()
+        for item in items:
             time.sleep(1)
+            session = Session()
             sales_status = get_sales_status(item.domain, item.url)
             time_now = datetime.datetime.now()
             if sales_status == 'offline':
@@ -327,7 +331,7 @@ def update_sale_status(uponline=False, site=None, days=None):
                 update_count = 0
             else:
                 update_count = item.update_count
-            query.filter(UsedCar.url == item.url).update(
+            session.query(UsedCar).filter(UsedCar.url == item.url).update(
                 {
                     UsedCar.status: status,
                     UsedCar.last_update: time_now,
@@ -336,11 +340,11 @@ def update_sale_status(uponline=False, site=None, days=None):
                 },
                 synchronize_session=False
             )
-            print num, num_per_hour, item.id, item.url, sales_status
+            print num, num_per_hour, sales_status, item.id, item.url, time_now
             num_per_hour = num_per_hour + 1
             num = num + 1
-        session.commit()
-        session.close()
+            session.commit()
+            session.close()
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
