@@ -253,11 +253,22 @@ def update_sale_status(uponline=False, site=None, days=None):
         second=0,
         microsecond=0
     ) + datetime.timedelta(days=1)
-    day_up = day_on - datetime.timedelta(seconds=10800)
+    day_up = day_on - datetime.timedelta(seconds=3600)
     num = 1
+    session.close()
     while day_up >= after_time:
+        session = Session()
+        # ipdb.set_trace()
         # 查询三小时需要更新的车源
-        query = session.query(UsedCar)
+        query = session.query(
+            UsedCar.domain,
+            UsedCar.url,
+            UsedCar.status,
+            UsedCar.update_count,
+            UsedCar.id,
+            UsedCar.next_update,
+            UsedCar.last_update
+        )
         if site:
             site_dict = {value[2]: key for key, value in domain_dict.items()}
             domain = site_dict[site]
@@ -277,10 +288,10 @@ def update_sale_status(uponline=False, site=None, days=None):
         )
         num_per_hour = 1
         num_this_hour = query.count()
-        if num_this_hour > 0:
-            print '\n', '[' + str(after_time) + ']', '[' + str(day_up) + ']-[' + str(day_on) + ']', num_this_hour
-        day_up = day_up - datetime.timedelta(seconds=10800)
-        day_on = day_on - datetime.timedelta(seconds=10800)
+        # if num_this_hour > 0:
+        print '\n', '[' + str(after_time) + ']', '[' + str(day_up) + ']-[' + str(day_on) + ']', num_this_hour
+        day_up = day_up - datetime.timedelta(seconds=3600)
+        day_on = day_on - datetime.timedelta(seconds=3600)
         rule_names = []    # 记录需要更新的网站
         for item in query.yield_per(50):
             time.sleep(1)
@@ -329,7 +340,7 @@ def update_sale_status(uponline=False, site=None, days=None):
             num_per_hour = num_per_hour + 1
             num = num + 1
         session.commit()
-    session.close()
+        session.close()
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
@@ -338,7 +349,7 @@ def update_sale_status(uponline=False, site=None, days=None):
 def update_error_status(status=None, site=None, days=7, seconds=0):
     session = Session()
     # 查询错误车源
-    query = session.query(UsedCar).filter(
+    query = session.query(UsedCar.domain).filter(
         UsedCar.created_on > (
             datetime.datetime.now().replace(
                 hour=0,
