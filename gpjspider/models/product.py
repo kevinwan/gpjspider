@@ -314,7 +314,7 @@ class CarSource(Base):
         # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
             # 旧的标记下线
-            session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='review'), synchronize_session=False)
+            session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='duplicated'), synchronize_session=False)
             return True
         return False
 
@@ -325,7 +325,7 @@ class CarSource(Base):
             if cls.mark_offline(session, old_item_ids):
                 session.query(cls).filter_by(id=item_id).update(dict(status='sale'), synchronize_session=False)
         else:
-            session.query(cls).filter_by(id=item_id).update(dict(status='review'), synchronize_session=False)
+            session.query(cls).filter_by(id=item_id).update(dict(status='duplicated'), synchronize_session=False)
 
 
 

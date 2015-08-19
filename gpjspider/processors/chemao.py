@@ -31,13 +31,14 @@ def business_insurance(value):
 
 
 def model_slug(value):
-    value = extract(value, ur'年款\s?(.*)\s?\d\.\d')
+    value = extract(value, ur'年款\s?(.*)\d\.\d')
+    value = extract(value, ur'(\w\s\d+)')
     value = extract(value, ur'第.+代(.*)')
 
     if (u'-' in value) and (u'厢' in value):
         return value.split(u'-')[0]
 
-    return value.split(' ')[0]
+    return ''.join(value.strip().split(' '))
 
 
 def mile(value):

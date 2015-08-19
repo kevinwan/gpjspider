@@ -466,7 +466,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
             trade_cars = trade_cars.filter(UsedCar.domain.in_(domains))
         pool_run(trade_cars, clean_trade_car)
     except Exception as e:
-        print 'uncaught exceiton', e, sid
+        print 'uncaught exceiton', e
     finally:
         session.close()
 
