@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument(
         "-t", "--dtype", default="incr", help="网站抓取模式，incr/full，默认incr")
     parser.add_argument(
-        "-l", "--logger", default="sentry", help="bug追踪日志保存方式，sentry/db，默认sentry")
+        "-l", "--logger", default="", help="bug追踪日志保存方式，sentry/db，默认sentry")
     parser.add_argument(
         "-u", "--update", default=False, help="是否更新，False/True，默认False")
     args = parser.parse_args()
@@ -51,11 +51,29 @@ def main(name='test', type_='incr', update=False):
             eval('run_%s_spider' % type_)(name, update)
         except:
             run_spider('%s.%s' % (type_, name), update)
+def setup_logging(log_filename):
+    import logging
+
+    logger = logging.getLogger('clean')
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # ch = logging.StreamHandler()
+    # ch.setLevel(logging.DEBUG)
+    # ch.setFormatter(formatter)
+    # logger.addHandler(ch)
+
+    fh = logging.FileHandler(log_filename)
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 if __name__ == '__main__':
     args = parse_args()
     name = args.site
     type_ = args.dtype
+    if args.logger:
+        setup_logging(args.logger)
     # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
     # if args.logger=='sentry':
     #     from gpjspider.utils.tracker import hook_logger
