@@ -46,8 +46,11 @@ def get_mysql_engine():
         url = URL(**MYSQL_SQLALCHEMY_URL)
         __engine = sa.create_engine(
             url, echo_pool=False, echo=False,
-            poolclass=NullPool,
-            # pool_recycle=timeout, pool_timeout=0, pool_size=1, max_overflow=0,
+            # poolclass=NullPool,
+            # pool_recycle=timeout,
+            # pool_timeout=0,
+            pool_size=20,
+            max_overflow=10,
         )
         sa.event.listen(__engine, 'checkout', handle_checkout_event)
     return __engine

@@ -11,4 +11,4 @@ def get_item(self, name):
 Base.get = Base.__getitem__ = get_item
 
 from usedcars import UsedCar
-from product import CategoryDict as BrandModel, CarSource, TradeCar
+from product import CategoryDict as BrandModel, CarSource, TradeCar, CarDetailInfo
