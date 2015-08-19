@@ -42,13 +42,12 @@ class ProxyMiddleware(object):
 
     def ip_control(self, response, spider):
         is_proxy = response.headers.has_key('x-proxymesh-ip')
-        if (re.search(self.juage[spider.domain], response.headers.get('location', 'None')) \
-                or re.search(self.juage[spider.domain], response.body)) and is_proxy:
-            ipdb.set_trace()
+        if (re.search(self.juage[spider.domain], response.headers.get('location', 'None')) or
+                re.search(self.juage[spider.domain], response.body)) and is_proxy:
             invalid_ip_key = str(date.today())
-            self.r.sadd(invalid_ip_key, is_proxy)
+            self.r.sadd(invalid_ip_key, response.headers['x-proxymesh-ip'])
             spider.log(
-                u'OneForbiddenIP is {0}'.format(is_proxy), log.INFO)
+                u'OneForbiddenIP is {0}'.format(response.headers['x-proxymesh-ip']), log.INFO)
         else:
             pass
 
