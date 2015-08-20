@@ -6,7 +6,7 @@ from scrapy import log
 from gpjspider.utils import get_redis_cluster
 import re
 import base64
-import ipdb
+# import ipdb
 
 
 class ProxyMiddleware(object):
@@ -42,9 +42,9 @@ class ProxyMiddleware(object):
 
     def ip_control(self, response, spider):
         is_proxy = response.headers.has_key('x-proxymesh-ip')
-        if (re.search(self.juage[spider.domain], response.headers.get('location', 'None')) or
-                re.search(self.juage[spider.domain], response.body)) and is_proxy:
-            invalid_ip_key = str(date.today())
+        if is_proxy and (re.search(self.juage[spider.domain], response.headers.get('location',
+                            'None')) or re.search(self.juage[spider.domain], response.body)):
+            invalid_ip_key = spider.domain + str(date.today())
             self.r.sadd(invalid_ip_key, response.headers['x-proxymesh-ip'])
             spider.log(
                 u'OneForbiddenIP is {0}'.format(response.headers['x-proxymesh-ip']), log.INFO)
@@ -53,15 +53,16 @@ class ProxyMiddleware(object):
 
     def process_request(self, request, spider):
         if self._need_proxy(request, spider):
-            today = str(date.today())
+            today = spider.domain + str(date.today())
             try:
                 request.meta['proxy'] = self.good_proxy
                 request.headers['Proxy-Authorization'] = 'Basic ' + \
                     self.encoded_user_passwd
                 request.headers[
                     'x-proxymesh-not-ip'] = ",".join(self.r.smembers(today))
-            except:
-                pass
+            except Exception, e:
+                spider.log(
+                    u'ExceptionInfo:{0}'.format(e))
             else:
                 spider.log(
                     u'ForbiddenIps is {0}'.format(request.headers['x-proxymesh-not-ip']), log.INFO)
