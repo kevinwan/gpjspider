@@ -2,6 +2,7 @@
 import sys
 import ipdb
 import time
+import random
 import datetime
 import requests
 import argparse
@@ -10,10 +11,10 @@ from sqlalchemy import func
 from threading import Thread, Lock
 from scrapy.selector import Selector
 from gpjspider.models import UsedCar, CarSource, CarDetailInfo
-from gpjspider.utils import get_mysql_connect
+from gpjspider.utils import get_mysql_connect, get_redis_cluster
 from gpjspider.tasks.spiders import run_all_spider_update
+from gpjspider.scrapy_settings import PROXIES, PROXY_USER_PASSWD
 
-Session = get_mysql_connect()
 
 # 判断是否下线的规则,后期预计简化
 domain_dict = {
@@ -190,13 +191,32 @@ domain_dict = {
     ]    # 404
 }
 
-auth = requests.auth.HTTPProxyAuth('gaoge', 'gaoge911911')
-proxies = {'http': 'http://us-il.proxymesh.com:31280'}
+firewall_rule = {
+    '58.com': [
+        '//div[@class="search_tips_input"]',
+        'Selector(text=web_page.text).xpath(firewall_rule[domain][0]).extract()'
+    ],
+    'baixing.com': [
+        '/html/body/p[contains(text(),"Service Unavailable For") or contains(text(),"Temporarily disabled. Please reduce your visit frequency.")]',
+        'Selector(text=web_page.text).xpath(firewall_rule[domain][0]).extract()'
+    ],
+    'ganji.com': [
+        u'//title[contains(text(),"机器人确认") or contains(text(),"反爬虫页面")]',
+        'Selector(text=web_page.content).xpath(firewall_rule[domain][0]).extract()'
+    ],
+}
+
+
+Session = get_mysql_connect()
+redis_bad_ip = get_redis_cluster()
+account = PROXY_USER_PASSWD[0].split(':')
+auth = requests.auth.HTTPProxyAuth(account[0], account[1])
+
 rule_names = []    # 记录需要更新的网站
 num = 1    # 记录程序运行开始共更新了多少条记录
 num_per_hour = 1    # 记录当前一小时段内的记录被更新了多少条
 lock = Lock()
-thread_num = 10    # 依次并发的线程数
+thread_num = 20    # 依次并发的线程数
 range_url_count = 10    # 同一个链接最多尝试访问的次数
 range_item_count = 5    # 同一条记录最多尝试更新的次数
 
@@ -206,25 +226,21 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
 
     for error_count in range(0, range_url_count):
         try:
+            proxies = {'http': random.choice(PROXIES)}
             web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
             if web_page.status_code == 407:    # 代理不可用时用本地ip访问
                 web_page = requests.get(url)
-            if domain == '58.com' and Selector(text=web_page.text).xpath(
-                '//div[@class="search_tips_input"]'
-            ).extract():
-                raise Exception('Website shield and all agent failure !')
-            if domain == 'ganji.com' and (
-                Selector(text=web_page.content).xpath(
-                    u'//title[contains(text(),"机器人确认") or contains(text(),"反爬虫页面")]'
-                ).extract()
-            ):
-                raise Exception('Website shield and all agent failure !')
-            if domain == 'baixing.com' and web_page.status_code == 503:
+            # web_page = requests.get(url)
+            if domain in ['58.com', 'baixing.com', 'ganji.com'] and eval(firewall_rule[domain][1]):
                 raise Exception('Website shield and all agent failure !')
         except Exception as e:
+            error_string = ''.join(e.args)
+            if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
+                invalid_ip_key = domain + str(datetime.date.today())
+                redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
             error_count = error_count + 1
             if error_count == range_url_count:
-                error_string = '\n' + url + ' ' + ''.join(e.args)
+                error_string = '\n' + url + ' ' + error_string
                 return ['online', error_string]
         else:
             break
@@ -248,7 +264,7 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
     return 'online'
 
 
-def get_update_time(item):    # 计算下次更新时间,待优化
+def get_update_time(item, time_now):    # 计算下次更新时间,待优化
     time_def = None
     next_update_time = (
         datetime.datetime.now() + datetime.timedelta(
@@ -260,11 +276,11 @@ def get_update_time(item):    # 计算下次更新时间,待优化
         time_def = item.next_update - item.last_update
     else:
         time_def = item.last_update - item.next_update
-    if time_def.seconds > 0:
+    if time_def.days + time_def.seconds > 0:
         next_update_time = (
-            datetime.datetime.now() + datetime.timedelta(
-                days=time_def.days * 2,
-                seconds=time_def.seconds * 2
+            time_now + datetime.timedelta(
+                days=time_def.days,
+                seconds=time_def.seconds
             )
         )
     return next_update_time
@@ -385,13 +401,15 @@ def deal_one_item(item, uponline, num_this_hour, log_name):
     for error_count in range(0, range_item_count):
         error_string = None
         new_error_string = None
+        sales_status = 'online'    # 设置默认值
+        time_now = datetime.datetime.now()    # 设置默认值
         try:
             session = Session()
             sales_status = get_sales_status(item.domain, item.url)
+            time_now = datetime.datetime.now()
             if isinstance(sales_status, list):
                 error_string = sales_status[1]
                 sales_status = sales_status[0]
-            time_now = datetime.datetime.now()
             if sales_status == 'offline':
                 status = 'Q'    # 已下线的变为'Q'
                 # 同步更新car_source状态
@@ -429,7 +447,7 @@ def deal_one_item(item, uponline, num_this_hour, log_name):
                 {
                     UsedCar.status: status,
                     UsedCar.last_update: time_now,
-                    UsedCar.next_update: get_update_time(item),
+                    UsedCar.next_update: get_update_time(item, time_now),
                     UsedCar.update_count: update_count + 1
                 },
                 synchronize_session=False
