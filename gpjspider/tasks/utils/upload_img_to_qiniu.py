@@ -11,6 +11,7 @@ from gpjspider.utils.download import download_file
 from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
 from gpjspider.utils.constants import QINIU_IMG_BUCKET
+import logging
 
 
 @app.task(name="batch_upload_to_qiniu", bind=True, base=GPJSpiderTask)
@@ -87,10 +88,15 @@ def __upload_img_file(qiniu_store, tmp_file, file_url, logger):
     new_file_path = tmp_file + '.jpg'
     try:
         image_obj = Image.open(tmp_file)
+        image_obj.convert('RGB')
         image_obj.save(new_file_path)
+    except:
+        logger.error('save tmp file fail' % tmp_file, exc_info=True)
     finally:
         # 不管成功与否，删除临时文件
-        os.remove(tmp_file)
+        try:
+            os.remove(tmp_file)
+        except:pass
     if not os.path.isfile(new_file_path):
         logger.error(u'PIL转换图片{0}失败'.format(file_url))
         return ''
