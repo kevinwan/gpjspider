@@ -135,14 +135,18 @@ def run_update_spider(self, rule_name, update):
 
 @app.task(name="run_all_spider_update", bind=True, base=GPJSpiderTask)
 def run_all_spider_update(self, rule_names):
+    process_list = []
     for rule_name in rule_names:
         spider_class = create_incr_spider_class(
             'IncrAutoSpider', 'incr.' + rule_name
         )
         logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
         rule = import_incr_rule(rule_name)
-        p = multiprocessing.Process(
+        process = multiprocessing.Process(
             target=crawl,
             args=(self, None, logfile, spider_class, rule, rule_name, 'True')
         )
-        p.start()
+        process_list.append(process)
+        process.start()
+    for process in process_list:
+        process.join()

@@ -1,67 +1,74 @@
 # -*- coding: utf-8 -*-
 import random
-import urlparse
-import requests
+from datetime import date
 from scrapy import log
-from scrapy.http import HtmlResponse
-from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
+# from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
 from gpjspider.utils import get_redis_cluster
+import re
+import base64
+# import ipdb
 
 
 class ProxyMiddleware(object):
-    domains = (
-        '58.com', 'ganji.com', 'taoche.com',
-        # 'baixing.com', '273.cn', 'ganji.com',
-        # 'autohome.com', 'pahaoche.com',
-        # 'hx2car.com', 'zg2sc.cn', 'che168.com', 'souche.com'
-    )
+
+    """
+    被各网站被屏蔽时的判断
+    """
+    juage = {
+        '58.com': r'58.com/firewall',
+        'ganji.com': r'ganji.com/sorry/confirm.php',
+        'baixing.com': r'Service Unavailable',
+    }
 
     def __init__(self, settings):
-        self.redis = get_redis_cluster()
-        self.good_proxies = settings.getlist('PROXIES')
-        self.domains = settings.getlist('PROXY_DOMAINS', self.domains)
+        # self.redis = get_redis_cluster()
+        # self.good_proxies = settings.getlist('PROXIES')
+        self.PROXIES = settings.getlist('PROXIES')
+        self.good_proxy = random.choice(self.PROXIES)
+        self.proxy_user_passwd = settings.getlist('PROXY_USER_PASSWD')[0]
+        self.encoded_user_passwd = base64.encodestring(self.proxy_user_passwd)
+        self.domains = settings.getlist('PROXY_DOMAINS')
         self.need_proxy = None
+        self.r = get_redis_cluster()
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(crawler.settings)
 
-    def _need_proxy(self, spider):
+    def _need_proxy(self, request, spider):
         if self.need_proxy is None:
             self.need_proxy = spider.domain in self.domains
         return self.need_proxy
 
+    def ip_control(self, response, spider):
+        is_proxy = response.headers.has_key('x-proxymesh-ip')
+        if is_proxy and (re.search(self.juage[spider.domain], response.headers.get('location',
+                            'None')) or re.search(self.juage[spider.domain], response.body)):
+            invalid_ip_key = spider.domain + str(date.today())
+            self.r.sadd(invalid_ip_key, response.headers['x-proxymesh-ip'])
+            spider.log(
+                u'OneForbiddenIP is {0}'.format(response.headers['x-proxymesh-ip']), log.INFO)
+        else:
+            pass
+
     def process_request(self, request, spider):
-        if self._need_proxy(spider) and not request.dont_filter:
-            ip = None
-            if isinstance(spider, GPJBaseSpider):
-                if not spider.proxy_ips:
-                    spider.proxy_ips = spider.get_proxy_ips()
-                if spider.proxy_ips:
-                    ip = random.choice(spider.proxy_ips)
-                else:
-                    ip = self.redis.srandmember('valid_proxy_ips')
-            else:
-                ip = self.redis.srandmember('valid_proxy_ips')
-            if ip:
-                proxy = 'http://' + ip
-                request.meta['proxy'] = proxy
+        if self._need_proxy(request, spider):
+            today = spider.domain + str(date.today())
+            try:
+                request.meta['proxy'] = self.good_proxy
+                request.headers['Proxy-Authorization'] = 'Basic ' + \
+                    self.encoded_user_passwd
+                request.headers[
+                    'x-proxymesh-not-ip'] = ",".join(self.r.smembers(today))
+            except Exception, e:
                 spider.log(
-                    u'{0} with proxy {1}'.format(request.url, proxy), log.INFO)
-                try:
-                    proxies = {
-                        'http': random.choice(self.good_proxies)
-                    }
-                    response = requests.get(request.url, proxies=proxies)
-                except:
-                    pass
-                else:
-                    # spider.log(
-                    #     u'Redirected to {0}'.format(response.url), log.INFO)
-                    # u = urlparse.urlparse(response.url)
-                    # url = u.scheme + '://' + u.netloc + u.path
-                    url = response.url
-                    return HtmlResponse(url, body=response.text, encoding='utf-8')
-            # else:
-            #     if 'proxy' in request.meta:
-            #         del request.meta['proxy']
+                    u'ExceptionInfo:{0}'.format(e))
+            else:
+                spider.log(
+                    u'ForbiddenIps is {0}'.format(request.headers['x-proxymesh-not-ip']), log.INFO)
+        else:
+            return
+
+    def process_response(self, request, response, spider):
+        self.ip_control(response, spider)
+        return response
