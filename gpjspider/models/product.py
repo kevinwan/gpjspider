@@ -652,3 +652,40 @@ class ReasonTrack(Base):
     detail = Column(String(512), doc=u'详情')
     ctx = Column(String(1024), doc=u'详情')
     created_at = Column(DateTime, doc=u'发生时间')
+
+
+class Dealer(Base):
+    """
+    收车商家
+    """
+    __tablename__ = u'sell_dealer'
+    DEALER_TYPES = (
+        ('dealer', u'二手车经销商'),
+        ('4s', u'4S店经销商'),
+        ('auction', u'拍卖商家'),
+        ('c2c', u'个人寄售'),
+    )
+    id = Column(Integer, primary_key=True)
+    short_name = Column(String(50), index=True, nullable=True, default=None, doc=u'公司简称')
+    company_name = Column(String(128), index=True, nullable=True, default=None, doc=u'公司名称')
+    description = Column(String(500), nullable=True, default=None, doc=u'商家描述')
+    city = Column(String(50), index=True, nullable=True, default=None, doc=u'城市',)
+    contact = Column(String(20), nullable=True, default=None, doc=u'联系人')
+    phone = Column(String(20), index=True, nullable=True, default=None, doc=u'联系电话')
+    address = Column(String(60), nullable=True, default=None, doc=u'地址')
+    category = Column(Enum(DEALER_TYPES), nullable=True, default=None, doc=u'商家类型')
+    weight = Column(Integer, nullable=True, default=0, doc=u'商家权重')
+    is_verify = Column(Boolean, default=False, doc=u'是否已人工确认')
+    brand_slug = Column('brand_slug', String(32),
+                        ForeignKey('open_category.slug', ondelete='SET NULL'),
+                        nullable=True, default=None, index=True,
+                        doc=u'主营品牌'
+                        )
+    is_closed = Column(Boolean, default=False, doc=u'是否已停业')
+    is_certify = Column(Boolean, default=False, doc=u'是否公平价认证的优质商家')
+    latitude = Column(DECIMAL(scale=18, precision=15), nullable=True, default=None, doc=u'商家纬度')
+    longitude = Column(DECIMAL(scale=18, precision=15), nullable=True, default=None, doc=u'商家经度')
+    score = Column(DECIMAL(scale=3, precision=2), nullable=True, default=None, doc=u'商户评分')
+
+    def __unicode__(self):
+        return "%s, %s" % (self.city, self.company_name)

@@ -10,7 +10,7 @@ from sqlalchemy import or_, Column
 from gpjspider import celery_app as app
 from gpjspider import GPJSpiderTask
 from gpjspider.items import UsedCarItem
-from gpjspider.models.product import CarSource, CarDetailInfo, CarImage
+from gpjspider.models.product import CarSource, CarDetailInfo, CarImage, Dealer
 from gpjspider.models import UsedCar, TradeCar
 from gpjspider.services.cars import get_gpj_category
 from gpjspider.services.cars import get_gpj_detail_model
@@ -117,15 +117,15 @@ def update_sell_dealer(self, item_id):
         dealer_id = match_dealer(item, reraise=True)
     except Exception as e:
         msg=e.message
-        
+
     if dealer_id:
-        session.query(CarSource).filter_by(id=item_id).update(dict(dealer_id=dealer_id), synchronize_session=False)          
+        session.query(CarSource).filter_by(id=item_id).update(dict(dealer_id=dealer_id), synchronize_session=False)
         log('[update_sell_dealers]updated', item_id,  dealer_id)
     else:
         dealer_id = 0
         if not msg:
             msg='not_enough_infomation'
-        log('[update_sell_dealers]fail', item_id, msg)      
+        log('[update_sell_dealers]fail', item_id, msg)
     session.close()
 
 def test_dup_car():
@@ -494,15 +494,15 @@ def match_dealer(item, reraise=False):
     dealer_id = None
     try:
         query = session.query(RawSellDealer.dealer_id).filter(
-            RawSellDealer.city==item['city'], 
-            RawSellDealer.domain==item['domain'], 
+            RawSellDealer.city==item['city'],
+            RawSellDealer.domain==item['domain'],
             or_(
-                RawSellDealer.company_name==item['company_name'],  
+                RawSellDealer.company_name==item['company_name'],
                 RawSellDealer.company_name=="'%s'" % item['company_name']
             )
         )
         cnt = query.count()
-        
+
         if cnt<1:
             raise MatchDealerException('NoMatchedRawSeller')
         elif cnt>1:
@@ -522,13 +522,13 @@ def match_dealer(item, reraise=False):
         for k, v in ctx.items():
             print k, v
         for k, v in tags.items():
-            print k, v            
+            print k, v
     except Exception as e:
         try:
             get_tracker().captureException(extra=ctx, tags=tags)
         except:pass
         if reraise:
-            raise e        
+            raise e
         print e.message
     finally:
         session.close()
@@ -611,7 +611,7 @@ def push_trade_car(item, sid, session):
         log('duplicated and old item is alive, no push_trade_car',sid)
         return False, 'old duplicated item is alive, stop push trade_car'
     else:
-        log('new item, do push_trade_car',sid)    
+        log('new item, do push_trade_car',sid)
     try:
         car = TradeCar.init(item)
         session.add(car)
@@ -1336,7 +1336,7 @@ def insert_to_carsource(item, session, logger):
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
     # add qs_tags, eval_price, gpj_index
     car_source.qs_tags = get_qs_tags(item.get('quality_service'))
-    
+
     if 0:# debug only
         import time
         car_source.url='%s%s' %(car_source.url, time.time())
@@ -1345,6 +1345,10 @@ def insert_to_carsource(item, session, logger):
         car_source.dealer_id = match_dealer(item, reraise=True)
     except:
         pass
+    if car_source.dealer_id:
+        dealer_type = session.query(Dealer).filter(Dealer.id == car_source.dealer_id).first().category
+        if dealer_type == 'c2c':
+            car_source.source_type = 'cpersonal'
     eval_price = get_eval_price(item)
     if eval_price:
         gpj_index = get_gpj_index(item['price'], eval_price)
@@ -1356,7 +1360,7 @@ def insert_to_carsource(item, session, logger):
         #     car_source.id = query.first().id
         #     session.merge(car_source)
         # else:
-        old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)        
+        old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)
         session.add(car_source)
         session.commit()
     except IntegrityError:
@@ -1523,6 +1527,69 @@ u'\u53ef\u9000\u6362 \u8d28\u4fdd'
             tags.add(k)
     return ' '.join(tags)
 
+
+def update_eval_price_and_gpj_index(site):
+    session = Session()
+    if site == '.':
+        domains = [
+            'xin.com',
+            'haoche.ganji.com',
+            '99haoche.com',
+            'ygche.com.cn',
+            'haoche51.com',
+            'renrenche.com',
+            'souche.com',
+            'youche.com',
+
+            '58.com',
+            'ganji.com',
+            'baixing.com',
+            'taoche.com',
+            '51auto.com',
+            '273.cn',
+            'cn2che.com',
+            'used.xcar.com.cn',
+            'iautos.cn',
+            '2sc.sohu.com',
+
+            'hx2car.com',
+            'che168.com',
+            'cheshi.com',
+
+            'c.cheyipai.com',
+        ]
+    else:
+        domains = [site]
+    query = session.query(
+        CarSource.id,
+        CarSource.price,
+        CarSource.source_type,
+        CarSource.brand_slug,
+        CarSource.model_slug,
+        CarSource.model_detail_slug,
+        CarSource.volume,
+        CarSource.year,
+        CarSource.month,
+        CarSource.color,
+        CarSource.mile,
+        CarSource.city,
+    ).filter(CarSource.eval_price < 0, CarSource.domain.in_(domains))
+    num = query.count()
+    numm = 1
+    for item in query.yield_per(50):
+        item = item.__dict__
+        eval_price = get_eval_price(item)
+        if eval_price:
+            gpj_index = get_gpj_index(item['price'], eval_price)
+            if gpj_index:
+                temp_session = Session()
+                temp_session.query(CarSource).filter(CarSource.id == item['id']).update(
+                    {CarSource.eval_price: eval_price,CarSource.gpj_index: gpj_index}
+                )
+                temp_session.commit()
+                temp_session.close()
+                print '{0}/{1} id {2} eval_price {3: ^5} gpj_index {4: ^5}'.format(numm, num, item['id'], eval_price, gpj_index)
+        numm = numm + 1
 
 def get_eval_price(item):
     u'''

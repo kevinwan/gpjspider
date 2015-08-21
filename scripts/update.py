@@ -225,7 +225,7 @@ log_name = 'update.log'
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
     global range_url_count
-
+    web_page = None
     for error_count in range(0, range_url_count):
         try:
             proxies = {'http': random.choice(PROXIES)}
@@ -241,31 +241,33 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
             except Exception:
                 error_string = e.message.message
             finally:
-                if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
-                    invalid_ip_key = domain + str(datetime.date.today())
-                    redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
+                if web_page:
+                    if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
+                        invalid_ip_key = domain + str(datetime.date.today())
+                        redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
                 if error_count + 1 == range_url_count:
                     error_string = '\n' + url + ' ' + error_string
                     return ['online', error_string]
         else:
             break
-    if domain == 'zg2sc.cn' and not web_page.content:
-        return 'offline'
-    if domain in ['jcjp.com.cn', 'zg2sc.cn']:
-        response = Selector(text=web_page.content.decode('gb2312', 'replace'))
-    else:
-        if domain in ['ganji.com', 'haoche51.com', 'renrenche.com', 'xin.com']:
-            response = Selector(text=web_page.content)
+    if web_page:
+        if domain == 'zg2sc.cn' and not web_page.content:
+            return 'offline'
+        if domain in ['jcjp.com.cn', 'zg2sc.cn']:
+            response = Selector(text=web_page.content.decode('gb2312', 'replace'))
         else:
-            response = Selector(text=web_page.text)
-    if 'x-proxymesh-ip' not in web_page.headers:    # 本机ip访问时降低访问速度
-        time.sleep(1)
-    xpaths = domain_dict[domain][0]
-    for xpath in xpaths:
-        sales = response.xpath(xpath).extract()
-        if sales:
-            if sales[0] == domain_dict[domain][1]:
-                return 'offline'
+            if domain in ['ganji.com', 'haoche51.com', 'renrenche.com', 'xin.com']:
+                response = Selector(text=web_page.content)
+            else:
+                response = Selector(text=web_page.text)
+        if 'x-proxymesh-ip' not in web_page.headers:    # 本机ip访问时降低访问速度
+            time.sleep(1)
+        xpaths = domain_dict[domain][0]
+        for xpath in xpaths:
+            sales = response.xpath(xpath).extract()
+            if sales:
+                if sales[0] == domain_dict[domain][1]:
+                    return 'offline'
     return 'online'
 
 
@@ -415,6 +417,7 @@ def deal_one_item(item, num_this_hour):
     for error_count in range(0, range_item_count):
         error_string = None
         new_error_string = None
+        session = None
         sales_status = 'online'    # 设置默认值
         time_now = datetime.datetime.now()    # 设置默认值
         try:
@@ -467,13 +470,15 @@ def deal_one_item(item, num_this_hour):
                 synchronize_session=False
             )
         except Exception as e:
-            session.rollback()
-            session.close()
+            if session:
+                session.rollback()
+                session.close()
             if error_count + 1 == range_item_count:
                 new_error_string = '\n' + item.url + ' deal failure: ' + ''.join(e.args)
         else:
-            session.commit()
-            session.close()
+            if session:
+                session.commit()
+                session.close()
             break
     lock.acquire()    # 加锁，防止变量值错乱
     log_str = ' '.join([

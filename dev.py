@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import re
+import ipdb
 from gpjspider.tasks.spiders import *
-from gpjspider.tasks.clean.usedcars import clean_domain, clean_item, match_item_dealer
+from gpjspider.tasks.clean.usedcars import clean_domain, clean_item, match_item_dealer, update_eval_price_and_gpj_index
 import argparse
 import logging
 
@@ -19,6 +20,8 @@ def parse_args():
         "-l", "--logger", default="", help="bug追踪日志保存方式，sentry/db，默认sentry")
     parser.add_argument(
         "-u", "--update", default=False, help="是否更新，False/True，默认False")
+    parser.add_argument(
+        "-p", "--update_price", default=False, help="是否只更新价格指数，False/True，默认False")
     args = parser.parse_args()
     return args
 
@@ -52,6 +55,8 @@ def main(name='test', type_='incr', update=False):
             eval('run_%s_spider' % type_)(name, update)
         except:
             run_spider('%s.%s' % (type_, name), update)
+
+
 def setup_logging(log_filename=''):
     import logging
     import datetime
@@ -83,11 +88,16 @@ if __name__ == '__main__':
     args = parse_args()
     name = args.site
     type_ = args.dtype
-    if name=='.' or name.startswith('.'):
-        setup_logging(args.logger)
+    update = args.update
+    update_price = args.update_price
+    # ipdb.set_trace()
+    if update_price:
+        update_eval_price_and_gpj_index(name)
+    else:
+        if name == '.' or name.startswith('.'):
+            setup_logging(args.logger)
+        main(name, type_, update)
     # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
     # if args.logger=='sentry':
     #     from gpjspider.utils.tracker import hook_logger
     #     hook_logger()
-    update = args.update
-    main(name, type_, update)
