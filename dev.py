@@ -83,7 +83,8 @@ if __name__ == '__main__':
     args = parse_args()
     name = args.site
     type_ = args.dtype
-    setup_logging(args.logger)
+    if name=='.' or name.startswith('.'):
+        setup_logging(args.logger)
     # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
     # if args.logger=='sentry':
     #     from gpjspider.utils.tracker import hook_logger
