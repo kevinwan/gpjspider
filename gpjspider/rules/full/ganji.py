@@ -167,9 +167,11 @@ item_rule = {
         },
         'transfer_owner': {
             'xpath': (
-                text(cls('arial fc-org f16')),
+                has(u"过户", cls("arial fc-org f16", prefix='//')),
+                # text(cls('arial fc-org f16')),
             ),
             'processors': ['ganji.transfer_owner'],
+            'default': 0,
         },
         'source_type': {
             'default': '%(contact)s',
@@ -220,6 +222,7 @@ rule = {
         #'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
         # 'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人
         #'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
+        # 'http://wenzhou.ganji.com/ershouche/1679794510x.htm', # 网页改版
     ],
 
     'parse': parse_rule,
