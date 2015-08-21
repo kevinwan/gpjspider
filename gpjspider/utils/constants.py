@@ -7,6 +7,7 @@ CONTROL_MODE_MANUAL = u'手动'
 CONTROL_MODE_AUTOMATIC = u'自动'
 CONTROL_MODE_MANUAL_AUTOMATIC = u'手自一体'
 
+LIST_PAGE_PRIORITY = 5
 
 #=============================================================================
 # 车源类型
