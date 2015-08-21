@@ -4,6 +4,7 @@ import re
 from gpjspider.tasks.spiders import *
 from gpjspider.tasks.clean.usedcars import clean_domain, clean_item, match_item_dealer
 import argparse
+import logging
 
 
 def parse_args():
@@ -51,17 +52,27 @@ def main(name='test', type_='incr', update=False):
             eval('run_%s_spider' % type_)(name, update)
         except:
             run_spider('%s.%s' % (type_, name), update)
-def setup_logging(log_filename):
+def setup_logging(log_filename=''):
     import logging
+    import datetime
 
+    if not log_filename:
+        log_filename = '/tmp/gpjspider/clean_%s.log' % datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    logging.basicConfig(
+        filename=log_filename,
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    )
+    logging.getLogger('requests').handlers=[]
+    return
     logger = logging.getLogger('clean')
     logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-    # ch = logging.StreamHandler()
-    # ch.setLevel(logging.DEBUG)
-    # ch.setFormatter(formatter)
-    # logger.addHandler(ch)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
     fh = logging.FileHandler(log_filename)
     fh.setLevel(logging.DEBUG)
@@ -72,8 +83,7 @@ if __name__ == '__main__':
     args = parse_args()
     name = args.site
     type_ = args.dtype
-    if args.logger:
-        setup_logging(args.logger)
+    setup_logging(args.logger)
     # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
     # if args.logger=='sentry':
     #     from gpjspider.utils.tracker import hook_logger

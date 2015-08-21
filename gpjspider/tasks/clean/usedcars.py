@@ -40,8 +40,8 @@ Session = get_mysql_connect()
 
 import logging
 
-def get_task_logger(name):
-    return logging.getLogger('clean')
+def get_task_logger(name='clean'):
+    return logging.getLogger(name)
 
 AUTO_PHONE = False
 # 需要检查去重的产品表
@@ -97,10 +97,10 @@ class async(object):
 
 def log(msg, *args):
     logging.debug(u'%s%s' % (unicode(msg), u','.join([unicode(arg) for arg in args])))
-    # print str(datetime.now())[11:19], msg,
-    # for arg in args:
-    #     print arg,
-    # print ''
+    print str(datetime.now())[11:19], msg,
+    for arg in args:
+        print arg,
+    print ''
 
 
 @app.task(name="update_sell_dealer", bind=True, base=GPJSpiderTask)
@@ -275,8 +275,10 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = 'C'
 
     start_date = datetime.today()
-    if CLEAN_ITEM_HOUR_LIMIT:
+    if CLEAN_ITEM_HOUR_LIMIT>=24:
         start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
+    else:
+        start_date -= timedelta(days=1)
     start_time = str(start_date)[:10]
     # print start_time
     sql = session.query(UsedCar.id).filter(
@@ -291,11 +293,12 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         UsedCar.status.in_([status, 'I']),
         # UsedCar.status.in_([status, 'Y', 'I']),
     ).filter_by(source=1)
+    #.order_by(UsedCar.id.asc())
     try:
         min_id = sql.first().id
-    except:
+    except Exception as e:
         session.close()
-        log('Done')
+        log('Done,missing min_id', e.message)
         return
     # created_on>curdate()
     # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
@@ -340,7 +343,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # id_range = 20000
     # id_range = 50000
     # id_range = 500
-    print min_id, max_id, max_id - min_id + 1
+    log('cleaning %d-%d, total %d items' % (min_id, max_id, max_id - min_id + 1))
     while min_id < max_id:
         mid = min_id + id_range
         if mid > max_id:
@@ -466,7 +469,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
             trade_cars = trade_cars.filter(UsedCar.domain.in_(domains))
         pool_run(trade_cars, clean_trade_car)
     except Exception as e:
-        print 'uncaught exceiton', e
+        get_task_logger().exception('clean error', exc_info=True)
     finally:
         session.close()
 
@@ -536,17 +539,21 @@ def match_dealer(item, reraise=False):
 
 
 def clean_item(item_id):
-    query = Session().query(UsedCar).filter_by(id=item_id)
+    session=Session()
+    query = session.query(UsedCar).filter_by(id=item_id)
     print 'try to clean item', item_id
     items=[]
     for item in query:
         items.append(item.__dict__)
+    session.close()
     clean_normal_car(items)
-    # clean_trade_car(items, do_not_push=True)
+    clean_trade_car(items)
+    clean_usedcar(items)
 
 
 def match_item_dealer(item_id):
-    query = Session().query(UsedCar).filter_by(id=item_id)
+    session=Session()
+    query = session.query(UsedCar).filter_by(id=item_id)
     print 'try to match delaer for item', item_id
     items=[]
     for item in query:
@@ -555,6 +562,7 @@ def match_item_dealer(item_id):
         ditem = item.__dict__
         print ditem['id'], ditem['city'], ditem['company_name'], ditem['domain']
         ditem['dealer_id']=match_dealer(ditem)
+    session.close()
     print 'done'
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
@@ -800,7 +808,7 @@ def update_dup_car_items(item, klass_name, klass_id):
         pip.sadd(rk, item_id)
         pip.execute()
     except Exception as e:
-        print e, item['id']
+        print 'during update dup_car_items', e, item['id']
 
 def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
     try:
@@ -818,7 +826,7 @@ def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
         item_ids = [x[1] for x in [i.split(':')  for i in item_ids] if x[0]==klass_name]
         return item_ids
     except Exception as e:
-        print e, item['id']
+        print 'during get dup_items', e, item['id']
         return []
 
 def is_dup_car_redis2(item):
@@ -917,7 +925,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
     logger = get_task_logger('clean_usedcar')
     if not isinstance(items, list):
         items = [items]
-    logger.debug(u'清理数据,长度:{0}: {1}'.format(len(items), items))
+    logger.debug(u'清理数据,长度:{0}'.format(len(items)))
     status = {
         'C': [],
         'P': [],
@@ -1014,21 +1022,30 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 s = 'C'
         except Exception as e:
             # raise
-            print e, sid
+            get_task_logger().error('clean used_car error', exc_info=True)
+            print 'cleanused_car', e, sid
             s = 'E'
         if sid:
             status[s].append(sid)
         session.close()
-    cursor = get_cursor()
+    session=Session()
     for k, v in status.items():
         if v:
-            cursor.execute('update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
+            log('marking %d items as status %s' % (len(v), k))
+            session.execute('update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
+    session.close()
 
+    log('clean_used_car done')
 
 def get_province_by_city(city, session=None):
     # redis.hmget('city', city)
-    res = get_cursor(session).execute(
-        'SELECT b.name FROM open_city a, open_city b WHERE a.name="%s" and a.parent=b.id;' % city).fetchone()
+    need_close=False
+    if not session:
+        session=Session()
+        need_close=True
+    res = session.execute('SELECT b.name FROM open_city a, open_city b WHERE a.name="%s" and a.parent=b.id;' % city).fetchone()
+    if need_close:
+        session.close()
     return res[0] if res else None
 
 
@@ -1391,17 +1408,20 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
     car_detail_info.car_key = None
     car_detail_info.quality_assurance = item.get('quality_service')
     car_detail_info.condition_score = item.get('condition_level')
+    detail_id = 0
+    logger.debug('saving detail info for car source %d' % car_source.id)
     try:
         session.add(car_detail_info)
         session.commit()
+        detail_id = car_detail_info.id
     except IntegrityError:
         session.rollback()
         msg = u'Dup car_detail_info for car_source: {0}'.format(car_source.id)
         logger.error(msg)
     except Exception as e:
-        logger.error(u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
+        logger.error(u'cdi Failed {0} {1}: \n{2}'.format(car_source.id, car_source.url, unicode(e)), exc_info=True)
     else:
-        logger.info(u'Add car_detail_info: {0}'.format(car_detail_info.id))
+        logger.info(u'Add car_detail_info: {0}'.format(detail_id))
 
 
 def insert_to_carimage(item, car_source, session, logger):
@@ -1426,8 +1446,7 @@ def insert_to_carimage(item, car_source, session, logger):
             logger.error(u'Dup CarImage for car_source: {0}'.format(car_source.id))
         except Exception as e:
             session.rollback()
-            logger.error(
-                u'Failed {0}: \n{1}'.format(car_source.url, unicode(e)))
+            logger.error(u'instance Failed {0}: \n{1}'.format(car_source.url, unicode(e)), exc_info=True)
     logger.info(u'Saved CarImages for car_source: {0}'.format(car_source.id))
 
 
