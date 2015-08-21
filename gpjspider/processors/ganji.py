@@ -9,6 +9,9 @@ import re
 def transfer_owner(value):
     if isinstance(value, (list, tuple)) and len(value) > 2:
         return int(value[2])
+    if isinstance(value, (list, tuple)):
+        if u'次' in value[0]:
+            return int(value[0].strip(u'次'))
     return int(value)
 
 def phone(value):

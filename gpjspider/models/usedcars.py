@@ -120,7 +120,7 @@ class UsedCar(Base):
     source = Column("source_id", Integer, default=1)
     detail_model = Column("detail_model_id", Integer, default=None)
     checker_runtime = Column("checker_runtime_id", Integer, default=1)
-    last_update = Column(DateTime, default=None, doc=u'上次更新时间时间')
+    last_update = Column(DateTime, default=datetime.now, doc=u'上次更新时间时间')
     next_update = Column(DateTime, default=None, doc=u'下次更新时间时间')
     update_count = Column(Integer, default=0, doc=u'更新次数')
 

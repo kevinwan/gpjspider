@@ -219,6 +219,8 @@ lock = Lock()
 thread_num = 20    # 依次并发的线程数
 range_url_count = 10    # 同一个链接最多尝试访问的次数
 range_item_count = 5    # 同一条记录最多尝试更新的次数
+uponline = False
+log_name = 'update.log'
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
@@ -232,16 +234,19 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                 web_page = requests.get(url)
             # web_page = requests.get(url)
             if domain in ['58.com', 'baixing.com', 'ganji.com'] and eval(firewall_rule[domain][1]):
-                raise Exception('Website shield and all agent failure !')
+                raise Exception(['Website shield and all agent failure !'])
         except Exception as e:
-            error_string = ''.join(e.args)
-            if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
-                invalid_ip_key = domain + str(datetime.date.today())
-                redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
-            error_count = error_count + 1
-            if error_count == range_url_count:
-                error_string = '\n' + url + ' ' + error_string
-                return ['online', error_string]
+            try:
+                error_string = ''.join(e.args)
+            except Exception:
+                error_string = e.message.message
+            finally:
+                if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
+                    invalid_ip_key = domain + str(datetime.date.today())
+                    redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
+                if error_count + 1 == range_url_count:
+                    error_string = '\n' + url + ' ' + error_string
+                    return ['online', error_string]
         else:
             break
     if domain == 'zg2sc.cn' and not web_page.content:
@@ -287,11 +292,10 @@ def get_update_time(item, time_now):    # 计算下次更新时间,待优化
 
 
 # 更新原始表和业务表的车源的销售状态
-def update_sale_status(uponline=False, site=None, days=None):
+def update_sale_status(site=None, days=None):
     session = Session()
     global rule_names
-    global thread_num
-    global num_per_hour
+    global log_name
 
     log_name = 'update'    # 日志文件名
     if uponline:
@@ -304,7 +308,7 @@ def update_sale_status(uponline=False, site=None, days=None):
         after_time = session.query(func.min(UsedCar.created_on)).scalar()
     else:
         after_time = time_now - datetime.timedelta(days=days - 1)
-        log_name = log_name + '_after:' + str(after_time)
+        log_name = log_name + '_after:' + after_time.strftime("%Y-%m-%d %H:%M:%S")
     log_name = log_name + '.log'
     file_object = open(log_name, 'w')    # 如果文件存在就清空内容
     file_object.write('')
@@ -334,6 +338,7 @@ def update_sale_status(uponline=False, site=None, days=None):
             UsedCar.status,
             UsedCar.update_count,
             UsedCar.id,
+            UsedCar.created_on,
             UsedCar.next_update,
             UsedCar.last_update
         )
@@ -369,31 +374,40 @@ def update_sale_status(uponline=False, site=None, days=None):
         day_on = day_on - datetime.timedelta(seconds=3600)
         items = query.all()
         session.close()
-        num_per_hour = 1
-        thread_list = []
-        for item in items:
-            child_thread = Thread(
-                target=deal_one_item,
-                args=(item, uponline, num_this_hour, log_name)
-            )
-            thread_list.append(child_thread)
-            if len(thread_list) == thread_num:
-                for child_thread in thread_list:
-                    child_thread.start()
-                for child_thread in thread_list:
-                    child_thread.join()
-                thread_list = []
-        for child_thread in thread_list:
-            child_thread.start()
-        for child_thread in thread_list:
-            child_thread.join()
+        deal_items(items)
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
 
-def deal_one_item(item, uponline, num_this_hour, log_name):
+def deal_items(items):    # 单独提出模块，方便调用
+    global thread_num
+    global num_per_hour
+    num_per_hour = 1
+    num_this_hour = len(items)
+    thread_list = []
+    for item in items:
+        child_thread = Thread(
+            target=deal_one_item,
+            args=(item, num_this_hour)
+        )
+        thread_list.append(child_thread)
+        if len(thread_list) == thread_num:
+            for child_thread in thread_list:
+                child_thread.start()
+            for child_thread in thread_list:
+                child_thread.join()
+            thread_list = []
+    for child_thread in thread_list:
+        child_thread.start()
+    for child_thread in thread_list:
+        child_thread.join()
+
+
+def deal_one_item(item, num_this_hour):
     global num
     global lock
+    global log_name
+    global uponline
     global rule_names
     global num_per_hour
     global range_item_count
@@ -452,18 +466,19 @@ def deal_one_item(item, uponline, num_this_hour, log_name):
                 },
                 synchronize_session=False
             )
-            session.commit()
-            session.close()
         except Exception as e:
+            session.rollback()
             session.close()
-            error_count = error_count + 1
-            if error_count == range_item_count:
+            if error_count + 1 == range_item_count:
                 new_error_string = '\n' + item.url + ' deal failure: ' + ''.join(e.args)
         else:
+            session.commit()
+            session.close()
             break
     lock.acquire()    # 加锁，防止变量值错乱
     log_str = ' '.join([
         '\n' + '[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']',
+        '[' + item.created_on.strftime("%Y-%m-%d %H:%M:%S") + ']',
         str(item.id),
         str(num),
         str(num_per_hour) + '/' + str(num_this_hour),
@@ -562,6 +577,6 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         else:
-            update_sale_status(uponline, site, days)
+            update_sale_status(site, days)
     else:
         print 'Input update model is invalid !'
