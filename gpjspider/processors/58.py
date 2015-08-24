@@ -14,6 +14,9 @@ from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
 #     except:
 #         return value
 
+def clean_params(url):
+    token = '&PGTID=' if 'infoid' in url else '?'
+    return url.split(token)
 
 def phone(values):
     phone_str = ''

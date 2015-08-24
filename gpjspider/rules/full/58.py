@@ -290,6 +290,7 @@ parse_rule = {
         ),
         'contains': ['/ershouche/', 'shtml', 'infoid'],
         'processors': ['clean_param'],
+        'processors': ['58.clean_params'],
         'format': True,
         "step": 'parse_detail',
     },
