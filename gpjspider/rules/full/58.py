@@ -289,6 +289,7 @@ parse_rule = {
             # '//div[@class="area-con01"]/ul[@class="arealist"]//div[@class="txt"]/a/@href',
         ),
         'contains': ['/ershouche/', 'shtml', 'infoid'],
+        'processors': ['clean_param'],
         'format': True,
         "step": 'parse_detail',
     },
