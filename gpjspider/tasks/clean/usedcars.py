@@ -24,6 +24,8 @@ from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
 from gpjspider.processors import souche
 from gpjspider.utils.misc import filter_item_ids
+from sqlalchemy import func
+from threading import Thread, Lock
 
 import threading
 import re
@@ -1527,9 +1529,9 @@ u'\u53ef\u9000\u6362 \u8d28\u4fdd'
             tags.add(k)
     return ' '.join(tags)
 
-
+num = 1
+lock = Lock()
 def update_eval_price_and_gpj_index(site):
-    session = Session()
     if site == '.':
         domains = [
             'xin.com',
@@ -1560,36 +1562,70 @@ def update_eval_price_and_gpj_index(site):
         ]
     else:
         domains = [site]
-    query = session.query(
-        CarSource.id,
-        CarSource.price,
-        CarSource.source_type,
-        CarSource.brand_slug,
-        CarSource.model_slug,
-        CarSource.model_detail_slug,
-        CarSource.volume,
-        CarSource.year,
-        CarSource.month,
-        CarSource.color,
-        CarSource.mile,
-        CarSource.city,
-    ).filter(CarSource.eval_price < 0, CarSource.domain.in_(domains))
-    num = query.count()
-    numm = 1
-    for item in query.yield_per(50):
-        item = item.__dict__
-        eval_price = get_eval_price(item)
-        if eval_price:
-            gpj_index = get_gpj_index(item['price'], eval_price)
-            if gpj_index:
-                temp_session = Session()
-                temp_session.query(CarSource).filter(CarSource.id == item['id']).update(
-                    {CarSource.eval_price: eval_price,CarSource.gpj_index: gpj_index}
-                )
-                temp_session.commit()
-                temp_session.close()
-                print '{0}/{1} id {2} eval_price {3: ^5} gpj_index {4: ^5}'.format(numm, num, item['id'], eval_price, gpj_index)
-        numm = numm + 1
+    session = Session()
+    min_id = session.query(func.min(CarSource.id)).filter(CarSource.status == 'sale').scalar()
+    max_id = session.query(func.max(CarSource.id)).filter(CarSource.status == 'sale').scalar()
+    session.close()
+    while max_id >= min_id:
+        session = Session()
+        query = session.query(
+            CarSource.id,
+            CarSource.price,
+            CarSource.source_type,
+            CarSource.brand_slug,
+            CarSource.model_slug,
+            CarSource.model_detail_slug,
+            CarSource.volume,
+            CarSource.year,
+            CarSource.month,
+            CarSource.color,
+            CarSource.mile,
+            CarSource.city,
+            CarSource.eval_price,
+            CarSource.gpj_index
+        ).filter(CarSource.id <= max_id, CarSource.id > max_id - 50, CarSource.status == 'sale', CarSource.domain.in_(domains))
+        items = query.all()
+        session.close()
+        session = Session()
+        thread_list = []
+        for item in items:
+            child_thread = Thread(
+                target=deal_one_item,
+                args=(session, item)
+            )
+            thread_list.append(child_thread)
+            if len(thread_list) == 10:
+                for child_thread in thread_list:
+                    child_thread.start()
+                for child_thread in thread_list:
+                    child_thread.join()
+                thread_list = []
+        for child_thread in thread_list:
+            child_thread.start()
+        for child_thread in thread_list:
+            child_thread.join()
+        max_id = max_id - 50
+        session.close()
+
+
+def deal_one_item(session, item):
+    global num
+    global lock
+    eval_price = None
+    gpj_index = None
+    item = item.__dict__
+    eval_price = get_eval_price(item)
+    lock.acquire()    # 加锁，防止变量值错乱
+    if eval_price:
+        gpj_index = get_gpj_index(item['price'], eval_price)
+        if gpj_index:
+            session.query(CarSource).filter(CarSource.id == item['id']).update(
+                {CarSource.eval_price: eval_price,CarSource.gpj_index: gpj_index}
+            )
+    print '{0} id {1} eval_price {2: ^5}->{3: ^5} gpj_index {4: ^5}->{5: ^5}'.format(num, item['id'], item['eval_price'], eval_price, item['gpj_index'], gpj_index)
+    num = num + 1
+    lock.release()
+
 
 def get_eval_price(item):
     u'''

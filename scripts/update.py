@@ -294,7 +294,7 @@ def get_update_time(item, time_now):    # 计算下次更新时间,待优化
 
 
 # 更新原始表和业务表的车源的销售状态
-def update_sale_status(site=None, days=None):
+def update_sale_status(site=None, days=None, before=None):
     session = Session()
     global rule_names
     global log_name
@@ -310,24 +310,31 @@ def update_sale_status(site=None, days=None):
         after_time = session.query(func.min(UsedCar.created_on)).scalar()
     else:
         after_time = time_now - datetime.timedelta(days=days - 1)
-        log_name = log_name + '_after:' + after_time.strftime("%Y-%m-%d %H:%M:%S")
-    log_name = log_name + '.log'
-    file_object = open(log_name, 'w')    # 如果文件存在就清空内容
-    file_object.write('')
-    file_object.close()
-
     after_time = after_time.replace(
         hour=0,
         minute=0,
         second=0,
         microsecond=0
     )
-    day_on = time_now.replace(
-        hour=0,
-        minute=0,
-        second=0,
-        microsecond=0
-    ) + datetime.timedelta(days=1)
+    if before:
+        day_on = datetime.datetime.strptime(before, '%Y-%m-%d %H:%M:%S').replace(
+            minute=0,
+            second=0,
+            microsecond=0
+        ) + datetime.timedelta(seconds=3600)
+    else:
+        day_on = time_now.replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0
+        ) + datetime.timedelta(days=1)
+    log_name = log_name + ':[' + after_time.strftime("%Y-%m-%d %H:%M:%S") + ']-'
+    log_name = log_name + '[' + day_on.strftime("%Y-%m-%d %H:%M:%S") + ']'
+    log_name = log_name + '.log'
+    file_object = open(log_name, 'w')    # 如果文件存在就清空内容
+    file_object.write('')
+    file_object.close()
     day_up = day_on - datetime.timedelta(seconds=3600)
     session.close()
 
@@ -544,7 +551,8 @@ def parse_args():
     parser.add_argument("-n", "--uponline", default=False, help="是否重新爬取未下线的车源,默认为False")
     parser.add_argument("-t", "--status", default=None, help="要更新的错误状态,如-model_slug,默认为None,默认时更新所有错误状态")
     parser.add_argument("-s", "--site", default=None, help="要更新的网站,默认为None,默认时更新所有网站")
-    parser.add_argument("-d", "--days", default=None, help="要更新几天以内的记录,默认为0天")
+    parser.add_argument("-d", "--days", default=None, help="要更新几天以内的记录,默认为最早的那天")
+    parser.add_argument("-b", "--before", default=None, help="要更新多久以前的记录,默认为当前时间")
     parser.add_argument("-e", "--seconds", default=None, help="要更新几秒以内的记录,默认为0秒")
     parser.add_argument("-u", "--model", default="offline", help="更新模式,offline为更新下线记录,error为更新错误记录,默认为更新错误记录")
     args = parser.parse_args()
@@ -559,6 +567,7 @@ if __name__ == '__main__':
     status = args.status
     site = args.site
     days = args.days
+    before = args.before
     seconds = args.seconds
     if model == 'error':
         try:
@@ -581,6 +590,6 @@ if __name__ == '__main__':
         except Exception as e:
             print(e)
         else:
-            update_sale_status(site, days)
+            update_sale_status(site, days, before)
     else:
         print 'Input update model is invalid !'

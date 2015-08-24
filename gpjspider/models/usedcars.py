@@ -2,7 +2,7 @@
 """
 二手车模型
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import Column, Integer, String, Text, CHAR
 from sqlalchemy import Boolean, DateTime, Enum, DECIMAL
 from gpjspider.utils.constants import SOURCE_TYPE_OLD_SPIDER
@@ -23,6 +23,10 @@ class UsedCar(Base):
         ('personal', u'一般个人车源'),
 
     """
+    def get_next_update():
+        next_update = datetime.now() + timedelta(days=1)
+        return next_update
+
     PRODUCT_STATUS_CHOICE = (
         ('M', u'(M)新加入的产品或在后台被修改过'),
         ('N', u'(N)不在前台呈现'),
@@ -121,7 +125,7 @@ class UsedCar(Base):
     detail_model = Column("detail_model_id", Integer, default=None)
     checker_runtime = Column("checker_runtime_id", Integer, default=1)
     last_update = Column(DateTime, default=datetime.now, doc=u'上次更新时间时间')
-    next_update = Column(DateTime, default=None, doc=u'下次更新时间时间')
+    next_update = Column(DateTime, default=get_next_update, doc=u'下次更新时间时间')
     update_count = Column(Integer, default=0, doc=u'更新次数')
 
 

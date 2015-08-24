@@ -83,6 +83,8 @@ class UsedCarItem(GpjspiderItem):
     source_type = Field()
     detail_model = Field()
     created_on = Field()
+    last_update = Field()
+    next_update = Field()
 
 
 class CarSourceItem(GpjspiderItem):
