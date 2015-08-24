@@ -349,14 +349,13 @@ def update_sale_status(site=None, days=None):
             domain = site_dict[site]
             query = query.filter(UsedCar.domain == domain)
         query = query.filter(
+            # UsedCar.status != 'Q',
+            # UsedCar.status != 'u',
+            # UsedCar.status != 'I',
+            UsedCar.status == 'C',
             UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
-            UsedCar.created_on < day_on
-        )
-        query = query.filter(
-            UsedCar.status != 'Q',
-            UsedCar.status != 'u',
-            UsedCar.status != 'I',
+            UsedCar.created_on < day_on,
             UsedCar.next_update != None,
             UsedCar.last_update != None,
             UsedCar.update_count == 0,
