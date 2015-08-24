@@ -802,11 +802,9 @@ def update_dup_car_items(item, klass_name, klass_id):
         detail, sig = make_item_sig(item)
         rk = REDIS_DUP_SIG_KEY % sig
         item_id = '%s:%s' % (klass_name,klass_id)
-        pip = redis.pipeline()
-        if pip.exists(rk) and pip.sismember(rk, item_id):
-            pip.zincrby(REDIS_DUP_STAT_KEY, sig)
-        pip.sadd(rk, item_id)
-        pip.execute()
+        if redis.exists(rk) and redis.sismember(rk, item_id):
+            redis.zincrby(REDIS_DUP_STAT_KEY, sig)
+        redis.sadd(rk, item_id)
     except Exception as e:
         print 'during update dup_car_items', e, item['id']
 
