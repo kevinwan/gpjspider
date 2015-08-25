@@ -53,9 +53,9 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
         if is_full:
             time.sleep(30)
         # 58.com 'baixing.com', '51auto.com', 'taoche.com'
-        if domain in ('ganji.com', 'baixing.com', '51auto.com', 'taoche.com', '58.com'):
-            print 'already run..'
-            return
+        # if domain in ('ganji.com', 'baixing.com', '51auto.com', 'taoche.com', '58.com'):
+        #     print 'already run..'
+        #     return
         if os.path.exists(jobdir):
             jobdir2 = '%s.%s' % (jobdir, pid)
             os.makedirs(jobdir2)
