@@ -374,12 +374,10 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     # print min_id, max_id
     # base query
     # session = session or Session()
+    log('cleaning %s-%s' % (min_id,max_id))
     session = Session()
     try:
         domains = domains or []
-        # base_query = session.query(UsedCar).filter(
-            # UsedCar.id >= min_id, UsedCar.id <= max_id,
-            # UsedCar.domain.in_(domains), UsedCar.source_type != 1).filter_by(source=1)
         base_query = session.query(UsedCar).filter(
             UsedCar.id >= min_id,
             UsedCar.id <= max_id,
@@ -449,6 +447,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
 
         pool_run(normal_cars, clean_normal_car)
 
+        log('marking status in N,I to _ in UsedCar')
         end_status = '_'
         # mark left cars
         base_query.filter(UsedCar.status.in_(['N', 'I'])).update(dict(status=end_status), synchronize_session=False)
@@ -472,6 +471,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         get_task_logger().exception('clean error', exc_info=True)
     finally:
         session.close()
+        log('clean done')
 
 
 def match_dealer(item, reraise=False):
@@ -558,7 +558,6 @@ def match_item_dealer(item_id):
     items=[]
     for item in query:
         items.append(item.__dict__)
-        # print item.__dict__
         ditem = item.__dict__
         print ditem['id'], ditem['city'], ditem['company_name'], ditem['domain']
         ditem['dealer_id']=match_dealer(ditem)
@@ -567,20 +566,18 @@ def match_item_dealer(item_id):
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
+    log('pool_run %s, query item count %s', meth.__name__, remain)
     if not remain:
+        log('empty query, return')
         return
-    # print remain
     # psize = 30
     # psize = 60
     # psize = 100
     amount = (remain / psize) + 1
     global WORKER
     items = []
-    # print remain, ' items to clean'
     for item in query.yield_per(psize):
         items.append(str(item.id))
-        # cid = str(item.id)
-        # items.append(cid)
         if index % psize == 0:
             if WORKER:
                 if index % 500 == 0:
@@ -676,7 +673,8 @@ def clean_trade_car(items, do_not_push=False):
             del detail
             try:
                 get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
-            except:pass
+            except:
+                get_task_logger().error('clean error %s' % sid, exc_info=True)
             # if do_not_push:
             #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
@@ -691,9 +689,11 @@ def clean_trade_car(items, do_not_push=False):
         except Exception as e:
             try:
                 get_tracker().captureException()
-            except:pass
+            except:
+                get_task_logger().error('uncaught error %s' % sid, exc_info=True)
         finally:
             session.close()
+    log('clean_trad_car done')
 
 
 @async
@@ -703,6 +703,7 @@ def async_clean(func, items, *args, **kwargs):
 
 
 def sync_clean(func, items, *args, **kwargs):
+    log('sync_clean %s %s items min:%s max:%s', func.__name__, len(items), min(items), max(items))
     global WORKER
     WORKER -= 1
     cls = args[0]
@@ -713,11 +714,11 @@ def sync_clean(func, items, *args, **kwargs):
         for item in session.query(cls).filter(cls.id.in_(ids)).yield_per(10):
             items.append(item.__dict__)
         session.close()
-    # print 'sync_clean:', func.__name__
     func(items, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
     #     where id in (%s);' % ','.join(ids))
     WORKER += 1
+    log('sync_clean done')
 
 
 def update_item(item, **kwargs):
@@ -806,7 +807,7 @@ def update_dup_car_items(item, klass_name, klass_id):
             redis.zincrby(REDIS_DUP_STAT_KEY, sig)
         redis.sadd(rk, item_id)
     except Exception as e:
-        print 'during update dup_car_items', e, item['id']
+        get_task_logger().error('during update dup_car_items %s:%s, item:' % (klass_name, klass_id, item['id']), exc_info=True)
 
 def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
     try:
@@ -824,7 +825,7 @@ def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
         item_ids = [x[1] for x in [i.split(':')  for i in item_ids] if x[0]==klass_name]
         return item_ids
     except Exception as e:
-        print 'during get dup_items', e, item['id']
+        get_task_logger().error('get dup_items for %s fail' % item['id'], exc_info=True)
         return []
 
 def is_dup_car_redis2(item):
@@ -916,6 +917,7 @@ def is_dup_car(item):
 def clean_normal_car(items):
     funcs = [title, city, price, model_slug, brand_slug, phone, month, imgurls, maintenance_desc]
     clean_usedcar(items, False, funcs)
+    log('clean_normal_car done')
 
 
 @app.task(name="clean_usedcar", bind=True, base=GPJSpiderTask)

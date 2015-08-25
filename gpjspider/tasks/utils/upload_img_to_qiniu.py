@@ -87,9 +87,7 @@ def __upload_img_file(qiniu_store, tmp_file, file_url, logger):
     """
     new_file_path = tmp_file + '.jpg'
     try:
-        image_obj = Image.open(tmp_file)
-        image_obj.convert('RGB')
-        image_obj.save(new_file_path)
+        Image.open(tmp_file).convert('RGB').save(new_file_path)
     except:
         logger.error('save tmp file fail %s' % tmp_file, exc_info=True)
     finally:
