@@ -91,7 +91,7 @@ def __upload_img_file(qiniu_store, tmp_file, file_url, logger):
         image_obj.convert('RGB')
         image_obj.save(new_file_path)
     except:
-        logger.error('save tmp file fail' % tmp_file, exc_info=True)
+        logger.error('save tmp file fail %s' % tmp_file, exc_info=True)
     finally:
         # 不管成功与否，删除临时文件
         try:
@@ -99,11 +99,11 @@ def __upload_img_file(qiniu_store, tmp_file, file_url, logger):
         except:pass
     if not os.path.isfile(new_file_path):
         logger.error(u'PIL转换图片{0}失败'.format(file_url))
-        return ''
+        return file_url
     ret, info = qiniu_store.upload_images(new_file_path, delete_on_sucess=True)
     if ret:
         logger.info(u'上传{0}到七牛:成功'.format(file_url))
         return ret['key']
     else:
         logger.info(u'上传{0}到七牛:失败:{1}'.format(file_url, unicode(info)))
-        return None
+        return file_url

@@ -279,8 +279,6 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     start_date = datetime.today()
     if CLEAN_ITEM_HOUR_LIMIT>=24:
         start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
-    else:
-        start_date -= timedelta(days=1)
     start_time = str(start_date)[:10]
     # print start_time
     sql = session.query(UsedCar.id).filter(
@@ -361,7 +359,7 @@ WORKER = 5
 WORKER = 3
 # WORKER = 2
 # WORKER = 20
-# WORKER = 0
+WORKER = 0
 
 # def inspect_reason(item, group, reason, detail=''):
 #     session = Session()
@@ -1031,7 +1029,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
     session=Session()
     for k, v in status.items():
         if v:
-            log('marking %d items as status %s' % (len(v), k))
+            log('marking %d item(s): %s as status %s' % (len(v), ','.join(v), k))
             session.execute('update open_product_source set status="%s" where id in (%s);' % (k, ','.join(v)))
     session.close()
 
