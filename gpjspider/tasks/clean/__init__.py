@@ -34,4 +34,7 @@ def clean_usedcar(self, items, *args, **kwargs):
 后期 Item 应该自动生成，可以在规则中定义 Item 的名称和使用的清理任务，在CleanPipeline中从 Item 中解析出来
 
 """
-from .usedcars import clean_usedcar
+from .usedcars import (
+    clean_usedcar,
+    save_to_car_source,
+)

@@ -287,7 +287,7 @@ class CarSource(Base):
         nullable=True, doc=u'来源'
     )
     status = Column(
-        # Enum(CAR_SOURCE_STATUS_CHOICES),
+        Enum(CAR_SOURCE_STATUS_CHOICES),
         index=True, default='',
         nullable=True, doc=u'状态'
     )
@@ -297,6 +297,9 @@ class CarSource(Base):
     eval_price = Column(DECIMAL(precision=5, scale=2), default=0,
                         doc=u'估值价格(万元)')
     gpj_index = Column(DECIMAL(precision=5, scale=2), default=0)
+    # One to One
+    pid = Column(Integer, ForeignKey('open_product_source.id'), onupdate="cascade")
+
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")
     #car_detail = relationship("CarDetailInfo", uselist=False, backref="car", onupdate="cascade")
@@ -309,12 +312,15 @@ class CarSource(Base):
     __str__ = __unicode__
 
     @classmethod
-    def mark_offline(cls, session, old_item_ids=None):
+    def mark_offline(cls, session, old_item_ids=None, current_id=None):
         # from gpjspider.utils.misc import  conver_item_ids
         # old_item_ids = conver_item_ids(old_item_ids, cls.__name__)
         if old_item_ids:
             # 旧的标记下线
-            session.query(cls).filter(cls.id.in_(old_item_ids)).update(dict(status='duplicated'), synchronize_session=False)
+            query = session.query(cls).filter(cls.id.in_(old_item_ids))
+            if current_id:
+                query = query.filter(cls.id<current_id)
+            query.update(dict(status='duplicated'), synchronize_session=False)
             return True
         return False
 
@@ -322,7 +328,7 @@ class CarSource(Base):
     def mark_duplicate(cls, session, item_id, old_item_ids=None):
         if old_item_ids:
             # 旧的标记未已经下线，把新的标记未上线
-            if cls.mark_offline(session, old_item_ids):
+            if cls.mark_offline(session, old_item_ids, item_id):
                 session.query(cls).filter_by(id=item_id).update(dict(status='sale'), synchronize_session=False)
         else:
             session.query(cls).filter_by(id=item_id).update(dict(status='duplicated'), synchronize_session=False)

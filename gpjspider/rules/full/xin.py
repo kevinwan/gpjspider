@@ -119,6 +119,7 @@ item_rule = {
         },
         'imgurls': {
             'xpath': (
+                attr(cls("carimg", "/div/img/"), 'data-original'),
                 img(cls("carimg", "/div")),
             ),
             'processors': ['join'],
