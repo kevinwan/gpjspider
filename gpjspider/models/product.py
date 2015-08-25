@@ -298,7 +298,7 @@ class CarSource(Base):
                         doc=u'估值价格(万元)')
     gpj_index = Column(DECIMAL(precision=5, scale=2), default=0)
     # One to One
-    pid = Column(Integer, ForeignKey('open_product_source.id'), onupdate="cascade")
+    pid = Column(Integer, ForeignKey('open_product_source.id'))
 
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")

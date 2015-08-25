@@ -1039,8 +1039,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             session.query(UsedCar).filter_by(id=sid).update(dict(status='c'), synchronize_session=False)
             if USE_CELERY_TO_SAVE_CARSOURCE:
                 log('delay %s to celery to insert carsource' % sid)
-                from gpjspider.tasks.clean import save_to_car_source
-                save_to_car_source.delay(item, is_good)
+                from gpjspider.tasks.clean import save_to_car_source as save_to_car_source_task
+                save_to_car_source_task.delay(item, is_good)
             else:
                 save_to_car_source(item, is_good)
         except Exception as e:
@@ -1394,6 +1394,11 @@ def insert_to_carsource(item, session, logger):
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
         car_source = session.query(CarSource).filter_by(url=car_source.url).first()
+        if item['id']!=car_source.pid:
+            car_source.pid = item['id']
+            session.merge(car_source)
+            session.commit()
+            
         # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
         # session.merge(car_source)
         # session.commit()
