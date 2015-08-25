@@ -716,7 +716,7 @@ def sync_clean(func, items, *args, **kwargs):
         items = []
         session = Session()
         for item in session.query(cls).filter(cls.id.in_(ids)).yield_per(10):
-            items.append(item.__dict__)
+            items.append({k:v for k,v in item.__dict__.iteritems() if not k.startswith('_')})
         session.close()
     func(items, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
@@ -1039,6 +1039,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             session.query(UsedCar).filter_by(id=sid).update(dict(status='c'), synchronize_session=False)
             if USE_CELERY_TO_SAVE_CARSOURCE:
                 log('delay %s to celery to insert carsource' % sid)
+                from gpjspider.tasks.clean import save_to_car_source
                 save_to_car_source.delay(item, is_good)
             else:
                 save_to_car_source(item, is_good)
