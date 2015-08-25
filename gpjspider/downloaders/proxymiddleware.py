@@ -36,25 +36,31 @@ class ProxyMiddleware(object):
         if response.headers.get('x-proxymesh-ip'):
             invalid_ip_key = spider.domain + str(date.today())
             self.redis.sadd(invalid_ip_key, response.headers['x-proxymesh-ip'])
-            spider.log(u'OneForbiddenIP is {0}'.format(response.headers['x-proxymesh-ip']), log.INFO)
+            spider.log(u'OneForbiddenIP is {0}'.format(
+                response.headers['x-proxymesh-ip']), log.INFO)
 
     def process_request(self, request, spider):
         if self.need_proxy:
             key_redis_domain = spider.domain + str(date.today())
             try:
                 request.meta['proxy'] = self.good_proxy
-                request.headers['Proxy-Authorization'] = 'Basic ' + self.encoded_user_passwd
-                request.headers['x-proxymesh-not-ip'] = ",".join(self.redis.smembers(key_redis_domain))
+                request.headers[
+                    'Proxy-Authorization'] = 'Basic ' + self.encoded_user_passwd
+                request.headers[
+                    'x-proxymesh-not-ip'] = ",".join(self.redis.smembers(key_redis_domain))
             except Exception, e:
                 spider.log(u'ExceptionInfo:{0}'.format(e))
             else:
-                if not request.headers['x-proxymesh-not-ip']:
-                    spider.log(u'ForbiddenIps are {0}'.format(request.headers['x-proxymesh-not-ip']), log.INFO)
+                forbidden_ips = request.headers.get('x-proxymesh-not-ip')
+                if forbidden_ips:
+                    spider.log(u'ForbiddenIps are {0}'.format(forbidden_ips, log.INFO)
 
     def process_response(self, request, response, spider):
-        if response.status != 200:
-            self.redis.sadd(spider.domain, response.url)
+        status=response.status
+        if status != 200:
+            key='%s_%s' % (spider.domain, status)
+            self.redis.sadd(key, response.url)
             self.ip_control(response, spider)
-            self.need_proxy = True
+            self.need_proxy=True
 
         return response
