@@ -48,3 +48,8 @@ def check_proxy_ip(self):
                 logger.debug(u"有效 IP:{0}, {1}".format(ip, t))
                 valid_ip_num += 1
     logger.info(u"一共有{0}个有效代理IP".format(valid_ip_num))
+
+@app.task(name="test", bind=GPJSpiderTask)
+def test(self):
+    print 'celery test pass'
+    return 'celery test pass'

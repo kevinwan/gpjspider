@@ -50,13 +50,13 @@ def upload_to_qiniu(self, file_url, qiniu_bucket=None):
     """
     """
     logger = get_task_logger('upload_to_qiniu')
-    logger.info(u'上传{0}到七牛'.format(file_url))
+    logger.info(u'uploading {0} to qiniu'.format(file_url))
     tmp_file = download_file(file_url)
     if not tmp_file:
-        logger.error(u'下载文件失败:{0}'.format(file_url))
+        logger.error(u'failed to download: {0}'.format(file_url))
         return
 
-    logger.info(u'下载文件成功:{0}'.format(tmp_file))
+    logger.info(u'downloaded file to: {0}'.format(tmp_file))
     qiniu_bucket = qiniu_bucket if qiniu_bucket else self.app.conf.QINIU_BUCKET
     qiniu_store = QiniuStorageService(
         self.app.conf.QINIU_ACCESS_KEY,
@@ -96,12 +96,12 @@ def __upload_img_file(qiniu_store, tmp_file, file_url, logger):
             os.remove(tmp_file)
         except:pass
     if not os.path.isfile(new_file_path):
-        logger.error(u'PIL转换图片{0}失败'.format(file_url))
+        logger.error(u'convert image to jpg failed {0}'.format(file_url))
         return file_url
     ret, info = qiniu_store.upload_images(new_file_path, delete_on_sucess=True)
     if ret:
-        logger.info(u'上传{0}到七牛:成功'.format(file_url))
+        logger.info(u'uploaded to qiniu {0}'.format(file_url))
         return ret['key']
     else:
-        logger.info(u'上传{0}到七牛:失败:{1}'.format(file_url, unicode(info)))
+        logger.info(u'failed to upload to qiniu {0} for {1}, local file is {2}'.format(file_url, unicode(info), new_file_path))
         return file_url

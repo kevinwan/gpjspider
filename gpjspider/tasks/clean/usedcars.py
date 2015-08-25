@@ -19,7 +19,10 @@ from gpjspider.services.cars import get_average_price
 
 from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
-from gpjspider.utils.constants import QINIU_IMG_BUCKET
+from gpjspider.utils.constants import (
+    QINIU_IMG_BUCKET,
+    USE_CELERY_TO_SAVE_CARSOURCE,
+)
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
 from gpjspider.processors import souche
@@ -450,7 +453,8 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         log('marking status in N,I to _ in UsedCar')
         end_status = '_'
         # mark left cars
-        base_query.filter(UsedCar.status.in_(['N', 'I'])).update(dict(status=end_status), synchronize_session=False)
+        marked_cnt = base_query.filter(UsedCar.status.in_(['N', 'I'])).update(dict(status=end_status), synchronize_session=False)
+        log('%d items marked as status _' % marked_cnt)
         # push to sell_car
         # log('push to sell_car..')
         trade_cars = bq.filter_by(
@@ -566,7 +570,7 @@ def match_item_dealer(item_id):
 
 def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
     remain = query.count()
-    log('pool_run %s, query item count %s', meth.__name__, remain)
+    log('pool_run %s, query item count %s' % (meth.__name__, remain))
     if not remain:
         log('empty query, return')
         return
@@ -703,7 +707,7 @@ def async_clean(func, items, *args, **kwargs):
 
 
 def sync_clean(func, items, *args, **kwargs):
-    log('sync_clean %s %s items min:%s max:%s', func.__name__, len(items), min(items), max(items))
+    log('sync_clean %s %s items min:%s max:%s' % (func.__name__, len(items), min(items), max(items)))
     global WORKER
     WORKER -= 1
     cls = args[0]
@@ -919,6 +923,66 @@ def clean_normal_car(items):
     clean_usedcar(items, False, funcs)
     log('clean_normal_car done')
 
+@app.task(name="save_to_car_source", bind=True, base=GPJSpiderTask)
+def save_to_car_source(self, item, is_good=True):
+    logger = get_task_logger()
+    sid = str(item['id'])
+    session = Session()
+    if AUTO_PHONE:
+        tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
+        if tel:
+            item['phone'] = tel[0]
+    # 确保 time 正确
+    if not item.get('time'):
+        item['time'] = item['created_on']
+    # control 要么是手动，要么是自动
+    control = item['control']
+    if any([u'手动' in control, 'MT' in control, 'mt' in control]):
+        item['control'] = u'手动'
+    else:
+        item['control'] = u'自动'
+    # phone
+    # 1.手机号长度不对
+    # 2.400号码长度不对
+    # 3.座机号码长度不对
+    # TODO: add phone validation
+    domain = item['domain']
+    if 'youche.com' == domain:
+        update_item(item, quality_service=u'14天包退 360天保修', contact=u'优车诚品客服',
+                    company_name=u'优车诚品', company_url='http://www.youche.com',
+                    region=u'北京亦庄经济技术开发区经海三路科创六街95号', phone='4000-990-888')
+    elif 'haoche51.com' == domain:
+        update_item(item, quality_service=u'1年/2万公里放心质保 14天可退车',
+                    company_name=u'好车无忧', company_url='http://www.haoche51.com',
+                    contact=u'好车无忧客服', phone='400-801-9151')
+    elif 'haoche.ganji.com' == domain:
+        update_item(item,
+                    company_name=u'赶集好车', company_url='http://haoche.ganji.com',
+                    contact=u'赶集好车客服', phone='400-733-6622')
+    # elif 'c.cheyipai.com' == domain:
+    #    update_item(item,
+    #        company_name=u'车易拍客服', company_url='http://c.cheyipai.com',
+    #        contact=u'车易拍客服', phone='400-733-6622')
+    item['is_certifield_car'] = is_good and item['is_certifield_car']
+    # 业务判断通过，后续处理
+    upload_img(item, logger)
+    # upload_imgs(item, logger)
+    # 保存到产品表
+
+    try:
+        car_source = insert_to_carsource(item, session, logger)
+        s=''
+        if not car_source:
+            logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
+            s = 'S'
+        else:
+            logger.error(u'清理source.id={0}成功'.format(sid))
+            s = 'C'
+        session.query(UsedCar).filter_by(id=sid).update(dict(status=s), synchronize_session=False)
+    except:
+        get_task_logger().error('save carsource fail', exc_info=True)
+    finally:
+        session.close()
 
 @app.task(name="clean_usedcar", bind=True, base=GPJSpiderTask)
 def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
@@ -940,7 +1004,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             continue
         session = Session()
         sid = str(item['id'])
-        # print sid
+        s=''
         try:
             item = preprocess_item(item, session, logger)
             # preprocess_item(item, session, logger)
@@ -971,61 +1035,17 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                     push_trade_car(item, sid, session)
             else:
                 log('is_trade_car, false', errors,sid)
-            if AUTO_PHONE:
-                tel = re.findall('^http.+#(\d+)#0.99$', item['phone'])
-                if tel:
-                    item['phone'] = tel[0]
-            # 确保 time 正确
-            if not item.get('time'):
-                item['time'] = item['created_on']
-            # control 要么是手动，要么是自动
-            control = item['control']
-            if any([u'手动' in control, 'MT' in control, 'mt' in control]):
-                item['control'] = u'手动'
+
+            session.query(UsedCar).filter_by(id=sid).update(dict(status='c'), synchronize_session=False)
+            if USE_CELERY_TO_SAVE_CARSOURCE:
+                log('delay %s to celery to insert carsource' % sid)
+                save_to_car_source.delay(item, is_good)
             else:
-                item['control'] = u'自动'
-            # phone
-            # 1.手机号长度不对
-            # 2.400号码长度不对
-            # 3.座机号码长度不对
-            # TODO: add phone validation
-            domain = item['domain']
-            if 'youche.com' == domain:
-                update_item(item, quality_service=u'14天包退 360天保修', contact=u'优车诚品客服',
-                            company_name=u'优车诚品', company_url='http://www.youche.com',
-                            region=u'北京亦庄经济技术开发区经海三路科创六街95号', phone='4000-990-888')
-            elif 'haoche51.com' == domain:
-                update_item(item, quality_service=u'1年/2万公里放心质保 14天可退车',
-                            company_name=u'好车无忧', company_url='http://www.haoche51.com',
-                            contact=u'好车无忧客服', phone='400-801-9151')
-            elif 'haoche.ganji.com' == domain:
-                update_item(item,
-                            company_name=u'赶集好车', company_url='http://haoche.ganji.com',
-                            contact=u'赶集好车客服', phone='400-733-6622')
-            # elif 'c.cheyipai.com' == domain:
-            #    update_item(item,
-            #        company_name=u'车易拍客服', company_url='http://c.cheyipai.com',
-            #        contact=u'车易拍客服', phone='400-733-6622')
-            item['is_certifield_car'] = is_good and item['is_certifield_car']
-            # 业务判断通过，后续处理
-            upload_img(item, logger)
-            # upload_imgs(item, logger)
-            # 保存到产品表
-            car_source = insert_to_carsource(item, session, logger)
-            # print car_source.id
-            # return
-            if not car_source:
-                logger.error(u'插入CarSource时失败:source.id:{0}'.format(sid))
-                s = 'S'
-            else:
-                logger.error(u'清理source.id={0}成功'.format(sid))
-                s = 'C'
+                save_to_car_source(item, is_good)
         except Exception as e:
-            # raise
-            get_task_logger().error('clean used_car error', exc_info=True)
-            print 'cleanused_car', e, sid
+            get_task_logger().error('clean used_car error %s' % sid, exc_info=True)
             s = 'E'
-        if sid:
+        if sid and s:
             status[s].append(sid)
         session.close()
     session=Session()
@@ -1036,6 +1056,9 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
     session.close()
 
     log('clean_used_car done')
+
+
+
 
 def get_province_by_city(city, session=None):
     # redis.hmget('city', city)
@@ -1389,8 +1412,9 @@ def insert_to_carsource(item, session, logger):
             if old_car_source_item_ids:
                 # 重复的旧的车源标记为下线
                 log('duplicated,mark old items as offline before insert_to_carsource',item['id'], car_source.id, old_car_source_item_ids)
-                CarSource.mark_offline(session, old_car_source_item_ids)
+                CarSource.mark_offline(session, old_car_source_item_ids, car_source.id)
         except:
+            get_task_logger().exception('update_dup_car_items error, %s' % car_source.id)
             pass
     return car_source
 
