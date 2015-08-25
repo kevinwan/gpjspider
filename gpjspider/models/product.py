@@ -287,7 +287,7 @@ class CarSource(Base):
         nullable=True, doc=u'来源'
     )
     status = Column(
-        # Enum(CAR_SOURCE_STATUS_CHOICES),
+        Enum(CAR_SOURCE_STATUS_CHOICES),
         index=True, default='',
         nullable=True, doc=u'状态'
     )
@@ -297,6 +297,9 @@ class CarSource(Base):
     eval_price = Column(DECIMAL(precision=5, scale=2), default=0,
                         doc=u'估值价格(万元)')
     gpj_index = Column(DECIMAL(precision=5, scale=2), default=0)
+    # One to One
+    pid = Column(Integer, ForeignKey('open_product_source.id'), onupdate="cascade")
+
     # One to One
     car_detail = relationship("CarDetailInfo", uselist=False, backref="car")
     #car_detail = relationship("CarDetailInfo", uselist=False, backref="car", onupdate="cascade")

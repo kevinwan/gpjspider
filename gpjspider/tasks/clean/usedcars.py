@@ -1355,6 +1355,7 @@ def insert_to_carsource(item, session, logger):
         setattr(car_source, attr, item[attr])
     car_source.pub_time = item['time'] or item['created_on']
     car_source.mile = item['mile']
+    car_source.pid = item['id']
     # check is online/offline
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
     # add qs_tags, eval_price, gpj_index
