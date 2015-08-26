@@ -293,7 +293,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         # UsedCar.created_on >= '2015-07-9',
         # UsedCar.created_on >= '2015-07-6',
         # UsedCar.status.in_(['N', 'Y']),
-        UsedCar.status.in_([status, 'I']),
+        #UsedCar.status.in_([status, 'I']),
+        UsedCar.status.in_([status]),
         # UsedCar.status.in_([status, 'Y', 'I']),
     ).filter_by(source=1)
     #.order_by(UsedCar.id.asc())
@@ -363,6 +364,7 @@ WORKER = 3
 # WORKER = 2
 # WORKER = 20
 WORKER = 0
+WORKER = 40
 
 # def inspect_reason(item, group, reason, detail=''):
 #     session = Session()
@@ -1460,10 +1462,28 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
 
 
 def insert_to_carimage(item, car_source, session, logger):
-    imgs = item['imgurls'].split()
+    imgs = set(item['imgurls'].split())
+    # car_source.images.delete()
+    old_image_count = len(car_source.images)
+    if old_image_count:
+        log('delete %d old images for car_source %s' % (old_image_count, car_source.id))
+        session.query(CarImage).filter(CarImage.car==car_source).delete(synchronize_session=False)
+    for img in imgs:
+        car_image = CarImage(car=car_source, image=img)
+        session.add(car_image)
+    try:
+        session.commit()
+    except:
+        session.rollback()
+        get_task_logger().error('fail to add image for car_source %s, images:%s' % (car_source.id, item['imgurls']))
+    else:
+        log('added image for car_source %s, %d pics' % (car_source.id, len(imgs)))
+
+    return 
     car_images = car_source.images
     amount = len(car_images)
     index = 0
+    img_cnt=0
     for img in imgs:
         if amount > index:
             car_image = car_images[index]
@@ -1481,8 +1501,10 @@ def insert_to_carimage(item, car_source, session, logger):
             logger.error(u'Dup CarImage for car_source: {0}'.format(car_source.id))
         except Exception as e:
             session.rollback()
-            logger.error(u'instance Failed {0}: \n{1}'.format(car_source.url, unicode(e)), exc_info=True)
-    logger.info(u'Saved CarImages for car_source: {0}'.format(car_source.id))
+            logger.error(u'CarImage Fail {0}{1} {2}'.format(car_source.id, car_source.url,img), exc_info=True)
+        else:
+            img_cnt+=1
+    logger.info(u'Saved {1}of{2} CarImages for car_source: {0}'.format(car_source.id, img_cnt, len(imgs)))
 
 
 #==============================================================================
