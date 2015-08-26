@@ -1,4 +1,4 @@
-pip==7.0.3
+#pip>=7.0.3
 Scrapy==0.24.5
 celery>=3.1.17
 cffi>=0.8.6
@@ -33,3 +33,7 @@ raven
 ipdb
 ipython>=2.3.1
 #scrapyd
+fabric
+nose
+coverage>=2.85
+nosexunit

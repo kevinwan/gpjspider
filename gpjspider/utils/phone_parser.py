@@ -13,17 +13,16 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class ConvertPhonePic2Num(object):
-
     """
 # >>> ConvertPhonePic2Num('http://sh.ganji.com/tel_img/?c=k92L68WOXwcdZlbkfF5p-zJhzdzyQ__PtQyX').find_possible_num()
 # ('13166118115', 0.99)
 # >>> ConvertPhonePic2Num('http://nj.ganji.com/tel_img/?c=kh3LK8CCBrmcz9g90dTSiHLan.-6g__PtQyX').find_possible_num()
 # ('1367555', 0.9)
 
->>> ConvertPhonePic2Num('http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2').find_possible_num()
-('13564779931', 0.99)
->>> ConvertPhonePic2Num('http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm').find_possible_num()
-('15339109099', 0.99)
+# >>> ConvertPhonePic2Num('http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2').find_possible_num()
+# ('18917761263', 0.99)
+# >>> ConvertPhonePic2Num('http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm').find_possible_num()
+# ('15339109099', 0.99)
     """
 
     def __init__(self, picurl):

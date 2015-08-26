@@ -8,7 +8,7 @@ scrapy提供的 cookie 机制是把 server 带回的 cookie 再发送出去。
   在 rule 的 url 配置中，增加一个 cookie_function，负责生成url需要使用的cookie。
 """
 
-from scrapy.contrib.downloadermiddleware import CookiesMiddleware
+from scrapy.contrib.downloadermiddleware.cookies import CookiesMiddleware
 
 
 class GPJCookiesMiddleware(CookiesMiddleware):

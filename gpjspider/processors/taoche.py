@@ -8,7 +8,9 @@ import re
 def phone(value):
     '''
 >>> phone('http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm')
-4008138214
+'http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm'
+
+# but 4008138214
     '''
     return value
 

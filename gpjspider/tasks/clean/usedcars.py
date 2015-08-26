@@ -1530,19 +1530,19 @@ def upload_imgs(item, logger):
 def get_qs_tags(quality_service):
     u'''
 >>> get_qs_tags(u'无重大事故 15天包退')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'14天可退1年质保')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
 >>> get_qs_tags(u'保证在 七天包退 延长质保')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
 >>> get_qs_tags(u'绝非事故车 7天可退 真车实价')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'通过无事故承诺的好车，无重大事故，无火烧，无水淹如若不符，15天全额包退')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'此车享受45天或1800公里先行赔付承诺保障')
-u'\u5148\u8d54\u4ed8'
+u'\\u5148\\u8d54\\u4ed8'
 >>> get_qs_tags(u'14天包退，360天/20000公里保修')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
     '''
     if not quality_service:
         return ''
@@ -1659,13 +1659,13 @@ def deal_one_item(session, item):
 def get_eval_price(item):
     u'''
 curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.00&model=audi-a6&d_model=60270_autotis&year=2002&month=6&city=%E6%B2%88%E9%98%B3&volume=2.8&intent=cpo'
->>> params = 'brand_slug=audi&mile=15.00&model_slug=audi-a6&model_detail_slug=60270_autotis&year=2002&month=6&city=沈阳&volume=2.8&intent=cpo&color='
+>>> params = 'brand_slug=audi&mile=15.00&model_slug=audi-a6&model_detail_slug=60270_autotis&year=2002&month=6&city=沈阳&volume=2.8&color=&source_type=cpo'
 >>> item = {}
 >>> for p in params.split('&'):
 ...     k, v = p.split('=')
 ...     item[k] = v
 >>> get_eval_price(item)
-3.4827
+5.0
     '''
     st = item['source_type']
     intent = 'buy'
