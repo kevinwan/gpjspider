@@ -119,10 +119,10 @@ item_rule = {
         'phone': {
             'xpath': (
                 text(id_('linkaddr', '/a')),
-                # href(cls('btn_cr_car')),
+                href(cls('btn_cr_car')),
                 has(u'电话', '/..'),
             ),
-            # 'processors': ['cheshi.phone'],
+            'processors': ['cheshi.phone'],
         },
         #'contact': {
             #'xpath': (

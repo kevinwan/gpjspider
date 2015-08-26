@@ -126,7 +126,8 @@ class GPJBaseSpider(scrapy.Spider):
                 #         break
                 psize = 50
                 session = self.Session()
-                update = 'update open_product_source set status="q" where id in (%s) and status="u";'
+                # update = 'update open_product_source set status="q" where id in (%s) and status="u";'
+                update = 'update open_product_source set status="I" where id in (%s);'
                 query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
                     domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
                 # print query.count()
@@ -146,7 +147,7 @@ class GPJBaseSpider(scrapy.Spider):
                             cursor.execute(update % ','.join(ids))
                             cursor.close()
                             for id_ in ids:
-                                clean(id_, id_, [self.domain])
+                                clean(id_, id_, [self.domain], 'I')
                             # tmp_ids = copy.copy(ids)
                             # if not first_ids:
                             #     first_ids = tmp_ids
@@ -158,7 +159,7 @@ class GPJBaseSpider(scrapy.Spider):
                     cursor.execute(update % ','.join(ids))
                     cursor.close()
                     for id_ in ids:
-                        clean(id_, id_, [self.domain])
+                        clean(id_, id_, [self.domain], 'I')
                     # tmp_ids = copy.copy(ids)
                     # if not first_ids:
                     #     first_ids = tmp_ids

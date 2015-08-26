@@ -1398,7 +1398,7 @@ def insert_to_carsource(item, session, logger):
             car_source.pid = item['id']
             session.merge(car_source)
             session.commit()
-            
+
         # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
         # session.merge(car_source)
         # session.commit()
