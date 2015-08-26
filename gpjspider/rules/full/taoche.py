@@ -154,6 +154,7 @@ item_rule = {
         },
         'imgurls': {
             'xpath': (
+                '//div[@class="cyxqpicdown"]//*[@class="carpicbox"]/img/@data-src',
                 '//div[@class="cyxqpicdown"]//*[@class="carpicbox"]/img/@src',
             ),
             'processors': ['join'],
