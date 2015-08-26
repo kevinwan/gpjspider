@@ -167,7 +167,7 @@ class GPJBaseSpider(scrapy.Spider):
                 # max_id = max(last_ids)
                 # clean(min_id, max_id, [self.domain])
                 session.close()
-                return index
+                return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
             start_urls = start_url_function(
