@@ -226,3 +226,13 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(hour='3', minute=45),
     },
 }
+
+from gpjspider.utils.xjson import init as init_xjson
+init_xjson('XJSON')
+CELERY_TASK_SERIALIZER = 'XJSON'
+CELERY_ACCEPT_CONTENT = ['XJSON']
+CELERY_TASK_SERIALIZER = 'XJSON'
+try:
+    from local_celery_settings import *
+except ImportError:
+    pass

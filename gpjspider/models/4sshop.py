@@ -2,7 +2,7 @@
 """
 4S店
 """
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, DECIMAL
 
 from . import Base
 
@@ -21,9 +21,13 @@ class FourSShop(Base):
     # 多个品牌用 ###分隔
     brands = Column(String(128), nullable=True, doc=u'经营品牌')
     longitude = Column(
-        Float(128), precision=10, scale=6, asdecimal=True, doc=u'经度')
+        DECIMAL(precision=10, scale=6), doc=u'经度')
     latitude = Column(
-        Float(128), precision=10, scale=6, asdecimal=True, doc=u'纬度')
+        DECIMAL(precision=10, scale=6), doc=u'纬度')
+    # longitude = Column(
+    #     Float(128), precision=10, scale=6, asdecimal=True, doc=u'经度')
+    # latitude = Column(
+    #     Float(128), precision=10, scale=6, asdecimal=True, doc=u'纬度')
     domain = Column(String(32), nullable=True, doc=u'来源网站')
     url = Column(String(500), nullable=True, default='')
 

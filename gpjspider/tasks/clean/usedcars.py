@@ -716,7 +716,7 @@ def sync_clean(func, items, *args, **kwargs):
         items = []
         session = Session()
         for item in session.query(cls).filter(cls.id.in_(ids)).yield_per(10):
-            items.append(item.__dict__)
+            items.append({k:v for k,v in item.__dict__.iteritems() if not k.startswith('_')})
         session.close()
     func(items, **kwargs)
     # get_cursor().execute('update open_product_source set checker_runtime_id=0 \
@@ -1039,7 +1039,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             session.query(UsedCar).filter_by(id=sid).update(dict(status='c'), synchronize_session=False)
             if USE_CELERY_TO_SAVE_CARSOURCE:
                 log('delay %s to celery to insert carsource' % sid)
-                save_to_car_source.delay(item, is_good)
+                from gpjspider.tasks.clean import save_to_car_source as save_to_car_source_task
+                save_to_car_source_task.delay(item, is_good)
             else:
                 save_to_car_source(item, is_good)
         except Exception as e:
@@ -1355,6 +1356,7 @@ def insert_to_carsource(item, session, logger):
         setattr(car_source, attr, item[attr])
     car_source.pub_time = item['time'] or item['created_on']
     car_source.mile = item['mile']
+    car_source.pid = item['id']
     # check is online/offline
     car_source.status = 'review' if 'Q' in item['status'] else 'sale'
     # add qs_tags, eval_price, gpj_index
@@ -1392,6 +1394,11 @@ def insert_to_carsource(item, session, logger):
         logger.error(u'Dup car_source {0}'.format(car_source.url))
         # session.query(CarSource.id).filter_by(url=car_source.url).update(dict(thumbnail=item['thumbnail']))
         car_source = session.query(CarSource).filter_by(url=car_source.url).first()
+        if item['id']!=car_source.pid:
+            car_source.pid = item['id']
+            session.merge(car_source)
+            session.commit()
+            
         # car_source.id = session.query(CarSource.id).filter_by(url=car_source.url).first().id
         # session.merge(car_source)
         # session.commit()
@@ -1523,19 +1530,19 @@ def upload_imgs(item, logger):
 def get_qs_tags(quality_service):
     u'''
 >>> get_qs_tags(u'无重大事故 15天包退')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'14天可退1年质保')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
 >>> get_qs_tags(u'保证在 七天包退 延长质保')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
 >>> get_qs_tags(u'绝非事故车 7天可退 真车实价')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'通过无事故承诺的好车，无重大事故，无火烧，无水淹如若不符，15天全额包退')
-u'\u65e0\u5927\u4e8b\u6545 \u53ef\u9000\u6362'
+u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'此车享受45天或1800公里先行赔付承诺保障')
-u'\u5148\u8d54\u4ed8'
+u'\\u5148\\u8d54\\u4ed8'
 >>> get_qs_tags(u'14天包退，360天/20000公里保修')
-u'\u53ef\u9000\u6362 \u8d28\u4fdd'
+u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
     '''
     if not quality_service:
         return ''
@@ -1652,13 +1659,13 @@ def deal_one_item(session, item):
 def get_eval_price(item):
     u'''
 curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.00&model=audi-a6&d_model=60270_autotis&year=2002&month=6&city=%E6%B2%88%E9%98%B3&volume=2.8&intent=cpo'
->>> params = 'brand_slug=audi&mile=15.00&model_slug=audi-a6&model_detail_slug=60270_autotis&year=2002&month=6&city=沈阳&volume=2.8&intent=cpo&color='
+>>> params = 'brand_slug=audi&mile=15.00&model_slug=audi-a6&model_detail_slug=60270_autotis&year=2002&month=6&city=沈阳&volume=2.8&color=&source_type=cpo'
 >>> item = {}
 >>> for p in params.split('&'):
 ...     k, v = p.split('=')
 ...     item[k] = v
 >>> get_eval_price(item)
-3.4827
+5.0
     '''
     st = item['source_type']
     intent = 'buy'
