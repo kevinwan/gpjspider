@@ -629,6 +629,13 @@ u'2015\\u6b3e 2.0T \\u624b\\u81ea\\u4e00\\u4f53 \\u65d7\\u8230\\u578b (\\u56fd\\
 def raw_imgurls(value):
     return
 
+def imgurls(value):
+    img_list = value.split()
+    if len(img_list) - len(set(img_list)) > 1:
+        return None
+    else:
+        return value
+
 
 def is_certifield_car(value):
     u'''

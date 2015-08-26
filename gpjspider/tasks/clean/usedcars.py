@@ -380,6 +380,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     # base query
     # session = session or Session()
     log('cleaning %s-%s' % (min_id,max_id))
+    # ipdb.set_trace()
     session = Session()
     try:
         domains = domains or []
@@ -1479,7 +1480,7 @@ def insert_to_carimage(item, car_source, session, logger):
     else:
         log('added image for car_source %s, %d pics' % (car_source.id, len(imgs)))
 
-    return 
+    return
     car_images = car_source.images
     amount = len(car_images)
     index = 0

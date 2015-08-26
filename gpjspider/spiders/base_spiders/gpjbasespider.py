@@ -104,69 +104,14 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 50;"
-                # query = "select id,url from open_product_source where status='u' and domain='%s' limit 550,600;"
-                # update = 'update open_product_source set status="n" where id in (%s) and status="u";'
-                # while True:
-                #     q = self.get_cursor().execute(query % self.domain)
-                #     res = q.fetchall()
-                #     ids = []
-                # for c in q.yield_per(psize):
-                #     for c in res:
-                #         start_url = c.url
-                #         self.detail_urls.add(start_url)
-                #         self.log(u'start request {0}'.format(start_url), log.INFO)
-                #         ids.append(str(c.id))
-                #         yield Request(start_url, callback=self.parse_detail, dont_filter=True)
-                #     if ids:
-                #         self.get_cursor().execute(update % ','.join(ids))
-
-                # if res.count() < 50:
-                #     if len(ids) < 50:
-                #         break
                 psize = 50
                 session = self.Session()
                 # update = 'update open_product_source set status="q" where id in (%s) and status="u";'
-                update = 'update open_product_source set status="I" where id in (%s);'
                 query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
                     domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
                 # print query.count()
-                ids = []
-                index = 0
-                # last_ids = []
-                # first_ids = []
                 for item in query.yield_per(psize):
-                    cid = item.id
-                    ids.append(str(cid))
-                    yield Request(item.url, meta=dict(id=cid), callback=self.parse_detail, dont_filter=True)
-                    index += 1
-                    print 'clean: id', item.id, index
-                    if index % psize == 0:
-                        if ids:
-                            cursor = self.get_cursor()
-                            cursor.execute(update % ','.join(ids))
-                            cursor.close()
-                            for id_ in ids:
-                                clean(id_, id_, [self.domain], 'I')
-                            # tmp_ids = copy.copy(ids)
-                            # if not first_ids:
-                            #     first_ids = tmp_ids
-                            # last_ids = tmp_ids
-                            ids = []
-                # ids = ['23309061']
-                if ids:
-                    cursor = self.get_cursor()
-                    cursor.execute(update % ','.join(ids))
-                    cursor.close()
-                    for id_ in ids:
-                        clean(id_, id_, [self.domain], 'I')
-                    # tmp_ids = copy.copy(ids)
-                    # if not first_ids:
-                    #     first_ids = tmp_ids
-                    # last_ids = tmp_ids
-                # min_id = min(first_ids)
-                # max_id = max(last_ids)
-                # clean(min_id, max_id, [self.domain])
+                    yield Request(item.url, meta=dict(id=item.id, update=True), callback=self.parse_detail, dont_filter=True)
                 session.close()
                 return
         elif 'start_url_function' in self.website_rule:
@@ -286,6 +231,12 @@ class GPJBaseSpider(scrapy.Spider):
 
         if 'item' in step_rule:
             yield self.get_item(step_rule['item'], response)
+            if 'update' in response.meta:
+                cursor = self.get_cursor()
+                cursor.execute('update open_product_source set status="I" where id=%s;' % response.meta['id'])
+                cursor.close()
+                clean(response.meta['id'], response.meta['id'], [self.domain], 'I')
+                print '\n******************************************'
 
     def get_requests(self, url_rule, response, step_rule=None):
         """
