@@ -27,20 +27,27 @@ class ProxyMiddleware(object):
         self.domains = settings.getlist('PROXY_DOMAINS')
         self.redis = get_redis_cluster()
         self.need_proxy = False
+        self.need_proxy_domain = None
 
     @classmethod
     def from_crawler(cls, crawler):
         return cls(crawler.settings)
 
+    def _need_proxy_domain(self, spider):
+        if self.need_proxy_domain is None:
+            self.need_proxy_domain = spider.domain in self.domains
+        return self.need_proxy_domain
+
     def ip_control(self, response, spider):
-        if response.headers.get('x-proxymesh-ip'):
-            invalid_ip_key = spider.domain + str(date.today())
-            self.redis.sadd(invalid_ip_key, response.headers['x-proxymesh-ip'])
+        proxymesh_ip = response.headers.get('x-proxymesh-ip')
+        if proxymesh_ip:
+            invalid_ip_key = '%s_%s' % (spider.domain, str(date.today()))
+            self.redis.sadd(invalid_ip_key, proxymesh_ip)
             spider.log(u'OneForbiddenIP is {0}'.format(
-                response.headers['x-proxymesh-ip']), log.INFO)
+                proxymesh_ip), log.INFO)
 
     def process_request(self, request, spider):
-        if self.need_proxy:
+        if self._need_proxy_domain(spider) and self.need_proxy:
             key_redis_domain = spider.domain + str(date.today())
             try:
                 request.meta['proxy'] = self.good_proxy
@@ -53,14 +60,14 @@ class ProxyMiddleware(object):
             else:
                 forbidden_ips = request.headers.get('x-proxymesh-not-ip')
                 if forbidden_ips:
-                    spider.log(u'ForbiddenIps are {0}'.format(forbidden_ips, log.INFO)
+                    spider.log(u'ForbiddenIps are {0}'.format(forbidden_ips, log.INFO))
 
     def process_response(self, request, response, spider):
-        status=response.status
-        if status != 200:
-            key='%s_%s' % (spider.domain, status)
+        status = response.status
+        if self._need_proxy_domain(spider) and status != 200:
+            key = '%s_%s' % (spider.domain, status)
             self.redis.sadd(key, response.url)
             self.ip_control(response, spider)
-            self.need_proxy=True
+            self.need_proxy = True
 
         return response
