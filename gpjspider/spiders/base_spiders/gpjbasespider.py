@@ -126,40 +126,48 @@ class GPJBaseSpider(scrapy.Spider):
                 #         break
                 psize = 50
                 session = self.Session()
-                cursor = self.get_cursor()
                 update = 'update open_product_source set status="q" where id in (%s) and status="u";'
                 query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
                     domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
                 # print query.count()
                 ids = []
                 index = 0
-                last_ids = []
-                first_ids = []
+                # last_ids = []
+                # first_ids = []
                 for item in query.yield_per(psize):
                     cid = item.id
                     ids.append(str(cid))
                     yield Request(item.url, meta=dict(id=cid), callback=self.parse_detail, dont_filter=True)
                     index += 1
+                    print 'clean: id', item.id, index
                     if index % psize == 0:
                         if ids:
+                            cursor = self.get_cursor()
                             cursor.execute(update % ','.join(ids))
-                            tmp_ids = copy.copy(ids)
-                            if not first_ids:
-                                first_ids = tmp_ids
-                            last_ids = tmp_ids
+                            cursor.close()
+                            for id_ in ids:
+                                clean(id_, id_, [self.domain])
+                            # tmp_ids = copy.copy(ids)
+                            # if not first_ids:
+                            #     first_ids = tmp_ids
+                            # last_ids = tmp_ids
                             ids = []
                 # ids = ['23309061']
                 if ids:
+                    cursor = self.get_cursor()
                     cursor.execute(update % ','.join(ids))
-                    tmp_ids = copy.copy(ids)
-                    if not first_ids:
-                        first_ids = tmp_ids
-                    last_ids = tmp_ids
-                min_id = min(first_ids)
-                max_id = max(last_ids)
-                clean(min_id, max_id, [self.domain])
+                    cursor.close()
+                    for id_ in ids:
+                        clean(id_, id_, [self.domain])
+                    # tmp_ids = copy.copy(ids)
+                    # if not first_ids:
+                    #     first_ids = tmp_ids
+                    # last_ids = tmp_ids
+                # min_id = min(first_ids)
+                # max_id = max(last_ids)
+                # clean(min_id, max_id, [self.domain])
                 session.close()
-                return
+                return index
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
             start_urls = start_url_function(
@@ -578,6 +586,8 @@ class GPJBaseSpider(scrapy.Spider):
             if 'xpath' in field:
                 have_rule = True
                 rules = field['xpath']
+                # if field_name == 'phone':
+                    # ipdb.set_trace()
                 if isinstance(rules, tuple):
                     values = self.get_xpath(rules, response)
                 else:

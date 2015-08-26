@@ -78,14 +78,14 @@ item_rule = {
         #},
         'brand_slug': {
             'xpath': (
-                '//*[@class="sc-bread"]/a[last()]/text()',
+                '//*[@class="sc-bread"]/a[last()-1]/text()',
             ),
             'processors': ['first', 'cheshi.brand_or_model'],
             #'regex': u'二手(.*)',
         },
         'model_slug': {
             'xpath': (
-                '//*[@class="sc-bread"]/a[last()-1]/text()',
+                '//*[@class="sc-bread"]/a[last()]/text()',
             ),
             'processors': ['first', 'cheshi.brand_or_model'],
             #'regex': u'二手(.*)',
@@ -107,6 +107,7 @@ item_rule = {
             'xpath': (
                 #'//*[@class="sc-bread"]/a[last()-2]/text()',
                 after_has(u'上牌地区', 'a[2]'),
+                after_has(u'上牌地区', 'a'),
             ),
             #'regex': u'(.*?)二手',
         },
@@ -118,8 +119,10 @@ item_rule = {
         'phone': {
             'xpath': (
                 text(id_('linkaddr', '/a')),
+                # href(cls('btn_cr_car')),
                 has(u'电话', '/..'),
             ),
+            # 'processors': ['cheshi.phone'],
         },
         #'contact': {
             #'xpath': (
@@ -255,6 +258,8 @@ rule = {
         #'http://2sc.cheshi.com/info/1144895.html', # 4s, 有电话
         #'http://2sc.cheshi.com/info/833448.html', # 个人，点击显示电话
         #'http://2sc.cheshi.com/info/1656434.html', # 综合、商家
+        # 'http://2sc.cheshi.com/info/1523868.html',  # city is null
+        # 'http://2sc.cheshi.com/info/1748470.html',  # phone is None
     ],
 
     'parse': parse_rule,
