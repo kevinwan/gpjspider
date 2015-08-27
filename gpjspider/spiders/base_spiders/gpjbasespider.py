@@ -883,6 +883,13 @@ class GPJBaseSpider(scrapy.Spider):
             format_rule = _url
         elif isinstance(format_rule, str) and '%(' in format_rule:
             format_rule %= dict(url=_url)
+        elif isinstance(format_rule, dict):
+            url = list(urls)[0]
+            for k, v in format_rule.items():
+                if url.startswith(k):
+                    format_rule = v
+                    break
+            # format_rule = _url
         update = url_rule.get('replace')
         if update:
             a, b = update
@@ -891,6 +898,8 @@ class GPJBaseSpider(scrapy.Spider):
         if isinstance(format_rule, basestring):
             need_format = not format_rule.startswith('http')
             for url in urls:
+                # if url.startswith('http') and 'http' in format_keys:
+                #     url = format_rule['http'].format(url)
                 if not url.startswith('http') or need_format:
                     if '{0}' in format_rule:
                         url = format_rule.format(url)

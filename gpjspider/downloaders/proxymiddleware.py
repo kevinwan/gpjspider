@@ -48,7 +48,7 @@ class ProxyMiddleware(object):
 
     def process_request(self, request, spider):
         if self._need_proxy_domain(spider) and self.need_proxy:
-            key_redis_domain = spider.domain + str(date.today())
+            key_redis_domain = '%s_%s' % (spider.domain, str(date.today()))
             try:
                 request.meta['proxy'] = self.good_proxy
                 request.headers[
@@ -66,8 +66,16 @@ class ProxyMiddleware(object):
         status = response.status
         if self._need_proxy_domain(spider) and status != 200:
             key = '%s_%s' % (spider.domain, status)
+            key_url = '%s_%s' % (response.url, str(date.today()))
             self.redis.sadd(key, response.url)
             self.ip_control(response, spider)
             self.need_proxy = True
-
-        return response
+            request = spider.make_requests_from_url(response.url)
+            self.redis.lpush(key_url, "Count")
+            if 0 < self.redis.llen(key_url) < 3:
+                return request
+            else:
+                self.redis.delete(key_url)
+                return response
+        else:
+            return response

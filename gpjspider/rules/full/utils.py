@@ -25,6 +25,8 @@ hidden = lambda x: value(id_(x))
 
 # from urllib import urlparse
 # TODO: use urlparse
+
+
 def full_url(base_url):
     return base_url + '{0}'
 
@@ -41,20 +43,28 @@ def after_has(value, node='*', *args, **kwargs):
 def has_attr(attr, value, subfix=''):
     return '*[contains(@%s,"%s")]%s' % (attr, value, subfix)
 
+
 def has_cls(cls, subfix=''):
     return has_attr('class', cls, subfix)
 
+
 def has_id(cls, subfix=''):
     return has_attr('id', cls, subfix)
+
 
 def with_cls(cls, subfix='', prefix=''):
     return '%s*[@class="%s"]%s' % (prefix, cls, subfix)
 cls = with_cls
 
+
 def fmt_urls(rule, base_url):
     for k, v in rule.items():
-        if isinstance(v, dict) and v.get('format') is True:
-            v['format'] = full_url(base_url)
+        fmt = v.get('format')
+        if isinstance(v, dict) and fmt:
+            if fmt == True:
+                v['format'] = full_url(base_url)
+            elif isinstance(fmt, dict) and fmt['/'] == True:
+                fmt['/'] = full_url(base_url)
 
 
 def fmt_rule_urls(rule):
@@ -65,12 +75,15 @@ def fmt_rule_urls(rule):
             fmt_urls(rule['parse_list'], base_url)
         fmt_urls(rule['parse_detail']['item']['fields'], base_url)
 
+
 def has_attr2(value, subfix='', prefix='*', get_text=True):
     node = u'%s[contains(text(), "%s")]/@%s' % (prefix, value, subfix)
     return ('//' + node)
 
+
 def before_has(value, node='*', *args, **kwargs):
     return has(value, '/preceding-sibling::' + node, *args, **kwargs)
+
 
 def test():
     u'''
@@ -105,6 +118,7 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 >>> img(cls('container detail-gallery', '/div/'))
 '//*[@class="container detail-gallery"]/div//img[@src]/@src'
     '''
+
 
 def main():
     import doctest

@@ -1553,19 +1553,19 @@ def upload_imgs(item, logger):
 def get_qs_tags(quality_service):
     u'''
 >>> get_qs_tags(u'无重大事故 15天包退')
-u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
+u'\\u53ef\\u9000\\u6362 \\u65e0\\u5927\\u4e8b\\u6545'
 >>> get_qs_tags(u'14天可退1年质保')
-u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
+u'\\u8d28\\u4fdd \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'保证在 七天包退 延长质保')
-u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
+u'\\u8d28\\u4fdd \\u53ef\\u9000\\u6362'
 >>> get_qs_tags(u'绝非事故车 7天可退 真车实价')
-u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
+u'\\u53ef\\u9000\\u6362 \\u65e0\\u5927\\u4e8b\\u6545'
 >>> get_qs_tags(u'通过无事故承诺的好车，无重大事故，无火烧，无水淹如若不符，15天全额包退')
-u'\\u65e0\\u5927\\u4e8b\\u6545 \\u53ef\\u9000\\u6362'
+u'\\u53ef\\u9000\\u6362 \\u65e0\\u5927\\u4e8b\\u6545'
 >>> get_qs_tags(u'此车享受45天或1800公里先行赔付承诺保障')
 u'\\u5148\\u8d54\\u4ed8'
 >>> get_qs_tags(u'14天包退，360天/20000公里保修')
-u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
+u'\\u8d28\\u4fdd \\u53ef\\u9000\\u6362'
     '''
     if not quality_service:
         return ''
@@ -1575,11 +1575,16 @@ u'\\u53ef\\u9000\\u6362 \\u8d28\\u4fdd'
         u'无大事故': u'[发现绝非无重大]{1,3}事故车?',
         u'先赔付': u'先行?赔付?',
     }
+    keys = u'质保 可退换 无大事故 先赔付'.split()
     tags = set()
-    for k, v in tag_map.items():
+    tags = []
+    # for k, v in tag_map.items():
+    for k in keys:
+        v = tag_map[k]
         if re.search(v, quality_service):
-            tags.add(k)
-    return ' '.join(tags)
+            # tags.add(k)
+            tags.append(k)
+    return ' '.join(list(tags))
 
 num = 1
 lock = Lock()
