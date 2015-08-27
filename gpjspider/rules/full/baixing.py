@@ -196,8 +196,14 @@ parse_rule = {
     'next_page_url': {
         'xpath': (
             u'//a[contains(text(), "下一页")]/@href',
+            href(has_cls('tab-title', '//')),
+            href(id_('tags', '//')),
         ),
         'format': True,
+        'format': {
+            '/': True,
+            'http': '{0}ershouqiche/',
+        },
         'step': 'parse',
     },
 }
@@ -207,6 +213,7 @@ rule = {
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
     'start_urls': [
+        'http://www.baixing.com/?changeLocation=yes',
         'http://china.baixing.com/ershouqiche/?todayOnly=1',
         'http://china.baixing.com/ershouqiche/?todayOnly=1&cheshang=1', # 品牌车商
         'http://china.baixing.com/ershouqiche/koala_1/?todayOnly=1', # 考拉二手车

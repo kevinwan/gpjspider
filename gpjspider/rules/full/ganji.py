@@ -87,10 +87,11 @@ item_rule = {
                 u'//a[@class="fc-70"]/text()',
             ),
         },
-        # 'region': {
-        #     'xpath': (
-        #     ),
-        # },
+        'region': {
+            'xpath': (
+                after_has(u'门店地址'),
+            ),
+        },
         'phone': {
             'xpath': (
                 text(cls('telephone')),
@@ -116,26 +117,20 @@ item_rule = {
                 has_attr2(u'进入店铺', 'href'),
             ),
         },
-        #'driving_license': {
-            #'xpath': (
-            #),
-        #},
-        #'invoice': {
-            #'xpath': (
-                #_has(u'购车发票'),
-            #),
-        #},
         'maintenance_record': {
             'xpath': (
                 _has(u'保养方式'),
             ),
         },
-         #'quality_service': {
-             #'xpath': (
-             #},
-         #},
+        'quality_service': {
+            'xpath': (
+                attr(cls('guaranteeSide', '//a'), 'title'),
+            ),
+            'processors': ['join'],
+        },
         'is_certifield_car': {
             'default': False,
+            'default': '%(quality_service)s',
         },
         'description': {
             'xpath': (
@@ -182,10 +177,6 @@ item_rule = {
                 _has(u'使用性质'),
             ),
         },
-        # 'condition_level': {
-        #     'xpath':(
-        #     ),
-        # },
     },
 }
 
@@ -200,8 +191,13 @@ parse_rule = {
         "xpath": (
             url(has_cls('listtab', '/')),
             '//*[@class="next"]/@href',
+            url(has_cls('cityin')) + '[1]',
         ),
         'format': True,
+        'format': {
+            '/': True,
+            'http': '{0}ershouche/',
+        },
         "step": 'parse',
         # 'incr_pageno': 3,
     },
@@ -217,11 +213,14 @@ rule = {
     # 'update': True,
     'start_urls': [
         'http://www.ganji.com/ershouche/',
+        'http://www.ganji.com/index.htm',
         # 'http://www.ganji.com/ershouche/o10/', # p=10
-        #'http://su.ganji.com/ershouche/1466078402x.htm', # 无新车价
-        #'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
+        # 'http://bj.ganji.com/ershouche/1575985707x.htm',
+        # 'http://cd.ganji.com/ershouche/1466119428x.htm',
+        # 'http://su.ganji.com/ershouche/1466078402x.htm', # 无新车价
+        # 'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
         # 'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人
-        #'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
+        # 'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
         # 'http://wenzhou.ganji.com/ershouche/1679794510x.htm', # 网页改版
     ],
 
