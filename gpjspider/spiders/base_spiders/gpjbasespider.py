@@ -108,10 +108,10 @@ class GPJBaseSpider(scrapy.Spider):
                 session = self.Session()
                 # update = 'update open_product_source set status="q" where id in (%s) and status="u";'
                 query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
-                    domain=self.domain).filter(UsedCar.status.in_(['u', 'q']))
+                    domain=self.domain).filter(UsedCar.status.in_(['u']))
                 # print query.count()
                 for item in query.yield_per(psize):
-                    yield Request(item.url, meta=dict(id=item.id, update=True), callback=self.parse_detail, dont_filter=True)
+                    yield Request(item.url, meta=dict(id=item.id), callback=self.parse_detail, dont_filter=True)
                 session.close()
                 return
         elif 'start_url_function' in self.website_rule:
@@ -231,7 +231,7 @@ class GPJBaseSpider(scrapy.Spider):
 
         if 'item' in step_rule:
             yield self.get_item(step_rule['item'], response)
-            if 'update' in response.meta:
+            if self.update:
                 cursor = self.get_cursor()
                 cursor.execute('update open_product_source set status="I" where id=%s;' % response.meta['id'])
                 cursor.close()

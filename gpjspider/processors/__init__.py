@@ -630,11 +630,14 @@ def raw_imgurls(value):
     return
 
 def imgurls(value):
-    img_list = value.split()
-    if len(img_list) - len(set(img_list)) > 1:
-        return None
-    else:
+    if value:
+        new_img_list = set(value.split())
+        value = ' '.join(new_img_list)
+        if len(new_img_list) == 1 and value.endswith('.gif'):
+            value = None
         return value
+    else:
+        return None
 
 
 def is_certifield_car(value):

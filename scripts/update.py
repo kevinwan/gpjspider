@@ -87,7 +87,12 @@ domain_dict = {
         ],
         '1', 'chemao'
     ],    # 500
-    'cheshi.com': [[], '', 'cheshi'],    # 404    #*******
+    'cheshi.com': [
+        [
+            'boolean(//meta[@content="0;url=http://2sc.cheshi.com/404.shtml"])',
+            u'boolean(//div[@class="sc-recommand clearfix mt sc_msg2"]/h4[contains(text(),"暂无此二手车相关信息内容")])'
+        ],
+        '1', 'cheshi'],    # 404
     'cn2che.com': [
         [
             '//div[@id="carselled"]/@style'
