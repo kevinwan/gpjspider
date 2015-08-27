@@ -5,7 +5,8 @@ from scrapy import log
 # from gpjspider.spiders.base_spiders.gpjbasespider import GPJBaseSpider
 from gpjspider.utils import get_redis_cluster
 import base64
-# import ipdb
+import socket
+import ipdb
 
 
 class ProxyMiddleware(object):
@@ -28,6 +29,15 @@ class ProxyMiddleware(object):
         self.redis = get_redis_cluster()
         self.need_proxy = False
         self.need_proxy_domain = None
+        self.server_id = '127.0.0.1'
+        try:
+            csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            csock.connect(('8.8.8.8', 80))
+            (addr, port) = csock.getsockname()
+            csock.close()
+            self.server_id = addr
+        except Exception, e:
+            log(u'ExceptionInfo:{0}'.format(e))
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -41,14 +51,15 @@ class ProxyMiddleware(object):
     def ip_control(self, response, spider):
         proxymesh_ip = response.headers.get('x-proxymesh-ip')
         if proxymesh_ip:
-            invalid_ip_key = '%s_%s' % (spider.domain, str(date.today()))
+            invalid_ip_key = '%s_%s_%s' % (self.server_id, spider.domain, str(date.today()))
             self.redis.sadd(invalid_ip_key, proxymesh_ip)
+            self.redis.expire(invalid_ip_key, 1200)
             spider.log(u'OneForbiddenIP is {0}'.format(
                 proxymesh_ip), log.INFO)
 
     def process_request(self, request, spider):
         if self._need_proxy_domain(spider) and self.need_proxy:
-            key_redis_domain = '%s_%s' % (spider.domain, str(date.today()))
+            key_redis_domain = '%s_%s_%s' % (self.server_id, spider.domain, str(date.today()))
             try:
                 request.meta['proxy'] = self.good_proxy
                 request.headers[
@@ -65,8 +76,8 @@ class ProxyMiddleware(object):
     def process_response(self, request, response, spider):
         status = response.status
         if self._need_proxy_domain(spider) and status != 200:
-            key = '%s_%s' % (spider.domain, status)
-            key_url = '%s_%s' % (response.url, str(date.today()))
+            key = '%s_%s_%s' % (self.server_id, spider.domain, status)
+            key_url = '%s_%s_%s' % (self.server_id, response.url, str(date.today()))
             self.redis.sadd(key, response.url)
             self.ip_control(response, spider)
             self.need_proxy = True
