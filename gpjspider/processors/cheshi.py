@@ -52,10 +52,9 @@ def model_url(value):
         return ''
 
 def phone(value):
-    # import ipdb;ipdb.set_trace()
     if u'/0200/goto.php?url' in ''.join(value):
         value = 'http://2sc.cheshi.com' + value[0]
         value = Selector(text=requests.get(value).text).xpath('//span[@class="telephone"]/img/@src').extract()
         if value:
-            value = 'http://cc.ganji.com' + value[0]
-    return value
+            value = ['http://cc.ganji.com' + value[0]]
+    return value[0]

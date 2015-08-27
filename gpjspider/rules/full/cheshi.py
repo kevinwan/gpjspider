@@ -118,7 +118,7 @@ item_rule = {
         },
         'phone': {
             'xpath': (
-                text(id_('linkaddr', '/a')),
+                text(id_('linkaddr', '/a[@class="btn_cr_car"]')),
                 href(cls('btn_cr_car')),
                 has(u'电话', '/..'),
             ),
@@ -260,6 +260,7 @@ rule = {
         #'http://2sc.cheshi.com/info/1656434.html', # 综合、商家
         # 'http://2sc.cheshi.com/info/1523868.html',  # city is null
         # 'http://2sc.cheshi.com/info/1748470.html',  # phone is None
+        # 'http://2sc.cheshi.com/info/402736.html',  # phone is None
     ],
 
     'parse': parse_rule,
@@ -270,4 +271,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
