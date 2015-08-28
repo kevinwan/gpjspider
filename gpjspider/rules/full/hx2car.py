@@ -71,6 +71,7 @@ item_rule = {
         'price': {
             'xpath': (
                 text(cls('carprice', '/span')),
+                text(cls('jiage', '/span')),
             ),
         },
         'price_bn': {
@@ -122,8 +123,10 @@ item_rule = {
         },
         'contact': {
             'xpath': (
-                u'//*[@class="context_name"]/*[contains(text(), "联系人")]/following-sibling::*/text()',
+                u'//*[@class="context_name"]/*[contains(text(), "联系人")]/following-sibling::*/em/text()',
+                u'//*[@class="context_car"]/text()',
             ),
+            'regex': u'[\u4e00-\u9fa5]+'
         },
         'company_name': {
             'xpath': (
@@ -247,11 +250,14 @@ rule = {
         'http://hx2car.com/car/personal/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/stores/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/tradeallcar/f0000000ytdzsejckbmgl100000',
-        # 'http://hx2car.com/car/search.htm', # 列表首页、初审
+        # # 'http://hx2car.com/car/search.htm', # 列表首页、初审
         #'http://hx2car.com/details/143127330', # 个人二手车
         #'http://hx2car.com/details/142977479', # 精品二手车
         #'http://hx2car.com/details/143030533', # 商家、精品
         #'http://hx2car.com/details/141568147', # 担保
+        # 'http://beijing.hx2car.com/details/143803866'
+        # 'http://hx2car.com/details/143779131' # pric,contact,quali,driv,invo
+        # 'http://hx2car.com/details/143766257' # pric,conta,quali,driv,invo
     ],
 
     'parse': parse_rule,
@@ -262,4 +268,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
