@@ -4,6 +4,7 @@ import re
 from gpjspider.utils.constants import *
 import requests
 from scrapy.selector import Selector
+import datetime
 
 def color(value):
     """
@@ -54,12 +55,21 @@ def model_url(value):
 def phone(value):
     if u'/0200/goto.php?url' in ''.join(value):
         value = 'http://2sc.cheshi.com' + value[0]
-        value = Selector(text=requests.get(value).text).xpath('//span[@class="telephone"]/img/@src').extract()
+        page = Selector(text=requests.get(value).text)
+        value = page.xpath('//span[@class="telephone"]/img/@src').extract()
         if value:
             value = ['http://cc.ganji.com' + value[0]]
-    return value[0]
+        else:
+            value = page.xpath('//b[@class="teltype"]/text()').extract()
+    return value and value[0] or None
 
 def volume(value):
     value.reverse()
     a = re.compile(r'(\d\.\d)').findall(' '.join(value))
     return a and a[-1] or '0'
+
+def year(value):
+    # import ipdb;ipdb.set_trace()
+    if u'0年' in value:
+        value = [str(datetime.datetime.now().year)]
+    return value[0]

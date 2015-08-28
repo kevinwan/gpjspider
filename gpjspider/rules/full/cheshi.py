@@ -31,6 +31,7 @@ item_rule = {
             'xpath': (
                 after_has(u'上牌时间'),
             ),
+            'processors': ['cheshi.year'],
         },
         #'month': {
             #'xpath': (
@@ -264,6 +265,8 @@ rule = {
         # 'http://2sc.cheshi.com/info/1748470.html',  # phone is None
         # 'http://2sc.cheshi.com/info/402736.html',  # phone is None
         # 'http://2sc.cheshi.com/info/1752119.html',  # volume is None
+        # 'http://2sc.cheshi.com/info/1752955.html',  # phone is None
+        # 'http://2sc.cheshi.com/info/1752875.html',  # year is 0
     ],
 
     'parse': parse_rule,
