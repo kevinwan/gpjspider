@@ -250,7 +250,7 @@ rule = {
         'http://hx2car.com/car/personal/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/stores/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/tradeallcar/f0000000ytdzsejckbmgl100000',
-        # # 'http://hx2car.com/car/search.htm', # 列表首页、初审
+        #'http://hx2car.com/car/search.htm', # 列表首页、初审
         #'http://hx2car.com/details/143127330', # 个人二手车
         #'http://hx2car.com/details/142977479', # 精品二手车
         #'http://hx2car.com/details/143030533', # 商家、精品
@@ -258,6 +258,7 @@ rule = {
         # 'http://beijing.hx2car.com/details/143803866'
         # 'http://hx2car.com/details/143779131' # pric,contact,quali,driv,invo
         # 'http://hx2car.com/details/143766257' # pric,conta,quali,driv,invo
+        # 'http://hx2car.com/details/143687094'
     ],
 
     'parse': parse_rule,

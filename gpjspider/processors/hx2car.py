@@ -22,16 +22,14 @@ def phone(value):
         4008-900-571转130171
         15821069536  15821069536
     """
-    value = value[0]
+    value = value[0].strip()
     p = value.strip().split()
     if len(p) == 2:
         p1, p2 = p
         if p1.strip() == p2.strip():
             return p1
-        else:
-            return value.strip()
-    else:
-        return p
+    return value.strip()
+
 
 def source_type(value):
     if value == SOURCE_TYPE_GONGPINGJIA:
