@@ -78,3 +78,8 @@ def control(value):
     if u'无极变速' in value or u'双离合变速' in value:
         value = u'自动'
     return value
+
+def mile(value):
+    if '0.00' in value:
+        value = u'0.01万公里'
+    return value
