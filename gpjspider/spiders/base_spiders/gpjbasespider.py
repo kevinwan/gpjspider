@@ -881,8 +881,9 @@ class GPJBaseSpider(scrapy.Spider):
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
+        # ipdb.set_trace()
         if format_rule == True:
-            format_rule = _url
+            format_rule = re.findall('(http://[^/]+)/?', _url)[0]
         elif isinstance(format_rule, str) and '%(' in format_rule:
             format_rule %= dict(url=_url)
         elif isinstance(format_rule, dict) and urls:

@@ -15,6 +15,7 @@ from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
 #         return value
 
 def clean_list_params(url):
+    return url.replace('nodownpayment=1', '')
     token = '?nodownpayment'
     return url.split(token)[0]
 

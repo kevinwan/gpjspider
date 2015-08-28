@@ -77,7 +77,7 @@ class ProxyMiddleware(object):
 
     def process_response(self, request, response, spider):
         status = response.status
-        if self._need_proxy_domain(spider) and status != 200:
+        if self._need_proxy_domain(spider) and status not in (200, 404):
             key = '%s_%s_%s' % (self.server_id, spider.domain, status)
             key_url = '%s_%s_%s' % (
                 self.server_id, response.url, str(date.today()))

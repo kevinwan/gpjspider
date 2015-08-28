@@ -63,7 +63,7 @@ CONCURRENT_REQUESTS_PER_IP = 2
 DOWNLOAD_DELAY = 0.25
 # DOWNLOAD_DELAY = 1.75
 # DOWNLOAD_DELAY = 1.5
-DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 2.5
 # DOWNLOAD_DELAY = 3.2
 # DOWNLOAD_DELAY = 4
 # RANDOMIZE_DOWNLOAD_DELAY = True
@@ -89,8 +89,8 @@ PROXIES = [
 ]
 PROXY_DOMAINS = [
     '58.com',
-    'ganji.com',
-    'baixing.com',
+    # 'ganji.com',
+    # 'baixing.com',
 ]
 
 # for depth crawl
