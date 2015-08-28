@@ -5,7 +5,7 @@
 """
 import pickle
 import inspect
-from prettyprint import pp, pp_str
+from prettyprint import pp_str
 from sqlalchemy.exc import IntegrityError
 import scrapy
 from scrapy import log
@@ -26,8 +26,7 @@ from gpjspider.utils import get_mysql_cursor
 import ipdb, pdb
 import math
 from gpjspider.models import UsedCar
-from gpjspider.tasks.clean.usedcars import clean, clean_normal_car
-import copy
+from gpjspider.tasks.clean.usedcars import clean
 import urlparse
 
 
@@ -75,7 +74,6 @@ class GPJBaseSpider(scrapy.Spider):
         for attr in 'domain'.split():
             setattr(self, attr, rule.get(attr))
         self._is_export and self.export_incr_rule(rule_name)
-        # pp(self.website_rule['parse'])
         self.Session = get_mysql_connect()
 
     def export_incr_rule(self, rule_name):
@@ -123,7 +121,7 @@ class GPJBaseSpider(scrapy.Spider):
             self.log(u'start request {0}'.format(start_url), log.INFO)
             self.page_urls.add(start_url)
             request = self.make_requests_from_url(start_url)
-            request.priority = LIST_PAGE_PRIORITY
+            # request.priority = LIST_PAGE_PRIORITY
             yield request
 
 
@@ -177,7 +175,7 @@ class GPJBaseSpider(scrapy.Spider):
             # response.meta['depth'] += 1 #depth if  else depth
             for request in requests:
                 url = request.url
-                request.priority = LIST_PAGE_PRIORITY
+                # request.priority = LIST_PAGE_PRIORITY
                 self.log(u'start next request: {0}'.format(url))
                 yield request
 
@@ -887,12 +885,16 @@ class GPJBaseSpider(scrapy.Spider):
             format_rule = _url
         elif isinstance(format_rule, str) and '%(' in format_rule:
             format_rule %= dict(url=_url)
-        elif isinstance(format_rule, dict):
+        elif isinstance(format_rule, dict) and urls:
             url = list(urls)[0]
+            # fmt_rule = None
             for k, v in format_rule.items():
                 if url.startswith(k):
                     format_rule = v
                     break
+            if '%(' in format_rule:
+                # format_rule %= dict(url=_url)
+                format_rule = _url
             # format_rule = _url
         update = url_rule.get('replace')
         if update:

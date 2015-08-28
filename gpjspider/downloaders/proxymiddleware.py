@@ -53,7 +53,7 @@ class ProxyMiddleware(object):
         if proxymesh_ip:
             invalid_ip_key = '%s_%s_%s' % (self.server_id, spider.domain, str(date.today()))
             self.redis.sadd(invalid_ip_key, proxymesh_ip)
-            self.redis.expire(invalid_ip_key, 1200)
+            self.redis.expire(invalid_ip_key, 600)
             spider.log(u'OneForbiddenIP is {0}'.format(
                 proxymesh_ip), log.INFO)
 
