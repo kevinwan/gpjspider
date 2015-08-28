@@ -29,6 +29,7 @@ DOWNLOADER_MIDDLEWARES = {
     'scrapy.contrib.downloadermiddleware.httpcompression.HttpCompressionMiddleware': 590,
     'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': 400,
 }
+PROXIES_ENABLED = True
 COMPRESSION_ENABLED = True
 DOWNLOAD_TIMEOUT = 30
 DOWNLOAD_TIMEOUT = 60
