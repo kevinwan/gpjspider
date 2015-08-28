@@ -114,6 +114,7 @@ item_rule = {
                 after_has(u'上牌地区', 'a[2]'),
                 after_has(u'上牌地区', 'a'),
             ),
+            'before': u'地区',
             #'regex': u'(.*?)二手',
         },
         'region': {
@@ -272,6 +273,8 @@ rule = {
         # 'http://2sc.cheshi.com/info/385843.html',  # control is null
         # 'http://2sc.cheshi.com/info/890163.html',  # control is null
         # 'http://2sc.cheshi.com/info/613087.html',  # control is null
+        # 'http://2sc.cheshi.com/info/1142352.html',  # mile is 0.00
+        # 'http://2sc.cheshi.com/info/626799.html',  # city like *地区
     ],
 
     'parse': parse_rule,
