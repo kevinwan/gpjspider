@@ -78,18 +78,17 @@ class ProxyMiddleware(object):
     def process_response(self, request, response, spider):
         status = response.status
         if self._need_proxy_domain(spider) and status not in (200, 404):
-            key = '%s_%s_%s' % (self.server_id, spider.domain, status)
-            key_url = '%s_%s_%s' % (
-                self.server_id, response.url, str(date.today()))
+            # key = '%s_%s_%s' % (self.server_id, spider.domain, status)
+            key = '%s_%s_%s' % (spider.domain, status, str(date.today()))
+            # key_url = '%s_%s_%s' % (
+            #     self.server_id, response.url, str(date.today()))
             self.redis.sadd(key, response.url)
             self.ip_control(response, spider)
             self.need_proxy = True
-            request = spider.make_requests_from_url(response.url)
-            self.redis.lpush(key_url, "Count")
-            if 0 < self.redis.llen(key_url) < 3:
-                return request
-            else:
-                self.redis.delete(key_url)
-                return response
-        else:
-            return response
+        #     request = spider.make_requests_from_url(response.url)
+        #     self.redis.lpush(key_url, "Count")
+        #     if 0 < self.redis.llen(key_url) < 3:
+        #         return request
+        #     else:
+        #         self.redis.delete(key_url)
+        return response
