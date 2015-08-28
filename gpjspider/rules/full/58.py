@@ -293,6 +293,10 @@ parse_rule = {
         'processors': ['clean_param'],
         'processors': ['58.clean_params'],
         'format': True,
+        'format': {
+            '/': '%(url)s',
+            'http': '{0}',
+        },
         "step": 'parse_detail',
     },
     "next_page_url": {
@@ -317,9 +321,7 @@ rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
-    'base_url': '',
     'base_url': '%(url)s',
-    # 'update': True,
 
     'start_urls': [
         'http://www.58.com/ershouche/changecity/',
