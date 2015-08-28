@@ -53,7 +53,8 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
         if is_full:
             time.sleep(30)
         # ganji.com 58.com baixing.com '51auto.com', 'taoche.com'
-        if domain in 'ganji.com 58.com baixing.com'.split():
+        # if domain in 'ganji.com 58.com baixing.com'.split():
+        if domain in scrapy_setting.getlist('SINGLE_CRAWL', []):
             print 'already run..'
             return
         if os.path.exists(jobdir):
