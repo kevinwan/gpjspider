@@ -58,3 +58,8 @@ def phone(value):
         if value:
             value = ['http://cc.ganji.com' + value[0]]
     return value[0]
+
+def volume(value):
+    value.reverse()
+    a = re.compile(r'(\d\.\d)').findall(' '.join(value))
+    return a and a[-1] or '0'

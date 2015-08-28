@@ -50,7 +50,9 @@ item_rule = {
         'volume': {
             'xpath': (
                 has(u'排量', '/..'),
+                has(u'排量', '/a') + '|' + text(cls('part_h3s')),
             ),
+            'processors': ['cheshi.volume'],
         },
         'color': {
             'xpath': (
@@ -261,6 +263,7 @@ rule = {
         # 'http://2sc.cheshi.com/info/1523868.html',  # city is null
         # 'http://2sc.cheshi.com/info/1748470.html',  # phone is None
         # 'http://2sc.cheshi.com/info/402736.html',  # phone is None
+        # 'http://2sc.cheshi.com/info/1752119.html',  # volume is None
     ],
 
     'parse': parse_rule,
