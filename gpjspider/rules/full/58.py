@@ -303,6 +303,7 @@ parse_rule = {
             '//a[@class="next"]/@href',
         ),
         'format': True,
+        'processors': ['58.clean_list_params'],
         "step": 'parse',
         'max_pagenum': 25,
         # 'max_pagenum': 65,

@@ -41,7 +41,7 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                _has(u'排量'),
+                _has(u'排量：'),
             ),
             'default': '%(dmodel)s',
         },
@@ -81,13 +81,13 @@ item_rule = {
         },
         'brand_slug': {
             'xpath': (
-                after_has(u'品牌'),
+                after_has(u'品牌：'),
             ),
         },
         'model_slug': {
             'xpath': [
-                after_has(u'品牌'),
-                after_has(u'车系列'),
+                after_has(u'品牌：'),
+                after_has(u'车系列：'),
             ],
             'processors': ['baixing.model_slug'],
             'default': '%(dmodel)s',
@@ -215,6 +215,8 @@ rule = {
     'base_url': 'http://china.baixing.com',
     'base_url': '%(url)s',
     'start_urls': [
+        # 'http://dongguan.baixing.com/ershouqiche/a820742742.html',
+        # 'http://dongguan.baixing.com/ershouqiche/a785687239.html',
         'http://www.baixing.com/?changeLocation=yes',
         'http://china.baixing.com/ershouqiche/?todayOnly=1',
         'http://china.baixing.com/ershouqiche/?todayOnly=1&cheshang=1', # 品牌车商

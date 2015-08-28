@@ -14,6 +14,10 @@ from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
 #     except:
 #         return value
 
+def clean_list_params(url):
+    token = '?nodownpayment'
+    return url.split(token)[0]
+
 def clean_params(url):
     token = '&PGTID=' if 'infoid=' in url else '?'
     return url.split(token)[0]
