@@ -73,3 +73,8 @@ def year(value):
     if u'0年' in value:
         value = [str(datetime.datetime.now().year)]
     return value[0]
+
+def control(value):
+    if u'无极变速' in value or u'双离合变速' in value:
+        value = u'自动'
+    return value
