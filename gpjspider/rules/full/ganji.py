@@ -189,13 +189,14 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            url(has_cls('listtab', '/')),
             '//*[@class="next"]/@href',
+            url(has_cls('listtab', '/')),
             url(has_cls('cityin')) + '[1]',
         ),
         'format': True,
         'format': {
-            '/': True,
+            '/': '%(url)s',
+            # '%(url)s': True,
             'http': '{0}ershouche/',
         },
         "step": 'parse',
@@ -208,12 +209,14 @@ rule = {
     'name': u'赶集二手车',
     'domain': 'ganji.com',
     'base_url': 'http://www.ganji.com',
+    'base_url': '%(url)s',
     'per_page': 100,
     'pages': 40,
     # 'update': True,
     'start_urls': [
         'http://www.ganji.com/ershouche/',
         'http://www.ganji.com/index.htm',
+        # 'http://sh.ganji.com/ershouche/',
         # 'http://www.ganji.com/ershouche/o10/', # p=10
         # 'http://bj.ganji.com/ershouche/1575985707x.htm',
         # 'http://cd.ganji.com/ershouche/1466119428x.htm',

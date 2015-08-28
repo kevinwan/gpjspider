@@ -196,13 +196,14 @@ parse_rule = {
     'next_page_url': {
         'xpath': (
             u'//a[contains(text(), "下一页")]/@href',
-            href(has_cls('tab-title', '//')),
-            href(id_('tags', '//')),
+            href(has_cls('tab-title', '//a')),
+            href(id_('tags', '//a')),
         ),
         'format': True,
         'format': {
             '/': True,
-            'http': '{0}ershouqiche/',
+            '/': '%(url)s',
+            'http': '{0}ershouqiche/?todayOnly=1',
         },
         'step': 'parse',
     },
@@ -212,12 +213,13 @@ rule = {
     'name': u'百姓二手车',
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
+    'base_url': '%(url)s',
     'start_urls': [
         'http://www.baixing.com/?changeLocation=yes',
         'http://china.baixing.com/ershouqiche/?todayOnly=1',
         'http://china.baixing.com/ershouqiche/?todayOnly=1&cheshang=1', # 品牌车商
         'http://china.baixing.com/ershouqiche/koala_1/?todayOnly=1', # 考拉二手车
-        # 'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
+        'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
         # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
         # 'http://nanning.baixing.com/ershouqiche/a751473084.html',
         # 'http://dalian.baixing.com/ershouqiche/a761320262.html',

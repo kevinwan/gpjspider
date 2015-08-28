@@ -59,8 +59,8 @@ cls = with_cls
 
 def fmt_urls(rule, base_url):
     for k, v in rule.items():
-        fmt = v.get('format')
-        if isinstance(v, dict) and fmt:
+        if isinstance(v, dict) and v.get('format'):
+            fmt = v.get('format')
             if fmt == True:
                 v['format'] = full_url(base_url)
             elif isinstance(fmt, dict) and fmt['/'] == True:
