@@ -22,3 +22,11 @@ def source_type(value):
     if value == SOURCE_TYPE_GONGPINGJIA:
         return SOURCE_TYPE_GONGPINGJIA
     return SOURCE_TYPE_ODEALER
+
+
+def volume(value):
+    if isinstance(value, (list, tuple)):
+        if len(value) == 1:
+            if len(value[0]) == 2:
+                return value[0].strip(u'L').strip(u'T') + '.0'
+    return ''

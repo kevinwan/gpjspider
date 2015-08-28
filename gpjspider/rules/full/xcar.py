@@ -55,6 +55,7 @@ item_rule = {
             'xpath': (
                 has(u'排　　量', '/..'),
             ),
+            'processors': ['xcar.volume'],
         },
         'color': {
             'xpath': (
@@ -258,6 +259,8 @@ rule = {
         #'http://used.xcar.com.cn/shop/1099304.htm', # 认证车
         #'http://used.xcar.com.cn/shop/2604510.htm', # 准新车
         #'http://used.xcar.com.cn/shop/2604550.htm', # 报价太低警告
+        # 'http://used.xcar.com.cn/shop/3183226.htm' # volume='2L'
+        # 'http://used.xcar.com.cn/shop/3186290.htm' # volume='-''
     ],
 
     'parse': parse_rule,
