@@ -283,12 +283,13 @@ item_rule = {
 parse_rule = {
     "url": {
         'xpath': (
-            url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
+            #url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
             url(cls('txt')),
             url(cls('t')),
             # '//div[@class="area-con01"]/ul[@class="arealist"]//div[@class="txt"]/a/@href',
         ),
         'contains': ['/ershouche/', 'shtml', 'infoid'],
+        # 'regex': ['/ershouche/.*.shtml', '/ershouche/.*infoid'],
         'processors': ['clean_param'],
         'processors': ['58.clean_params'],
         'format': True,
@@ -321,16 +322,16 @@ rule = {
     # 'update': True,
 
     'start_urls': [
-        # 'http://cd.58.com/ershouche/',
         'http://www.58.com/ershouche/changecity/',
         'http://quanguo.58.com/ershouche/',
-        # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
-        # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
-        # 'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
-        # 'http://ghac.58.com/ershouche/?sheng=quanguo&city=qg', # 喜悦二手车、本田
-        # 'http://chengxin.58.com/ershouche/?sheng=quanguo&city=qg', # 诚新二手车
-        # 'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
-        # 'http://svwuc.58.com/ershouche/', # 上海大众
+        'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
+        'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
+        'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴
+        'http://ghac.58.com/ershouche/?sheng=quanguo&city=qg', # 喜悦二手车、本田
+        'http://chengxin.58.com/ershouche/?sheng=quanguo&city=qg', # 诚新二手车
+        'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
+        'http://svwuc.58.com/ershouche/', # 上海大众
+        # 'http://cd.58.com/ershouche/',
         # 'http://quanguo.58.com/ershouche/0/',
         # 'http://quanguo.58.com/ershouche/1/',
         # 'http://quanguo.58.com/ershouche/?xbsx=1',
@@ -381,5 +382,5 @@ rule = {
     }
 }
 
-# fmt_rule_urls(rule)
+fmt_rule_urls(rule)
 # rule['parse'] = rule['parse_detail']
