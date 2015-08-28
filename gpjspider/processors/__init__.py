@@ -128,9 +128,12 @@ def volume(value):
     u'''
 >>> volume(u'大众途观 1.8T 手自一体 豪华')
 1.8
+>>> volume(u'2004款北京现代酷派跑车，原装发动机，2.7排量')
+2.7
     '''
-    a = re.compile(r'(\d\.\d)').findall(value)
-    return a and gpjfloat(a[0]) or 0
+    if value:
+        a = re.compile(r'(\d\.\d)').findall(value)
+        return a and gpjfloat(a[0]) or 0
 
 
 def brand_slug(value):
@@ -150,8 +153,10 @@ u'test'
         a = a[0].split('-')
     return a[0].strip()
 
+
 def add_temp(value):
     return 'temp ' + value[0]
+
 
 def model_slug(value):
     u'''
@@ -228,6 +233,7 @@ def status(value):
     # return 'Y' if value and value not in ('Q', '1') else 'Q'
 
 # def source_type(value):
+
 
 def price(value):
     u'''
@@ -626,8 +632,9 @@ u'2015\\u6b3e 2.0T \\u624b\\u81ea\\u4e00\\u4f53 \\u65d7\\u8230\\u578b (\\u56fd\\
     return value
 
 
-def raw_imgurls(value):
-    return
+# def raw_imgurls(value):
+#     return
+
 
 def imgurls(value):
     if value:
@@ -636,8 +643,6 @@ def imgurls(value):
         if len(new_img_list) == 1 and value.endswith('.gif'):
             value = None
         return value
-    else:
-        return None
 
 
 def is_certifield_car(value):

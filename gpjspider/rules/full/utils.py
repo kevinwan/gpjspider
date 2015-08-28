@@ -117,6 +117,7 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 '//*[@class="container detail-gallery"]/div//img/@src'
 >>> img(cls('container detail-gallery', '/div/'))
 '//*[@class="container detail-gallery"]/div//img[@src]/@src'
+>>> has(u'排量', '/..')
     '''
 
 
