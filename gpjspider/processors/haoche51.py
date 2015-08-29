@@ -37,6 +37,8 @@ def control(value):
     """
     a = value.split('|')
     de = ''
+    if u'双离合' in value or u'无级变速' in value:
+        de = u'自动'
     for i in a:
         if u'手' in i or u'自' in i:
             de = i
