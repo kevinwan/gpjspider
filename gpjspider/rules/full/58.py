@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from .utils import *
 from gpjspider.utils.constants import *
-import ipdb
 
 
 def get_xpath(response, xpath):
@@ -30,9 +29,8 @@ def get_url_with_time(response, spider):
             if time:
                 meta_info[url] = dict(_time=time[0] + u'前')
                 # break
-    if meta_info:
-        spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
-        # ipdb.set_trace()
+    # if meta_info:
+    #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
 
 

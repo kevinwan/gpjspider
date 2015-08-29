@@ -24,12 +24,9 @@ def get_url_and_source_type(response, spider):
             urls.add(url)
         if u'认证' in url:
             meta_info[_urls[idx - 1]] = dict(_source_type=url)
-            # break
 
-    if meta_info:
-        spider.log(
-            u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
-        # ipdb.set_trace()
+    # if meta_info:
+    #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
 
 
