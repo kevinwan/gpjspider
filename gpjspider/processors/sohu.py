@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 from . import is_certified, transfer_owner as _transfer_owner
 from gpjspider.utils.constants import *
+import re
 
 def transfer_owner(value):
     return u'\u662f' in value and 1 or _transfer_owner(value)
 
 def source_type(value):
     if isinstance(value, dict):
-        st = value.get('_source_type', None)
-        company = value.get('company_name', None)
+        st = value.get('_source_type')
+        print st
+        company = value.get('company_name')
         if st:
             if u'品牌认证' in st:
                 return SOURCE_TYPE_MANUFACTURER
@@ -67,6 +69,13 @@ def region(value):
     if u'--' in last:
         return ''
     return last
+
+def volume(value):
+    val = re.match(u'(\d)[LT]', value)
+    if val:
+        return val.group(1) + '.0'
+    else:
+        return value
 
 if __name__ == '__main__':
     import doctest

@@ -6,6 +6,7 @@ from gpjspider.utils.constants import *
 def parse_meta(key, with_key=False):
     return with_key and u'(%s[^：]{,4}：[^;\s]+)' % key or u'%s[^：]{,4}：([^;\s]+)' % key
 
+
 def get_url_and_source_type(response, spider):
     """
         主要是为了提取列表页的链接和对应的 source_type 信息，返回两部分的信息，
@@ -22,9 +23,10 @@ def get_url_and_source_type(response, spider):
         if 'html' in url:
             urls.add(url)
         if u'认证' in url:
-            meta_info[_urls[idx-1]] = dict(_source_type=url)
+            meta_info[_urls[idx - 1]] = dict(_source_type=url)
 
-    spider.log(u'urls is: {0} and meta_info is: {1}'.format(urls, meta_info))
+    # if meta_info:
+    #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
 
 
@@ -81,6 +83,7 @@ item_rule = {
             'xpath': (
                 after_has(u'排量'),
             ),
+            'processors': ['first', 'sohu.volume']
         },
         'year': {
             'xpath': (
@@ -99,7 +102,7 @@ item_rule = {
         },
         'price_bn': {
             'xpath': (
-                #has(u'新车'),
+                # has(u'新车'),
                 text(cls('car-price-new')),
             ),
         },
@@ -114,11 +117,11 @@ item_rule = {
             ),
         },
         #'transfer_owner': {
-            #'xpath': (
-                #after_has(u'是否一手车'),
-                #u'//*[contains(text(), "过户次数")]/span/text()',
-            #),
-            #'processors': ['first', 'sohu.transfer_owner'],
+        #'xpath': (
+        # after_has(u'是否一手车'),
+        #u'//*[contains(text(), "过户次数")]/span/text()',
+        #),
+        #'processors': ['first', 'sohu.transfer_owner'],
         #},
         'color': {
             'xpath': (
@@ -128,9 +131,9 @@ item_rule = {
         #'mandatory_insurance': {
         #},
         #'business_insurance': {
-            #'xpath': (
-                #after_has(u'商业险'),
-            #),
+        #'xpath': (
+        # after_has(u'商业险'),
+        #),
         #},
         #'examine_insurance': {
         #},
@@ -146,10 +149,10 @@ item_rule = {
         #     'processors': ['first', 'has_maintenance_record'],
         # },
         #'maintenance_desc': {
-            #'xpath': (
-                #after_has(u'保养'),
-                #u'//*[contains(text(), "保养")]/text()',
-            #),
+        #'xpath': (
+        # after_has(u'保养'),
+        #u'//*[contains(text(), "保养")]/text()',
+        #),
         #},
         'quality_service': {
             'xpath': (
@@ -226,7 +229,7 @@ parse_rule = {
             'function': get_url_and_source_type,
         },
         #'xpath_with_info': (
-            #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
+        #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
         #),
         'format': True,
         'step': 'parse_detail',
@@ -239,7 +242,7 @@ parse_rule = {
         'xpath': (
             '//*[@class="list-pager"]/a[last()]/@href',
             # url('div[@class="pager"]'),
-            #url('*[@class="no"][last()]'),
+            # url('*[@class="no"][last()]'),
             # '//div[@class="page"]/@href',
             # '//a[@class="page-item-next"]/@href',
             # '//a[@class="next_on"]/@href',
@@ -260,10 +263,14 @@ rule = {
     'pages': 200,
 
     'start_urls': [
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
+        'http://2sc.sohu.com/buycar/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h0j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h0j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j0k0m0n0/',
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1548176.shtml',
         # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',
@@ -278,9 +285,10 @@ rule = {
         # 'http://2sc.sohu.com/sc-cd/buycar/carinfo_sohu_1510419.shtml', # 5
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1503731.shtml', # 5
         # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1611825.shtml#品牌认证',
-        #'http://2sc.sohu.com/nmg-hhht/buycar/carinfo_sohuperson_1610175.shtml', # 个人
+        # 'http://2sc.sohu.com/nmg-hhht/buycar/carinfo_sohuperson_1610175.shtml', # 个人
         #'http://2sc.sohu.com/gd-foshan/buycar/carinfo_sohuperson_1620313.shtml',
-        #'http://2sc.sohu.com/xj-wlmq/buycar/carinfo_sohuperson_1625324.shtml',
+        # 'http://2sc.sohu.com/xj-wlmq/buycar/carinfo_sohuperson_1625324.shtml',
+        # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1692883.shtml' # volume 2L排量
     ],
 
     'parse': parse_rule,
@@ -291,4 +299,4 @@ rule = {
 
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
