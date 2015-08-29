@@ -10,10 +10,12 @@ item_rule = {
     "fields": {
         'title': {
             'xpath': (
+                text(cls('car-title', '/')),
                 text(cls('car-info', '/h2/a')),
                 text(cls('car-h', '/h2/a')),
                 text(cls('breadnav', '/a[4]')),
             ),
+            'processors': ['join'],
             'required': True,
         },
         'meta': {
@@ -129,12 +131,13 @@ item_rule = {
                 has(u'咨询电话'),
                 has(u'咨询电话', '/span'),
                 attr(cls('phone-div', '/img'), 'src'),
+                u'//div[@class="phone-div "]/img/@src'
             ),
             'processors': ['first', 'che168.phone'],
         },
         'contact': {
             'xpath': (
-                text(id_('carOwnerInfo', '/div[1]/span[1]')),
+                text(id_('carOwnerInfo', '//a[@id="iscarown"]/span[1]')),
             ),
         },
         'company_name': {
@@ -289,6 +292,7 @@ rule = {
         #'http://www.che168.com/dealer/118132/5381345.html', # 保障车
         #'http://www.che168.com/dealer/131975/5381232.html', # 商家车源
         #'http://www.che168.com/personal/5381429.html', # 个人车源
+        # 'http://www.che168.com/dealer/123414/5740471.html',  # phone is null
     ],
 
     'parse': parse_rule,
@@ -299,4 +303,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
