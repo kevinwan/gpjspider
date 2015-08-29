@@ -433,6 +433,8 @@ True
 >>> gpjtime(u'2012年3月10 14小时9分3')
 '2012-03-10 14:09:03'
     """
+    if not time:
+        return
     if u'已过期' in time:
         return None
     elif u'今天' in time:

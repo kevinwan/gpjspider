@@ -23,8 +23,11 @@ def get_url_and_source_type(response, spider):
             urls.add(url)
         if u'认证' in url:
             meta_info[_urls[idx-1]] = dict(_source_type=url)
+            break
 
-    spider.log(u'urls is: {0} and meta_info is: {1}'.format(urls, meta_info))
+    if meta_info:
+        spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
+        # ipdb.set_trace()
     return urls, meta_info
 
 
@@ -260,10 +263,14 @@ rule = {
     'pages': 200,
 
     'start_urls': [
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
+        'http://2sc.sohu.com/buycar/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h0j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h0j0k0m0n0/',
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j0k0m0n0/',
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1548176.shtml',
         # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',

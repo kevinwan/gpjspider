@@ -1,6 +1,36 @@
 # -*- coding: utf-8 -*-
 from .utils import *
 from gpjspider.utils.constants import *
+import ipdb
+
+
+def get_xpath(response, xpath):
+    return response.xpath(xpath).extract()
+
+
+def get_url_with_time(response, spider):
+    _node = '//td[@class="txt" or @class="t"]'
+    _url = 'a[@href]/@href'
+    _time = 'span[@class="c_999" or @class="post_time" or @class="post_time"]/text()'
+    meta_info = {}
+    urls = set()
+    nodes = response.xpath(_node)
+    for node in nodes:
+        has_url = get_xpath(node, _url)
+        if has_url:
+            url = has_url[0]
+            if url in urls:
+                continue
+            urls.add(url)
+            time = get_xpath(node, _time)
+            if time:
+                meta_info[url] = dict(_time=time[0] + u'前')
+                # break
+    if meta_info:
+        spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
+        # ipdb.set_trace()
+    return urls, meta_info
+
 
 item_rule = {
     "class": "UsedCarItem",
@@ -136,7 +166,7 @@ item_rule = {
         'region': {
             'xpath': (
                 text(id_('address_detail')),
-                has(u'址', '/span', '/p'), #地       址
+                has(u'址', '/span', '/p'),  # 地       址
             ),
         },
         'phone': {
@@ -153,7 +183,7 @@ item_rule = {
             'xpath': (
                 text(cls('font_yccp')),
                 # text(id_('jxs', '/')),
-                has(u'商', '/a', '/p'), #经  销  商
+                has(u'商', '/a', '/p'),  # 经  销  商
             ),
         },
         'company_url': {
@@ -236,10 +266,14 @@ item_rule = {
         # },
         # maintenance_desc
         'time': {
-            'xpath': (
-                text(id_('fbtime', '/span')),
-                text(cls('time')),
-            ),
+            # 'xpath': (
+            #     text(id_('fbtime', '/span')),
+            #     text(cls('time')),
+            # ),
+            # 'default': '{item}',
+            # 'processors': ['58.time'],
+            'default': '%(_time)s',
+            # 'default': '%(time)s',
         },
         'source_type': {
             'xpath': [
@@ -266,8 +300,8 @@ item_rule = {
         },
         'is_certifield_car': {
             # 'xpath': (
-            #     # attr(has_id('icon_'), 'id'),
-            #     # text(cls('paddright13')),
+            #     attr(has_id('icon_'), 'id'),
+            #     text(cls('paddright13')),
             #     exists(has_id('icon_')),
             # ),
             'default': False,
@@ -283,12 +317,16 @@ item_rule = {
 parse_rule = {
     "url": {
         'xpath': (
-            #url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
+            # url('*[@id="infolist"]//*[@sortid="$sortId"]/'),
             url(cls('txt')),
             url(cls('t')),
             # '//div[@class="area-con01"]/ul[@class="arealist"]//div[@class="txt"]/a/@href',
         ),
-        'contains': ['/ershouche/', 'shtml', 'infoid'],
+        'xpath': {
+            'function': get_url_with_time,
+        },
+        'contains': ['x.shtml', '/detail/'],
+        # 'excluded': ['productinfo'],
         # 'regex': ['/ershouche/.*.shtml', '/ershouche/.*infoid'],
         'processors': ['58.clean_params'],
         'format': True,
@@ -300,11 +338,11 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            '//dd[@class="dot"][1]/a[@href]/@href',
+            '//a[@class="next"]/@href',
             url(cls('list-tabs')),
+            url('//dd[@class="dot"][1]'),
             # url(cls('advpos')),
             # url(cls('list-tit')),
-            '//a[@class="next"]/@href',
         ),
         'format': True,
         'format': '%(url)s',
@@ -334,13 +372,6 @@ rule = {
         # 'http://yicheng.58.com/ershouche/?sheng=quanguo&city=qg', # 东风日产
         # 'http://svwuc.58.com/ershouche/', # 上海大众
         # 'http://cd.58.com/ershouche/',
-        # 'http://quanguo.58.com/ershouche/0/',
-        # 'http://quanguo.58.com/ershouche/1/',
-        # 'http://quanguo.58.com/ershouche/?xbsx=1',
-        # 'http://quanguo.58.com/ershouche/pn10/',
-        # 'http://quanguo.58.com/ershouche/0/pn10/',
-        # 'http://quanguo.58.com/ershouche/1/pn10/',
-        # 'http://quanguo.58.com/ershouche/pn10/?xbsx=1',
         # 'http://bj.58.com/ershouche/21942816658953x.shtml', # 2
         # 'http://bj.58.com/ershouche/22531356944521x.shtml', # 2
         # 'http://bj.58.com/ershouche/22095630730144x.shtml', # 2
