@@ -6,6 +6,7 @@ from gpjspider.utils.constants import *
 def get_xpath(response, xpath):
     return response.xpath(xpath).extract()
 
+
 def clean_params(url):
     token = '&PGTID=' if 'infoid=' in url else '?'
     return url.split(token)[0]
@@ -339,7 +340,7 @@ parse_rule = {
         "xpath": (
             '//a[@class="next"]/@href',
             url(cls('list-tabs')),
-            #url('dd[@class="dot"][1]'), # not sure
+            # url('dd[@class="dot"][1]'), # not sure
             # url(cls('advpos')),
             # url(cls('list-tit')),
         ),
@@ -361,7 +362,7 @@ rule = {
     'base_url': '%(url)s',
 
     'start_urls': [
-        # 'http://www.58.com/ershouche/changecity/',
+        'http://www.58.com/ershouche/changecity/',
         'http://quanguo.58.com/ershouche/',
         # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
