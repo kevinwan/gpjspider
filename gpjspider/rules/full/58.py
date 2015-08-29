@@ -7,6 +7,10 @@ import ipdb
 def get_xpath(response, xpath):
     return response.xpath(xpath).extract()
 
+def clean_params(url):
+    token = '&PGTID=' if 'infoid=' in url else '?'
+    return url.split(token)[0]
+
 
 def get_url_with_time(response, spider):
     _node = '//td[@class="txt" or @class="t"]'
@@ -18,7 +22,7 @@ def get_url_with_time(response, spider):
     for node in nodes:
         has_url = get_xpath(node, _url)
         if has_url:
-            url = has_url[0]
+            url = clean_params(has_url[0])
             if url in urls:
                 continue
             urls.add(url)
@@ -270,10 +274,7 @@ item_rule = {
             #     text(id_('fbtime', '/span')),
             #     text(cls('time')),
             # ),
-            # 'default': '{item}',
-            # 'processors': ['58.time'],
             'default': '%(_time)s',
-            # 'default': '%(time)s',
         },
         'source_type': {
             'xpath': [
@@ -328,7 +329,7 @@ parse_rule = {
         'contains': ['x.shtml', '/detail/'],
         # 'excluded': ['productinfo'],
         # 'regex': ['/ershouche/.*.shtml', '/ershouche/.*infoid'],
-        'processors': ['58.clean_params'],
+        # 'processors': ['58.clean_params'],
         'format': True,
         'format': {
             '/': '%(url)s',
