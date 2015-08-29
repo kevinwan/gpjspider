@@ -24,6 +24,7 @@ item_rule = {
         'title': {
             'xpath': (
                 text(cls("autotit", "//strong")),
+                text(cls("autotit autotit-h3", "//strong")),
             ),
             'required': True,
         },
@@ -38,18 +39,21 @@ item_rule = {
         'year': {
             'xpath': (
                 text(cls("autotit", "/h2")),
+                text(cls("autotit autotit-h3", "/h2")),
                 #'//div[@class="autotit"]/h2/text()',
             ),
         },
         'month': {
             'xpath': (
                 text(cls("autotit", "/h2")),
+                text(cls("autotit autotit-h3", "/h2")),
                 #'//div[@class="autotit"]/h2/text()',
             ),
         },
         'mile': {
             'xpath': (
                 text(cls("autotit", "/h2")),
+                text(cls("autotit autotit-h3", "/h2")),
                 #'//div[@class="autotit"]/h2/text()',
             ),
         },
@@ -62,6 +66,7 @@ item_rule = {
         'control': {
             'xpath': (
                 text(cls("autotit", "/h2")),
+                text(cls("autotit autotit-h3", "/h2")),
                 #'//div[@class="autotit"]/h2/text()',
             ),
             'processors': ['first', 'haoche51.control'],
@@ -69,6 +74,8 @@ item_rule = {
         'price': {
             'xpath': (
                 text(cls("car-quotation", "/strong")),
+                has(u"成交价", "/strong", 'div'),
+                text(cls('prc-num')),
                 #'//div[@class="car-quotation"]/strong/text()',
             ),
         },
@@ -82,6 +89,7 @@ item_rule = {
             'xpath': (
                 text(cls("crumbs", "/a[3]")),
                 text(cls("autotit", '/strong')),
+                text(cls("autotit autotit-h3", '/strong')),
                 #'//div[@class="autotit"]/strong/text()',
             ),
             'after': u'二手',
@@ -90,6 +98,7 @@ item_rule = {
             'xpath': (
                 text(cls("crumbs", "/a[4]")),
                 text(cls("autotit", '/strong')),
+                text(cls("autotit autotit-h3", '/strong')),
                 #'//div[@class="autotit"]/strong/text()',
             ),
             # 'regex': u'.*二手(.*)'
@@ -127,9 +136,11 @@ item_rule = {
             'xpath': (
                 text(cls("f-type03")),
                 text(cls("ow-sa", "/p[not(@class)]")),
+                has(u'评估师购车建议', '/..') + '|' + text(cls("said", '/p/')) + '|' + text(cls("tags", '/')),
                 #'//p[@class="f-type03"]/text()',
                 #'//div[@class="ow-sa"]/p[not(@class)]/text()'
             ),
+            'processors': ['join'],
         },
         'imgurls': {
             'xpath': (
@@ -152,47 +163,58 @@ item_rule = {
         'contact': {
             'xpath': (
                 '//p[@class="own"]/text()',
+                after_has(u'车主说', 'div[@class="tdesc"]/text()'),
             ),
             'processors': ['first', 'haoche51.contact'],
+            'before': u' • ',
         },
         'phone': {
             'xpath': (
                 text(cls("tc-der", "/strong")),
                 '//li[@class="tc-der"]/strong/text()',
+                has(u'购车咨询', '/*[@class="tel-f00-18"]'),
             ),
         },
         'mandatory_insurance': {
             'xpath': (
                 has(u"交强险有效期", prefix="ul/li"),
                 has(u"交强险有效期", prefix="tr/td"),
+                has(u"交强险有效期", prefix="tr/tr"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "交强")]/text()',
             ),
+            'after': u'】',
         },
         'business_insurance': {
             'xpath': (
                 has(u"商业险有效期", prefix="ul/li"),
                 has(u"商业险有效期", prefix="td"),
+                has(u"商业险有效期", prefix="tr"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "商业")]/text()',
             ),
+            'after': u'】',
         },
         'examine_insurance': {
             'xpath': (
                 has(u"年检有效期", prefix="ul/li"),
                 has(u"年检有效期", prefix="td"),
+                has(u"年检有效期", prefix="tr"),
                 # u'//div[@class="ow-sa1"]/ul/li[contains(text(), "年检")]/text()',
             ),
+            'after': u'】',
         },
         'transfer_owner': {
             'xpath': (
-                text(cls('autotit', '/h2')),
+                text(cls("autotit", "/h2")),
+                text(cls("autotit autotit-h3", "/h2")),
                 # text(cls("ow-sa", "/div[contains(text(), '过户次数')]/strong")),
             ),
-            'processors': ['first', 'haoche51.transfer_owner'],
+            'processors': ['join', 'haoche51.transfer_owner'],
             # 'default': 1,
         },
         'quality_service': {
             'xpath': (
                 text(cls('z-box', '/')),
+                has(u"天可以退车",'/../','dd'),
                 # text(cls('wyno')),
             ),
             'processors': ['join'],
@@ -209,6 +231,7 @@ item_rule = {
             ),
             # 'processors': ['first', 'haoche51.driving_license'],
             'processors': ['first', 'after_colon'],
+            'after': u'】',
         },
         'invoice': {
             'xpath': (
@@ -218,6 +241,7 @@ item_rule = {
             ),
             # 'processors': ['first', 'haoche51.invoice'],
             'processors': ['first', 'after_colon'],
+            'after': u'】',
         },
     },
 }
@@ -258,6 +282,9 @@ rule = {
         # 'http://sh.haoche51.com/details/29401.html',
         # 'http://bj.haoche51.com/details/20936.html',
         # 'http://zz.haoche51.com/details/41917.html',
+        # 'http://zz.haoche51.com/details/47736.html',  # phone is null
+        # 'http://fs.haoche51.com/details/48179.html',  # title is null
+        # 'http://fs.haoche51.com/details/46967.html',  # year is 0
     ],
     'per_page': 20,
     'pages': 250,

@@ -63,7 +63,7 @@ CONCURRENT_REQUESTS_PER_IP = 2
 DOWNLOAD_DELAY = 0.25
 # DOWNLOAD_DELAY = 1.75
 # DOWNLOAD_DELAY = 1.5
-DOWNLOAD_DELAY = 2
+DOWNLOAD_DELAY = 2.5
 # DOWNLOAD_DELAY = 3.2
 # DOWNLOAD_DELAY = 4
 # RANDOMIZE_DOWNLOAD_DELAY = True
@@ -89,8 +89,8 @@ PROXIES = [
 ]
 PROXY_DOMAINS = [
     '58.com',
-    'ganji.com',
-    'baixing.com',
+    # 'ganji.com',
+    # 'baixing.com',
 ]
 
 # for depth crawl
@@ -99,8 +99,9 @@ SPIDER_MIDDLEWARES = {
     'gpjspider.contrib.depth.DomainDepthMiddleware': 900,
 }
 DOMAIN_DEPTHS = {
-    'ganji.com': 4,
     '58.com': 4,
+    'ganji.com': 4,
+    'baixing.com': 4,
     'xin.com': 5,
     'ygche.com.cn': 2,
     'renrenche.com': 2,
@@ -110,6 +111,8 @@ DOMAIN_DEPTHS = {
 }
 DOMAIN_FULL_DEPTHS = {
     '58.com': 15,
+    'ganji.com': 15,
+    'baixing.com': 15,
     'haoche51.com': 5,
     # 'souche.com': 4,
     'xin.com': 20,

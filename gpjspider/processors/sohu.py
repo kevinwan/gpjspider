@@ -8,8 +8,9 @@ def transfer_owner(value):
 
 def source_type(value):
     if isinstance(value, dict):
-        st = value.get('_source_type', None)
-        company = value.get('company_name', None)
+        st = value.get('_source_type')
+        print st
+        company = value.get('company_name')
         if st:
             if u'品牌认证' in st:
                 return SOURCE_TYPE_MANUFACTURER
