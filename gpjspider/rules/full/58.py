@@ -340,7 +340,7 @@ parse_rule = {
         "xpath": (
             '//a[@class="next"]/@href',
             url(cls('list-tabs')),
-            url('//dd[@class="dot"][1]'),
+            url('dd[@class="dot"][1]'),
             # url(cls('advpos')),
             # url(cls('list-tit')),
         ),
