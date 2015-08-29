@@ -159,6 +159,7 @@ item_rule = {
             'xpath': (
                 text(cls("tc-der", "/strong")),
                 '//li[@class="tc-der"]/strong/text()',
+                has(u'购车咨询', '/*[@class="tel-f00-18"]'),
             ),
         },
         'mandatory_insurance': {
@@ -258,6 +259,7 @@ rule = {
         # 'http://sh.haoche51.com/details/29401.html',
         # 'http://bj.haoche51.com/details/20936.html',
         # 'http://zz.haoche51.com/details/41917.html',
+        # 'http://zz.haoche51.com/details/47736.html',  # phone is null
     ],
     'per_page': 20,
     'pages': 250,

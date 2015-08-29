@@ -51,7 +51,7 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                has(u'排量', '/..'),
+                has(u'排量', '/..', u'span[not(contains(text(), "暂无"))]/*'),
                 has(u'排量', '/a') + '|' + text(cls('part_h3s')),
             ),
             'processors': ['cheshi.volume'],
@@ -251,6 +251,7 @@ rule = {
         # 'http://2sc.cheshi.com/info/613087.html',  # control is null
         # 'http://2sc.cheshi.com/info/1142352.html',  # mile < 0.00
         # 'http://2sc.cheshi.com/info/626799.html',  # city like *地区
+        # 'http://2sc.cheshi.com/info/1757057.html',  # volume is None
     ],
 
     'parse': parse_rule,
