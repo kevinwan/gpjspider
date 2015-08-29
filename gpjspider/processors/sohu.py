@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import is_certified, transfer_owner as _transfer_owner
 from gpjspider.utils.constants import *
+import re
 
 def transfer_owner(value):
     return u'\u662f' in value and 1 or _transfer_owner(value)
@@ -67,6 +68,13 @@ def region(value):
     if u'--' in last:
         return ''
     return last
+
+def volume(value):
+    val = re.match(u'(\d)[LT]', value)
+    if val:
+        return val.group(1) + '.0'
+    else:
+        return value
 
 if __name__ == '__main__':
     import doctest

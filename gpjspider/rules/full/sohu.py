@@ -81,6 +81,7 @@ item_rule = {
             'xpath': (
                 after_has(u'排量'),
             ),
+            'processors': ['first', 'sohu.volume']
         },
         'year': {
             'xpath': (
@@ -280,7 +281,8 @@ rule = {
         # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1611825.shtml#品牌认证',
         #'http://2sc.sohu.com/nmg-hhht/buycar/carinfo_sohuperson_1610175.shtml', # 个人
         #'http://2sc.sohu.com/gd-foshan/buycar/carinfo_sohuperson_1620313.shtml',
-        #'http://2sc.sohu.com/xj-wlmq/buycar/carinfo_sohuperson_1625324.shtml',
+        # 'http://2sc.sohu.com/xj-wlmq/buycar/carinfo_sohuperson_1625324.shtml',
+        # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1692883.shtml' # volume 2L排量
     ],
 
     'parse': parse_rule,
@@ -291,4 +293,4 @@ rule = {
 
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
