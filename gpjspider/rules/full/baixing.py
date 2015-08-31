@@ -204,6 +204,7 @@ parse_rule = {
             '/': True,
             '/': '%(url)s',
             'http': '{0}ershouqiche/?todayOnly=1',
+            'http': '{0}ershouqiche/',
         },
         'step': 'parse',
     },
@@ -218,28 +219,18 @@ rule = {
         # 'http://dongguan.baixing.com/ershouqiche/a820742742.html',
         # 'http://dongguan.baixing.com/ershouqiche/a785687239.html',
         'http://www.baixing.com/?changeLocation=yes',
-        'http://china.baixing.com/ershouqiche/?todayOnly=1',
-        'http://china.baixing.com/ershouqiche/?todayOnly=1&cheshang=1', # 品牌车商
-        'http://china.baixing.com/ershouqiche/koala_1/?todayOnly=1', # 考拉二手车
-        'http://china.baixing.com/ershouqiche/?imageFlag=1&page=8',
-        # 'http://shanghai.baixing.com/ershouqiche/a749685037.html',
-        # 'http://nanning.baixing.com/ershouqiche/a751473084.html',
-        # 'http://dalian.baixing.com/ershouqiche/a761320262.html',
-        # 'http://maoming.baixing.com/ershouqiche/a709950299.html',
-        # 'http://chaoyang.baixing.com/ershouqiche/a745332976.html',
-        # 'http://tianjin.baixing.com/ershouqiche/a738758222.html',
-        # 'http://chaoyang.baixing.com/ershouqiche/a753358633.html',
+        'http://china.baixing.com/ershouqiche/?imageFlag=1',
+        'http://china.baixing.com/ershouqiche/',
+        'http://china.baixing.com/ershouqiche/?cheshang=1', # 品牌车商
+        'http://china.baixing.com/ershouqiche/koala_1/', # 考拉二手车
         #'http://hangzhou.baixing.com/ershouqiche/a752358447.html', # 有行驶里程、上牌年份、品牌、车型
         #'http://chenzhou.baixing.com/ershouqiche/a605492920.html', # 排量、变速箱、车辆用途、行驶证、交强险、年检
-        #'http://xian.baixing.com/ershouqiche/a634046170.html',
-        #'http://nanning.baixing.com/ershouqiche/a765382531.html',
         #'http://qiandongnan.baixing.com/ershouqiche/a770089764.html', # 里程、价格是错误的
         #'http://shangqiu.baixing.com/ershouqiche/a781066618.html', # 有地图、地区
         #'http://tongling.baixing.com/ershouqiche/a781067063.html', # 无地图、地区
         #'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
         #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volume
         #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volume
-        #'http://ningbo.baixing.com/ershouqiche/a788142311.html',
         #'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
     ],
     'per_page': 100,

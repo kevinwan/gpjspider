@@ -250,7 +250,7 @@ class GPJBaseSpider(scrapy.Spider):
         step_function = self.get_next_step(url_rule)
         if 'xpath' in url_rule:
             if isinstance(url_rule['xpath'], dict):
-                func = url_rule['xpath'].get('function', None)
+                func = url_rule['xpath'].get('function')
                 if not func:
                     raise ValueError('need function in parse_rule.xpath')
                 func_name = func.__name__
@@ -391,8 +391,11 @@ class GPJBaseSpider(scrapy.Spider):
                     urls = self.clean_detail_urls(urls, _url, max_page)
                     # dont_filter = not self._incr_enabled
             for url in urls:
+                meta = meta_info.get(url)
+                # if meta:
+                #     print meta
                 request = Request(
-                    url, callback=step_function, dont_filter=dont_filter, meta=meta_info.get(url))
+                    url, callback=step_function, dont_filter=dont_filter, meta=meta)
                 ret_requests.append(request)
 
         # if 'update' in url_rule and 'category' in url_rule:
@@ -881,7 +884,6 @@ class GPJBaseSpider(scrapy.Spider):
             return urls
         # format_rule = url_rule['format'].replace('%(url)s', _url)
         format_rule = url_rule['format']
-        # ipdb.set_trace()
         if format_rule == True:
             format_rule = re.findall('(http://[^/]+)/?', _url)[0]
         elif isinstance(format_rule, str) and '%(' in format_rule:
@@ -907,6 +909,9 @@ class GPJBaseSpider(scrapy.Spider):
             for url in urls:
                 # if url.startswith('http') and 'http' in format_keys:
                 #     url = format_rule['http'].format(url)
+                _url = None
+                if meta_info and url in meta_info:
+                    _url = url
                 if not url.startswith('http') or need_format:
                     if '{0}' in format_rule:
                         url = format_rule.format(url)
@@ -914,26 +919,25 @@ class GPJBaseSpider(scrapy.Spider):
                     elif format_rule:
                         url = urlparse.urljoin(format_rule, url)
                         # url = urlparse.urljoin(_url, url)
-                # print url
+                if _url:
+                    meta_info[url] = meta_info.pop(_url)
                 new_urls.add(url)
-            if meta_info and isinstance(meta_info, dict):
-                for url in meta_info.keys():
-                    meta_info[format_rule.format(url)] = meta_info.pop(url)
+
         elif inspect.isfunction(format_rule):
             for url in urls:
-                _url = format_rule(url)
-                if _url:
-                    new_urls.add(_url)
-                else:
-                    del_urls.add(url)
-            if meta_info and isinstance(meta_info, dict):
-                for url in meta_info.keys():
-                    _url = format_rule(url)
+                _url = None
+                if meta_info and url in meta_info:
+                    _url = url
+                url = format_rule(url)
+                if url:
+                    new_urls.add(url)
                     if _url:
-                        meta_info[_url] = meta_info.pop(url)
+                        meta_info[url] = meta_info.pop(_url)
+        #         else:
+        #             del_urls.add(url)
 
-        if del_urls:
-            self.log(u'deleted {0} urls'.format(del_urls))
+        # if len(del_urls):
+        #     self.log(u'deleted {0} urls'.format(len(del_urls)))
         # else:
         #     self.log(u'没有 url 被格式化删除')
         return new_urls
