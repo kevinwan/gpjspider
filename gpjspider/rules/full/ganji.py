@@ -43,9 +43,11 @@ item_rule = {
             'processors': ['first', 'ganji.mile'],
         },
         'volume': {
-            # 'xpath': (
-            # ),
+            'xpath': (
+                _has(u'排 气 量'),
+            ),
             'default': '%(title)s',
+            'processors': ['first', 'ganji.volume']
         },
 
         'color': {
@@ -225,6 +227,7 @@ rule = {
         # 'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人
         # 'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
         # 'http://wenzhou.ganji.com/ershouche/1679794510x.htm', # 网页改版
+        # 'http://hf.ganji.com/ershouche/1714887877x.htm' # volume:2L
     ],
 
     'parse': parse_rule,

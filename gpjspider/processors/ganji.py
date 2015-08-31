@@ -6,6 +6,7 @@ from decimal import Decimal
 from gpjspider.utils.constants import *
 import re
 
+
 def transfer_owner(value):
     if isinstance(value, (list, tuple)) and len(value) > 2:
         return int(value[2])
@@ -14,8 +15,10 @@ def transfer_owner(value):
             return int(value[0].strip(u'次'))
     return int(value)
 
+
 def phone(value):
     return value.replace(' ', '')
+
 
 def source_type(value):
     if isinstance(value, (list, tuple)) and len(value) >= 1:
@@ -24,11 +27,14 @@ def source_type(value):
         return SOURCE_TYPE_ODEALER
     return SOURCE_TYPE_GONGPINGJIA
 
+
 def contact(value):
     return value.strip().replace(' ', '')
 
+
 def mile(val):
     return val + u'万公里'
+
 
 def brand_slug(val):
     if isinstance(val, (list, tuple)) and len(val) >= 2:
@@ -44,6 +50,7 @@ def brand_slug(val):
             brand = re.split('[\w\d]', title)[0]
         return brand
     return val
+
 
 def model_slug(val):
     if isinstance(val, (list, tuple)) and len(val) >= 2:
@@ -62,3 +69,11 @@ def model_slug(val):
             else:
                 return ''
     return val
+
+
+def volume(val):
+    vol = re.match(u'(\d+)[LT]', val)
+    if vol:
+        return vol.group(1) + '.0'
+    else:
+        return val
