@@ -3,10 +3,6 @@ from .utils import *
 from gpjspider.utils.constants import *
 
 
-def get_xpath(response, xpath):
-    return response.xpath(xpath).extract()
-
-
 def clean_params(url):
     token = '&PGTID=' if 'infoid=' in url else '?'
     return url.split(token)[0]
@@ -385,7 +381,6 @@ rule = {
         # 'http://cd.58.com/ershouche/21975582547107x.shtml', # 厂商认证
         # 'http://cd.58.com/ershouche/22647994772126x.shtml', # 普通商家
         # 'http://bj.58.com/ershouche/22651418477321x.shtml', # 个人
-        # 'http://cq.58.com/ershouche/22738191832356x.shtml',
         # 'http://cd.58.com/ershouche/22449249479817x.shtml', # phone, region 5 -> icc
         # 'http://cq.58.com/ershouche/22505663203337x.shtml', # control city
         # 'http://bj.58.com/ershouche/22726563473184x.shtml', # bm -> model_url

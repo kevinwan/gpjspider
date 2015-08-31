@@ -220,8 +220,6 @@ rule = {
         'http://www.ganji.com/index.htm',
         # 'http://sh.ganji.com/ershouche/',
         # 'http://www.ganji.com/ershouche/o10/', # p=10
-        # 'http://bj.ganji.com/ershouche/1575985707x.htm',
-        # 'http://cd.ganji.com/ershouche/1466119428x.htm',
         # 'http://su.ganji.com/ershouche/1466078402x.htm', # 无新车价
         # 'http://bj.ganji.com/ershouche/1696082564x.htm', # 商家正常
         # 'http://tj.ganji.com/ershouche/1706909585x.htm', # 个人

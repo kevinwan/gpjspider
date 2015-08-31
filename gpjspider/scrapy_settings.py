@@ -85,6 +85,9 @@ PROXY_USER_PASSWD = ['gaoge:gaoge911911', ]
 PROXIES = [
     'http://us-il.proxymesh.com:31280',
     'http://us.proxymesh.com:31280',
+    'http://uk.proxymesh.com:31280',
+    'http://ch.proxymesh.com:31280',
+    'http://us-ny.proxymesh.com:31280',
     # 'http://open.proxymesh.com:31280',
 ]
 PROXY_DOMAINS = [
@@ -106,6 +109,7 @@ DOMAIN_DEPTHS = {
     'ygche.com.cn': 2,
     'renrenche.com': 2,
     'souche.com': 2,
+    '2sc.sohu.com': 4,
     'haoche51.com': 2,
     # '51auto.com': 1,
 }

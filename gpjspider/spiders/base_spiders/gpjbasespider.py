@@ -166,6 +166,20 @@ class GPJBaseSpider(scrapy.Spider):
         depth = depth if depth > _min else _min
         # print depth
         response.meta['depth'] = depth
+        if 'list_url' in step_rule:
+            msg = u'try to get new list urls from {0}'.format(response.url)
+            self.log(msg, level=log.DEBUG)
+            requests = self.get_requests(step_rule['list_url'], response)
+            size = len(requests)
+            if size > 0:
+                response.meta['depth'] = response.meta.get('depth', 0) - 1
+                if size > 3:
+                    delta -= 1
+            # print response.meta['depth'], len(requests)
+            for request in requests:
+                self.log('start request {0}'.format(request.url))
+                yield request
+                detail_amount += 1
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
@@ -258,23 +272,17 @@ class GPJBaseSpider(scrapy.Spider):
                 urls, meta_info = func(response, self)
             else:
                 for rule in url_rule['xpath']:
-                    _urls = response.xpath(rule).extract()
+                    _urls = set(response.xpath(rule).extract())
                     self.log(u'rule: {0}, urls: {1}'.format(rule, _urls))
-                    for _url in _urls:
-                        urls.add(_url)
+                    urls |= _urls
         if 're' in url_rule:
             for rule in url_rule['re']:
-                _urls = response.selector.re(rule)
-                for _url in _urls:
-                    urls.add(_url)
+                urls |= set(response.selector.re(rule))
         if 'css' in url_rule:
             for rule in url_rule['css']:
-                _urls = response.css(rule).extract()
-                for _url in _urls:
-                    urls.add(_url)
+                urls |= set(response.css(rule).extract())
         if 'json' in url_rule:
-            for url in self.get_json(response.body, url_rule['json']):
-                urls.add(unicode(url))
+            urls |= set([unicode(url) for url in self.get_json(response.body, url_rule['json'])])
         # if 'match' in url_rule:
         #     for url in urls:
         #         match = url_rule['match']:
