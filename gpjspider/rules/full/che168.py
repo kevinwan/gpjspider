@@ -130,8 +130,8 @@ item_rule = {
             'xpath': (
                 has(u'咨询电话'),
                 has(u'咨询电话', '/span'),
-                attr(cls('phone-div', '/img'), 'src'),
-                u'//div[@class="phone-div "]/img/@src'
+                attr(cls('phone-div ', '/img'), 'src'),
+                u'//*[@id="callPhone"]/@data-telno',
             ),
             'processors': ['first', 'che168.phone'],
         },
@@ -234,8 +234,9 @@ item_rule = {
         'car_application': {
             'xpath': (
                 after_has(u'原车用途'),
+                text(cls("history", u'//li[contains(text(), "\u7528\xa0\xa0\xa0\xa0\xa0\xa0 \u9014\uff1a")]')),
             ),
-            'regex': u'(.*运)',
+            'regex': u'(.*运|家用)',
             'regex_fail': None,
         },
         'condition_level': { # 原网站有 车况 的字段，但是都是 非常好，没什么用
@@ -284,10 +285,10 @@ rule = {
     'per_page': 20,
     'pages': 2000,
     'start_urls': [
-        'http://m.che168.com/china/0-0-0-6-1-0-00/',
-        'http://m.che168.com/china/1-0-0-6-1-0-00/',
-        'http://m.che168.com/china/2-0-0-6-1-0-00/',
-        'http://m.che168.com/china/5-0-0-6-1-0-00/',
+        # 'http://m.che168.com/china/0-0-0-6-1-0-00/',
+        # 'http://m.che168.com/china/1-0-0-6-1-0-00/',
+        # 'http://m.che168.com/china/2-0-0-6-1-0-00/',
+        # 'http://m.che168.com/china/5-0-0-6-1-0-00/',
         'http://www.che168.com/china/a0_0msdgscncgpi1ltocspexp1e3/', # 首页、只看有图、时间倒排序
         #'http://www.che168.com/china/a0_0ms3dgscncgpi1lto8cspexp1e3/', # 认证车源
         #'http://www.che168.com/authentication/5028866.html', # 家认证
@@ -297,6 +298,7 @@ rule = {
         #'http://www.che168.com/dealer/131975/5381232.html', # 商家车源
         #'http://www.che168.com/personal/5381429.html', # 个人车源
         # 'http://www.che168.com/dealer/123414/5740471.html',  # phone is null
+        # 'http://www.che168.com/dealer/113985/5015491.html',  # car_application is null
     ],
 
     'parse': parse_rule,
