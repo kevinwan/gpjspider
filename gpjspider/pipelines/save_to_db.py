@@ -62,6 +62,8 @@ class SaveToMySQLBySqlalchemyPipeline(object):
             if item.get('status') is None:
                 item['status'] = 'Y'
                 # item.status = 'Y'
+            if item.get('thumbnail') is None:
+                item['thumbnail'] = item['imgurls'].split()[0]
         else:
             cls_name = item.__class__.__name__
             try:
