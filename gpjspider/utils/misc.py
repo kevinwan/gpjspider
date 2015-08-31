@@ -29,3 +29,6 @@ def conver_item_ids(item_ids, target_klass_name):
                 pass
         session.close()
     return new_item_ids
+
+def sorted_unique_list(l):
+    return reduce(lambda x,y: y[0] in x and x or x+y, [[xs] for xs in l])

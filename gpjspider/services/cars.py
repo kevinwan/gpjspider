@@ -4,6 +4,10 @@ from gpjspider.models.product import CategoryDict
 from gpjspider.models.product import NormalModelDetail
 from gpjspider.models.product import ByYearVolume
 from gpjspider.utils import get_mysql_connect
+try:
+    import ipdb
+except ImportError:
+    import pdb as ipdb
 
 __ALL__ = (
     'get_gpj_category', 'get_gpj_detail_model', 'process_detail_model_string'
@@ -30,9 +34,13 @@ u'escalade'
     """
     session = session or Session()
     query = session.query(CategoryDict)
-    query = query.filter_by(domain=domain, name=model, parent=brand)
+    query = query.filter_by(domain=domain, name=model, parent=brand).filter(
+        CategoryDict.global_slug!=None,
+        CategoryDict.global_name!=None
+    )
+    #ipdb.set_trace()
     amount = query.count()
-    if amount == 1:
+    if amount>0:
         query = query.first()
         return query.category or None
     elif model_url:
@@ -49,7 +57,7 @@ u'escalade'
             # model_url = xin_model_url(model_url)
         query = query.filter_by(domain=domain, **info)
         amount = query.count()
-        if amount == 1:
+        if amount>0:
             query = query.first()
             return query and query.category or None
         # print amount, domain, brand, model, model_url

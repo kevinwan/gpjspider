@@ -19,6 +19,7 @@ from gpjspider.services.cars import get_average_price
 
 from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
+from gpjspider.tasks.misc import sorted_unique_list
 from gpjspider.utils.constants import (
     QINIU_IMG_BUCKET,
     USE_CELERY_TO_SAVE_CARSOURCE,
@@ -68,9 +69,10 @@ from gpjspider.utils.constants import (
     REDIS_DUP_SIG_KEY,
     REDIS_DUP_STAT_KEY,
     REDIS_DUP_CHECKED_KEY,
-    CLEAN_ITEM_HOUR_LIMIT,
-)
-
+    CLEAN_ITEM_HOUR_LIMIT, 
+    CLEAN_STATUS,
+    CLEAN_MIN_ID,
+) 
 
 class CleanException(Exception):
     pass
@@ -271,6 +273,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # if sync:
     #     cursor.execute(update.format("','".join(domains)))
     status = 'Y'
+    if CLEAN_STATUS:
+        status = CLEAN_STATUS
     # status = ' imgurls' # control imgurls
     # status = 'I'
     # status = '-model_slug'
@@ -278,32 +282,38 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     # status = '_t'
     # status = 'E' # E N P C
     # status = 'C'
+    statuss = status.split(',')
 
-    start_date = datetime.today()
-    if CLEAN_ITEM_HOUR_LIMIT>=24:
-        start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
-    start_time = str(start_date)[:10]
-    # print start_time
-    sql = session.query(UsedCar.id).filter(
-        UsedCar.created_on >= start_time,
-        # UsedCar.created_on < str(datetime.now())[:10],
-        # UsedCar.created_on < '2015-07-23',
-        # UsedCar.created_on < '2015-07-27',
-        UsedCar.domain.in_(domains),
-        # UsedCar.created_on >= '2015-07-9',
-        # UsedCar.created_on >= '2015-07-6',
-        # UsedCar.status.in_(['N', 'Y']),
-        #UsedCar.status.in_([status, 'I']),
-        UsedCar.status.in_([status]),
-        # UsedCar.status.in_([status, 'Y', 'I']),
-    ).filter_by(source=1)
-    #.order_by(UsedCar.id.asc())
-    try:
-        min_id = sql.first().id
-    except Exception as e:
-        session.close()
-        log('Done,missing min_id', e.message)
-        return
+    min_id = CLEAN_MIN_ID
+    if not min_id:
+        start_date = datetime.today()
+        if CLEAN_ITEM_HOUR_LIMIT>=24:
+            start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
+        start_time = str(start_date)[:10]
+        # print start_time
+        sql = session.query(UsedCar.id).filter(
+            UsedCar.created_on >= start_time,
+            # UsedCar.created_on < str(datetime.now())[:10],
+            # UsedCar.created_on < '2015-07-23',
+            # UsedCar.created_on < '2015-07-27',
+            UsedCar.domain.in_(domains),
+            # UsedCar.created_on >= '2015-07-9',
+            # UsedCar.created_on >= '2015-07-6',
+            # UsedCar.status.in_(['N', 'Y']),
+            #UsedCar.status.in_([status, 'I']),
+            UsedCar.status.in_(statuss),
+           # UsedCar.id>26630143,
+            #UsedCar.id>26836404,
+            # UsedCar.status.in_([status, 'Y', 'I']),
+        ).filter_by(source=1)
+        #ipdb.set_trace()
+        #.order_by(UsedCar.id.asc())
+        try:
+            min_id = sql.first().id
+        except Exception as e:
+            session.close()
+            log('Done,missing min_id', e.message)
+            return
     # created_on>curdate()
     # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
     # created_on>subdate(now(), interval 2 hour)
@@ -352,7 +362,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         mid = min_id + id_range
         if mid > max_id:
             mid = max_id
-        clean(min_id, mid, domains, status)
+        clean(min_id, mid, domains, ','.join(statuss))
         min_id = mid
         # return
     log('Done')
@@ -364,7 +374,6 @@ WORKER = 3
 # WORKER = 2
 # WORKER = 20
 WORKER = 0
-WORKER = 40
 
 # def inspect_reason(item, group, reason, detail=''):
 #     session = Session()
@@ -381,23 +390,24 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
     # session = session or Session()
     log('cleaning %s-%s' % (min_id,max_id))
     # ipdb.set_trace()
+    statuss = status.split(',')
     session = Session()
     try:
         domains = domains or []
         base_query = session.query(UsedCar).filter(
             UsedCar.id >= min_id,
             UsedCar.id <= max_id,
-            UsedCar.source_type != 1
+            UsedCar.source_type != 1,
         ).filter_by(
             source=1
         )
         if domains:
             base_query = base_query.filter(UsedCar.domain.in_(domains))
+        #ipdb.set_trace()
         # mark status=I, processing
         wait_status = 'I'
-        base_query.filter_by(
-            status=status
-            # ).filter(~or_(UsedCar.status.in_(['C', 'P', wait_status]), UsedCar.status.like('-%'))
+        base_query.filter(
+            UsedCar.status.in_(statuss)
         ).update(dict(status=wait_status), synchronize_session=False)
         # filter processing query
         q = base_query.filter_by(status=wait_status)
@@ -1040,6 +1050,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 log('is_trade_car, false', errors,sid)
 
             session.query(UsedCar).filter_by(id=sid).update(dict(status='c'), synchronize_session=False)
+            item.pop('_sa_instance_state', '')
             if USE_CELERY_TO_SAVE_CARSOURCE:
                 log('delay %s to celery to insert carsource' % sid)
                 from gpjspider.tasks.clean import save_to_car_source as save_to_car_source_task
@@ -1048,6 +1059,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 save_to_car_source(item, is_good)
         except Exception as e:
             get_task_logger().error('clean used_car error %s' % sid, exc_info=True)
+            #ipdb.set_trace()
+            #raise e
             s = 'E'
         if sid and s:
             status[s].append(sid)
@@ -1463,7 +1476,7 @@ def insert_to_cardetailInfo(item, car_source, session, logger):
 
 
 def insert_to_carimage(item, car_source, session, logger):
-    imgs = set(item['imgurls'].split())
+    imgs = sorted_unique_list(item['imgurls'].split())
     # car_source.images.delete()
     old_image_count = len(car_source.images)
     if old_image_count:
