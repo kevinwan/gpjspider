@@ -216,8 +216,6 @@ rule = {
     'base_url': 'http://china.baixing.com',
     'base_url': '%(url)s',
     'start_urls': [
-        # 'http://dongguan.baixing.com/ershouqiche/a820742742.html',
-        # 'http://dongguan.baixing.com/ershouqiche/a785687239.html',
         'http://www.baixing.com/?changeLocation=yes',
         'http://china.baixing.com/ershouqiche/?imageFlag=1',
         'http://china.baixing.com/ershouqiche/',

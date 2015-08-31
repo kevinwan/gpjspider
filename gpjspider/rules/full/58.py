@@ -385,11 +385,6 @@ rule = {
         # 'http://cd.58.com/ershouche/21975582547107x.shtml', # 厂商认证
         # 'http://cd.58.com/ershouche/22647994772126x.shtml', # 普通商家
         # 'http://bj.58.com/ershouche/22651418477321x.shtml', # 个人
-        # 'http://cd.58.com/ershouche/22790753473060x.shtml',
-        # 'http://faw-vw.58.com/detail/?infoid=22738356741918',
-        # 'http://cd.58.com/ershouche/22790753473060x.shtml',
-        # 'http://faw-vw.58.com/detail/?infoid=22704648710690',
-        # 'http://faw-vw.58.com/detail/?infoid=22746478556964',
         # 'http://cq.58.com/ershouche/22738191832356x.shtml',
         # 'http://cd.58.com/ershouche/22449249479817x.shtml', # phone, region 5 -> icc
         # 'http://cq.58.com/ershouche/22505663203337x.shtml', # control city
@@ -400,12 +395,6 @@ rule = {
         # 'http://su.58.com/ershouche/22124465115529x.shtml', # no month
         # 'http://cq.58.com/ershouche/22738191832356x.shtml', # no month
         # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
-        # 'http://yk.58.com/ershouche/22560359108383x.shtml',
-        # 'http://zz.58.com/ershouche/22724266776481x.shtml',
-        # 'http://bj.58.com/ershouche/22646499851428x.shtml',
-        # 'http://sjz.58.com/ershouche/22779478418210x.shtml',
-        # 'http://zz.58.com/ershouche/22679581563812x.shtml',
-        # 'http://bj.58.com/ershouche/22891432673056x.shtml',
     ],
 
     'parse': parse_rule,
