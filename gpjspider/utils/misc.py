@@ -32,3 +32,17 @@ def conver_item_ids(item_ids, target_klass_name):
 
 def sorted_unique_list(l):
     return reduce(lambda x,y: y[0] in x and x or x+y, [[xs] for xs in l])
+
+import time
+import datetime
+
+def timing_call(stat_file):
+    def dec(func):
+        def wraped_func(*args, **kwargs):
+            b1=time.time()
+            func(*args, **kwargs)
+            b2=time.time()
+            with open(stat_file, 'a') as f:
+                f.write("%s %s %s\n" % (datetime.datetime.fromtimestamp(b1), datetime.datetime.fromtimestamp(b2), b2-b1))
+        return wraped_func
+    return dec
