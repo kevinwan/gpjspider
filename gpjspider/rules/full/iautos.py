@@ -54,6 +54,7 @@ item_rule = {
             'xpath': (
                 after_has(u'关键参数'),
             ),
+            'processors': ['first', 'iautos.volume'],
         },
         'color': {
             'xpath': (
@@ -259,7 +260,8 @@ rule = {
         #'http://www.iautos.cn/usedcar/4833120.html', # 商户
         #'http://www.iautos.cn/usedcar/4638738.html', # 认证，有保证信息的车，厂家认证
         #'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
-        # 'http://www.iautos.cn/usedcar/3262730.html',
+        # 'http://www.iautos.cn/usedcar/4963576.html',  # volume is 0.0
+        # 'http://www.iautos.cn/usedcar/4952337.html',  # volume is 0.0
     ],
 
     'parse': parse_rule,

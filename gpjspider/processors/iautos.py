@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*-coding:utf-8-*-
 from gpjspider.utils.constants import *
+import re
 
 def has_or_not(value):
     """ 齐全  - """
@@ -32,3 +33,14 @@ def quality_service(value):
                 value.remove(val)
         return ' '.join(value)
     return ''
+
+def volume(value):
+    u'''
+>>> volume(u'大众途观 1.8T 手自一体 豪华')
+1.8
+>>> volume(u'2004款北京现代酷派跑车，原装发动机，2.7排量')
+2.7
+    '''
+    if u'万公里' in value:
+        value = re.sub(ur'(\d+(\.\d+)?)万公里', '', value)
+    return value

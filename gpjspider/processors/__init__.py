@@ -330,6 +330,8 @@ Decimal('6.8')
         # v = extract(value, ur'(\d+)公里', decimal)
         if v > 1000:
             v /= 10000
+        if v < 0.01:
+            v = 0.01
     except Exception as e:
         print e, v
         return None
