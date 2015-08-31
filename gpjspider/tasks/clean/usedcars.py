@@ -19,7 +19,7 @@ from gpjspider.services.cars import get_average_price
 
 from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
-from gpjspider.tasks.misc import sorted_unique_list
+from gpjspider.utils.misc import sorted_unique_list
 from gpjspider.utils.constants import (
     QINIU_IMG_BUCKET,
     USE_CELERY_TO_SAVE_CARSOURCE,
