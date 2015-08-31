@@ -85,7 +85,8 @@ class ConvertPhonePic2Num(object):
 def main():
     url = 'http://nj.ganji.com/tel_img/?c=kh0LK-eWCfso9p-uEcEJPTQvVEjVA__PtQyX'
     url = 'http://www.ganji.com/tel_img/?c=k9xL64ZYdHed2AEf1DAJojLzO.6Ug__PtQyX'
-    ConvertPhonePic2Num(url).find_possible_num()
+    url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=5740591&linkType=3&phone='
+    print ConvertPhonePic2Num(url).find_possible_num()
 
 if __name__ == '__main__':
     # main()

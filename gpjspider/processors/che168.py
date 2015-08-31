@@ -3,6 +3,10 @@ import re
 from gpjspider.utils.constants import *
 import urlparse
 import requests
+try:
+    from gpjspider.utils.phone_parser import ConvertPhonePic2Num
+except Exception, e:
+    print e
 
 base_url = 'http://www.che168.com'
 
@@ -62,8 +66,14 @@ def city(value):
 
 def phone(value):
     if 'GetLinkPhone' in value:
-        return urlparse.urljoin(base_url, value)
-
+        value = urlparse.urljoin(base_url, value)
+        try:
+            phone_info = ConvertPhonePic2Num(value).find_possible_num()
+            value = phone_info[0]
+            return value
+        except Exception as e:
+            print e
+            return value
     val = re.findall('\d+-\d+-\d+', value)
     if val:
         return val[0]
