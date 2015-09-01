@@ -55,7 +55,7 @@ item_rule = {
             'xpath': (
                 has(u'排　　量', '/..'),
             ),
-            'processors': ['xcar.volume'],
+            'processors': ['first', 'xcar.volume'],
         },
         'color': {
             'xpath': (
@@ -133,7 +133,7 @@ item_rule = {
         },
         'company_url': {
             'xpath': (
-                has_attr2(u'商家店铺', 'href'),
+                has_attr2(u'商家店铺', '/@href'),
             ),
             'format': True,
         },
@@ -234,7 +234,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            has_attr2(u'下一页', 'href'),
+            has_attr2(u'下一页', '/@href'),
         ),
         'format': True,
         "step": 'parse',
@@ -271,4 +271,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']
