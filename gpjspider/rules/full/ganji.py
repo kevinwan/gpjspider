@@ -116,7 +116,7 @@ item_rule = {
         },
         'company_url': {
             'xpath': (
-                has_attr2(u'进入店铺', 'href'),
+                has_attr2(u'进入店铺', '/@href'),
             ),
         },
         'maintenance_record': {
