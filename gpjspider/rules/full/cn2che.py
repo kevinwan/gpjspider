@@ -52,8 +52,9 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                after_has(u'排量'),
+                after_has(u'排量', 'td[@class="table02" and not(contains(text(), "-")) and re:match(text(), "\d")]'),
             ),
+            'default': '%(title)s',
             'processors': ['first', 'cn2che.volume'],
         },
         'color': {

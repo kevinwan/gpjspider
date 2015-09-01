@@ -6,9 +6,13 @@ from gpjspider.utils.constants import *
 
 def volume(value):
     """ 1588ml 6.7L 9.726L """
-    match = re.match('(\d+\.?\d*)[mMlL]+', value)
-    if match:
-        val = match.group(1)
+    # match = re.match('(\d+\.?\d*)[mMlL]+', value)
+    if len(value) > 7:
+        value = re.sub(ur'\d+(\.\d+)? *((万公里)|(公里)|里|万)','',value)
+        value = re.sub(ur'\d+(\.\d+)?(Li)','',value)
+    search = re.search(ur'(\d+\.?\d*)[mMlLtT ]+', value)
+    if search:
+        val = search.group(1)
         if float(val) > 100:
             val = float(val)
             val = math.ceil(val / 100.0)
