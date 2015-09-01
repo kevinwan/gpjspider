@@ -18,6 +18,10 @@ after = lambda x, e: x + '/following-sibling::' + e
 exists = lambda x: 'boolean(//%s)' % x
 
 
+def get_xpath(response, xpath):
+    return response.xpath(xpath).extract()
+
+
 # id_ = lambda x: '*[@id="%s"]' % x
 def id_(_id, subfix=''):
     return '*[@id="%s"]%s' % (_id, subfix)
@@ -76,13 +80,18 @@ def fmt_rule_urls(rule):
         fmt_urls(rule['parse_detail']['item']['fields'], base_url)
 
 
-def has_attr2(value, subfix='', prefix='*', get_text=True):
+def has_attr2(value, subfix='', prefix='*'):
+    return has(value, subfix, prefix, get_text=False)
     node = u'%s[contains(text(), "%s")]/@%s' % (prefix, value, subfix)
     return ('//' + node)
 
 
 def before_has(value, node='*', *args, **kwargs):
     return has(value, '/preceding-sibling::' + node, *args, **kwargs)
+
+
+def next_page():
+    return has_attr2(u'下一页', '/@href')
 
 
 def test():
@@ -117,7 +126,7 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 '//*[@class="container detail-gallery"]/div//img/@src'
 >>> img(cls('container detail-gallery', '/div/'))
 '//*[@class="container detail-gallery"]/div//img[@src]/@src'
->>> has(u'排量', '/..')
+>>> has_attr2(u'下一页', '/@href')
     '''
 
 

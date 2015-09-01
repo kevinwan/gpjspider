@@ -7,7 +7,16 @@ def parse_meta(key, with_key=False):
     return with_key and u'(%s[^：]{,4}：[^;\s]+)' % key or u'%s[^：]{,4}：([^;\s]+)' % key
 
 
-def get_url_and_source_type(response, spider):
+def get_url_with_source_type(response, spider):
+    # _node = '//div[@class="carsItem carItem"] | //div[@class="piclistm"]/li'
+    # _url = 'a[@class="carImg" or match(@href, "buycar/carinfo")]/@href'
+    # _source_type = '//*[@class="info-item"]/text() | //*[@class="picbcon"]/@title'
+    _node = '//div[@class="carsItem carItem"]'
+    _url = 'a[@class="carImg"]/@href'
+    _source_type = '//*[@class="info-item"]/text()'
+    return get_urls(response, _node, _url, _source_type)
+
+def get_urls(response, _node, _url, _source_type):
     """
         主要是为了提取列表页的链接和对应的 source_type 信息，返回两部分的信息，
         一个是链接列表，一个是链接列表和对应的额外信息
@@ -15,19 +24,40 @@ def get_url_and_source_type(response, spider):
         它们的关系是，如果一个链接对应的有认证车信息，那么在列表顺序上，就是认证信息紧跟着
         链接，如果没有，那么就是没有认证信息
     """
-    xpath_rule = '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()'
-    _urls = response.xpath(xpath_rule).extract()
-    urls = set()
     meta_info = {}
-    for idx, url in enumerate(_urls):
-        if 'html' in url:
-            urls.add(url)
-        if u'认证' in url:
-            meta_info[_urls[idx - 1]] = dict(_source_type=url)
-
+    urls = set()
+    nodes = response.xpath(_node)
+    for node in nodes:
+        url = get_xpath(node, _url)[0]
+        if url in urls:
+            continue
+        urls.add(url)
+        st = ''.join(get_xpath(node, _source_type))
+        if st:
+            # if u'认证' in st:
+            meta_info[url] = dict(_source_type=st)
     # if meta_info:
     #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
+
+def get_url_with_source_type2(response, spider):
+    _node = '//div[@class="piclistm"]/li'
+    _url = 'a[match(@href, "buycar/carinfo")]/@href'
+    _source_type = '//*[@class="picbcon"]/@title'
+    return get_urls(response, _node, _url, _source_type)
+    # xpath_rule = '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()'
+    # _urls = response.xpath(xpath_rule).extract()
+    # urls = set()
+    # meta_info = {}
+    # for idx, url in enumerate(_urls):
+    #     if 'html' in url:
+    #         urls.add(url)
+    #     if u'认证' in url:
+    #         meta_info[_urls[idx - 1]] = dict(_source_type=url)
+
+    # # if meta_info:
+    # #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
+    # return urls, meta_info
 
 
 item_rule = {
@@ -116,44 +146,26 @@ item_rule = {
                 after_has(u'变速器'),
             ),
         },
-        #'transfer_owner': {
-        #'xpath': (
-        # after_has(u'是否一手车'),
-        #u'//*[contains(text(), "过户次数")]/span/text()',
-        #),
-        #'processors': ['first', 'sohu.transfer_owner'],
-        #},
         'color': {
             'xpath': (
                 after_has(u'车辆颜色'),
             ),
         },
-        #'mandatory_insurance': {
-        #},
-        #'business_insurance': {
-        #'xpath': (
-        # after_has(u'商业险'),
-        #),
-        #},
-        #'examine_insurance': {
-        #},
-        #'car_application': {
-        #},
-        # condition_level
-        # condition_detail
-        # 'maintenance_record': {
-        #     'xpath': (
-        #         u'boolean(//*[contains(text(), "定期保养") or contains(text(), "定期4S保养")])',
-        #         u'boolean(//*[contains(text(), "保养")])',
-        #     ),
-        #     'processors': ['first', 'has_maintenance_record'],
-        # },
-        #'maintenance_desc': {
-        #'xpath': (
-        # after_has(u'保养'),
-        #u'//*[contains(text(), "保养")]/text()',
-        #),
-        #},
+        'mandatory_insurance': {
+            'xpath': (
+                after_has(u'保险'),
+            ),
+        },
+        'business_insurance': {
+            'xpath': (
+                after_has(u'商业保险'),
+            ),
+        },
+        'examine_insurance': {
+            'xpath': (
+                after_has(u'年检'),
+            ),
+        },
         'quality_service': {
             'xpath': (
                 text(cls('service-span')),
@@ -225,33 +237,73 @@ item_rule = {
 parse_rule = {
     'url': {
         'xpath': {
-            #'url': '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
-            'function': get_url_and_source_type,
+            'function': get_url_with_source_type,
         },
-        #'xpath_with_info': (
-        #'//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()',
-        #),
+        # 're': (
+        #     r'/\w+/buycar/carinfo_\w+_\d+\.shtml',
+        # ),
         'format': True,
         'step': 'parse_detail',
-        # 'match': '/buycar/carinfo',
-        #'contains': ['/buycar/carinfo'],
-        # 'excluded': ['/autonomous/'],
-        #'processors': ['clean_anchor'],
+    },
+    'list_url': {
+        'xpath': (
+            url(cls('car-info-dealer')),
+        ),
+        'format': {
+            '/': True,
+            '/dealer/': 'http://2sc.sohu.com{0}buycar/',
+            # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
+        },
+        # 'max_pagenum': 150,  # 全量爬取的最大页数
+        'incr_pageno': 6,
+        # 'match': '/pg\d+.shtml',
+        'step': 'parse_list',
     },
     'next_page_url': {
         'xpath': (
             '//*[@class="list-pager"]/a[last()]/@href',
+            url(cls('car-plist')),
+            # next_page(),
+            # href(cls('menuNo')),
             # url('div[@class="pager"]'),
             # url('*[@class="no"][last()]'),
             # '//div[@class="page"]/@href',
             # '//a[@class="page-item-next"]/@href',
             # '//a[@class="next_on"]/@href',
         ),
+        'excluded': 'javascript',
         'format': True,
+        # 'format': {
+        #     '/': True,
+        #     '/dealer/': 'http://2sc.sohu.com{0}buycar/',
+        #     # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
+        # },
         # 'max_pagenum': 150,  # 全量爬取的最大页数
         'incr_pageno': 6,
         # 'match': '/pg\d+.shtml',
         'step': 'parse',
+    },
+}
+# print parse_rule['next_page_url']
+
+parse_list = {
+    'url': {
+        'xpath': {
+            'function': get_url_with_source_type2,
+        },
+        # 're': (
+        #     r'/\w+/buycar/carinfo_\w+_\d+\.shtml',
+        # ),
+        'format': True,
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': 'javascript',
+        'format': True,
+        'step': 'parse_list',
     },
 }
 
@@ -263,6 +315,11 @@ rule = {
     'pages': 200,
 
     'start_urls': [
+        # 'http://2sc.sohu.com/dealer/83136/',
+        # 'http://2sc.sohu.com/dealer/225615/buycar/',
+        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j25k0m0n0s/',
+        # 'http://2sc.sohu.com/zj-hz/buycar/carinfo_sohu_1651527.shtml',
+        # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1498561.shtml',
         'http://2sc.sohu.com/buycar/',
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h0j0k0m0n0/',
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h0j0k0m0n0/',
@@ -292,6 +349,7 @@ rule = {
     ],
 
     'parse': parse_rule,
+    'parse_list': parse_list,
     'parse_detail': {
         'item': item_rule,
     },
