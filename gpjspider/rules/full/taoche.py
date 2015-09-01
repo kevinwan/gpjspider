@@ -107,6 +107,7 @@ item_rule = {
                 attr(cls('tc14-cydh'), 'style'),
             ),
             'regex': '(http://cache.taoche.com/buycar/gettel.ashx\?u=\d+&t=\w+)[,&]',
+            'processors': ['first', 'taoche.phone'],
         },
         'contact': {
             'xpath': (
@@ -179,7 +180,7 @@ item_rule = {
         'car_application': {
             'xpath': (
                 #u'//*[contains(text(), "车辆类型")]/following-sibling::text()',
-                after_has(u'车辆类型'),
+                has(u'车辆类型', '/..'),
             ),
             #'processors': ['first', 'after_colon'],
         },
@@ -226,6 +227,8 @@ rule = {
         #'http://www.taoche.com/buycar/b-Dealer15050414791.html', # 商家保障
         #'http://www.taoche.com/buycar/b-Dealer15051214896.html', # 品牌认证
         #'http://www.taoche.com/buycar/b-Dealer15070314453.html', # 里程为 百公里内
+        # 'http://www.taoche.com/buycar/p-6872642.html',  # phone is null
+        # 'http://www.taoche.com/buycar/b-Dealer15090115833.html',  # car_application is null
     ],
     'per_page': 50,
     'pages': 2000,

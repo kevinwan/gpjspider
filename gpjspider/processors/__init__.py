@@ -176,6 +176,11 @@ u'test'
 u'CR-V'
     '''
     # pdb.set_trace()
+    if value:
+        for brand_slug in [u'本田', u'丰田', u'马自达', u'凯迪拉克', u'大众']:
+            if brand_slug in value:
+                value = value.replace(brand_slug, brand_slug + ' ')
+                value = re.sub(ur'.*?' + brand_slug, brand_slug, value)
     value = value.strip('> ').lstrip(u'二手')
     if ' ' in value:
         a = reg_blank_split.split(value)
