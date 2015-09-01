@@ -25,8 +25,8 @@ def source_type(value):
 
 
 def volume(value):
-    if isinstance(value, (list, tuple)):
-        if len(value) == 1:
-            if len(value[0]) == 2:
-                return value[0].strip(u'L').strip(u'T') + '.0'
-    return ''
+    vol = re.match(u'(\d+)[LT]', value)
+    if vol:
+        return vol.group(1) + '.0'
+    else:
+        return value

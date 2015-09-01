@@ -16,7 +16,15 @@ def price_bn(value):
 
 def control(value):
     """ 关键参数：手自一体 5.9L """
-    return value.split(u'：')[-1].split()[0]
+    """关键参数：手自一体2.0L"""
+    value = value.strip()
+    contr = re.search(u'关键参数：([\u4E00-\u9FA5]+)\d\.?\d?[LT]', value)
+    if ' ' in value:
+        return value.split(u'：')[-1].split()[0]
+    elif contr:
+        return contr.groups()[0]
+    else:
+        return value
 
 
 def imgurls(value):
@@ -65,3 +73,11 @@ def source_type(value):
             return t[1]
 
     return SOURCE_TYPE_ODEALER
+
+
+def phone(value):
+    pho = re.search(u'\d{7}\*\*\*\*', value)
+    if pho:
+        return ''
+    else:
+        return value

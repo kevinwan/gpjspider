@@ -110,10 +110,12 @@ item_rule = {
             'xpath': (
                 text(id_('contact-tel1', '/p')),
             ),
+            'processors': ['first', '51auto.phone']
         },
         'contact': {
             'xpath': (
                 '//*[@class="section-contact"]/text()[1]',
+                '//' + has_cls('section-contact', '/p/text()[1]'),
             ),
             'regex': u'联系人：(.*)',
         },
@@ -207,7 +209,7 @@ item_rule = {
         # },
         'condition_detail': {
             'xpath': (
-                has_attr2(u'准新车', 'title'),
+                has_attr2(u'准新车', '/@title'),
             ),
         },
     },
@@ -222,7 +224,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            has_attr2(u'下一页', 'href'),
+            has_attr2(u'下一页', '/@href'),
         ),
         'format': True,
         'format': '{url}',
@@ -256,6 +258,7 @@ rule = {
         # 'http://www.51auto.com/buycar/2646898.html', # 商家车源
         # 'http://www.51auto.com/buycar/2482736.html', # 品牌车商
         # 'http://www.51auto.com/buycar/2623865.html',  # -model_slug（进口）
+        # 'http://www.51auto.com/buycar/2873991.html' # phone=1390784****
     ],
     'per_page': 24,
     'pages': 3000,
