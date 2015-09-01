@@ -135,8 +135,8 @@ item_rule = {
         },
         'quality_service': {
             'xpath': [
-                has_attr2(u'质保承诺', 'title'),
-                has_attr2(u'退换承诺', 'title'),
+                has_attr2(u'质保承诺', '/@title'),
+                has_attr2(u'退换承诺', '/@title'),
             ],
             'processors': ['join'],
         },
