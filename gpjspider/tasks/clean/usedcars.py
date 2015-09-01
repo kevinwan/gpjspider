@@ -485,7 +485,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
             trade_cars = trade_cars.filter(UsedCar.domain.in_(domains))
         pool_run(trade_cars, clean_trade_car)
     except Exception as e:
-        get_task_logger().exception('clean error', exc_info=True)
+        get_task_logger().error('clean error', exc_info=True)
     finally:
         session.close()
         log('clean done')
@@ -1306,6 +1306,8 @@ def phone(item, logger):
     #     if tel.endswith('#0.99'):
     #         tel = tel.split('#')[1]
     # item['phone'] = tel
+    if not re.match('^[ 0-9转～—－-]+$',tel):
+        return False
     return tel
 
 def phone2(item, logger):
