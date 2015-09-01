@@ -53,8 +53,9 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                has(u'排量', '/..'),
+                has(u'排量', '/..').replace('*[', '*[not(contains(text(), "0.00L"))]/*['),
             ),
+            'default': '%(title)s',
         },
         'color': {
             'xpath': (
@@ -245,6 +246,7 @@ rule = {
         #'http://fz.273.cn/car/15986010.html', # 门店验车、车况检测
         #'http://yx.273.cn/car/16094479.html', # 行驶证已审核
         #'http://lps.273.cn/car/16094464.html', # 普通车源
+        # 'http://xm.273.cn/car/16464549.html',  # volume is 0.00
     ],
     'per_page': 20,
     'pages': 300,
