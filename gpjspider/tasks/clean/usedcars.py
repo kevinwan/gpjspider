@@ -564,8 +564,8 @@ def clean_item(item_id):
         items.append(item.__dict__)
     session.close()
     clean_normal_car(items)
-    clean_trade_car(items)
-    clean_usedcar(items)
+    #clean_trade_car(items)
+    #clean_usedcar(items)
 
 
 def match_item_dealer(item_id):
@@ -1306,8 +1306,9 @@ def phone(item, logger):
     #     if tel.endswith('#0.99'):
     #         tel = tel.split('#')[1]
     # item['phone'] = tel
-    if not re.match('^[ 0-9转～—－-]+$',tel):
+    if not re.match(u'^[ 0-9转～—－-]+$',tel):
         return False
+    item['phone']=tel
     return tel
 
 def phone2(item, logger):
