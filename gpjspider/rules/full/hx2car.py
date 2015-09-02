@@ -55,6 +55,8 @@ item_rule = {
             'xpath': (
                 after_has(u'排量'),
             ),
+            'default': '%(title)s',
+            'processors': ['first', 'hx2car.volume']
         },
         'color': {
             'xpath': (
@@ -259,6 +261,7 @@ rule = {
         # 'http://hx2car.com/details/143779131' # pric,contact,quali,driv,invo
         # 'http://hx2car.com/details/143766257' # pric,conta,quali,driv,invo
         # 'http://hx2car.com/details/143687094'
+        # 'http://hx2car.com/details/143837125' # volume
     ],
 
     'parse': parse_rule,
