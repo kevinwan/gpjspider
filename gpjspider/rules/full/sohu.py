@@ -8,6 +8,17 @@ def parse_meta(key, with_key=False):
 
 
 def get_url_with_source_type(response, spider):
+    # xpath_rule = '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()'
+    # _urls = response.xpath(xpath_rule).extract()
+    # urls = set()
+    # meta_info = {}
+    # for idx, url in enumerate(_urls):
+    #     if 'html' in url:
+    #         urls.add(url)
+    #     if u'认证' in url:
+    #         meta_info[_urls[idx - 1]] = dict(_source_type=url)
+
+    # return urls, meta_info
     # _node = '//div[@class="carsItem carItem"] | //div[@class="piclistm"]/li'
     # _url = 'a[@class="carImg" or match(@href, "buycar/carinfo")]/@href'
     # _source_type = '//*[@class="info-item"]/text() | //*[@class="picbcon"]/@title'
@@ -32,10 +43,10 @@ def get_urls(response, _node, _url, _source_type):
         if url in urls:
             continue
         urls.add(url)
-        st = ''.join(get_xpath(node, _source_type))
+        # st = ''.join(get_xpath(node, _source_type))
+        st = get_xpath(node, _source_type)
         if st:
-            # if u'认证' in st:
-            meta_info[url] = dict(_source_type=st)
+            meta_info[url] = dict(_source_type=st[0])
     # if meta_info:
     #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
@@ -45,19 +56,6 @@ def get_url_with_source_type2(response, spider):
     _url = 'a[match(@href, "buycar/carinfo")]/@href'
     _source_type = '//*[@class="picbcon"]/@title'
     return get_urls(response, _node, _url, _source_type)
-    # xpath_rule = '//*[@class="carsItem carItem"]/a[@class="carImg"]/@href | //*[@class="car-price"]/*[@class="car-info-label"]/*[@class="info-item"]/text()'
-    # _urls = response.xpath(xpath_rule).extract()
-    # urls = set()
-    # meta_info = {}
-    # for idx, url in enumerate(_urls):
-    #     if 'html' in url:
-    #         urls.add(url)
-    #     if u'认证' in url:
-    #         meta_info[_urls[idx - 1]] = dict(_source_type=url)
-
-    # # if meta_info:
-    # #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
-    # return urls, meta_info
 
 
 item_rule = {
@@ -254,15 +252,14 @@ parse_rule = {
             '/dealer/': 'http://2sc.sohu.com{0}buycar/',
             # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
         },
-        # 'max_pagenum': 150,  # 全量爬取的最大页数
-        'incr_pageno': 6,
-        # 'match': '/pg\d+.shtml',
+        # 'format': '{0}buycar/',
         'step': 'parse_list',
+        'dont_filter': False,
     },
     'next_page_url': {
         'xpath': (
             '//*[@class="list-pager"]/a[last()]/@href',
-            url(cls('car-plist')),
+            url(cls('car-plist', '/')),
             # next_page(),
             # href(cls('menuNo')),
             # url('div[@class="pager"]'),
@@ -271,7 +268,7 @@ parse_rule = {
             # '//a[@class="page-item-next"]/@href',
             # '//a[@class="next_on"]/@href',
         ),
-        'excluded': 'javascript',
+        'excluded': ['javascript'],
         'format': True,
         # 'format': {
         #     '/': True,
@@ -280,7 +277,6 @@ parse_rule = {
         # },
         # 'max_pagenum': 150,  # 全量爬取的最大页数
         'incr_pageno': 6,
-        # 'match': '/pg\d+.shtml',
         'step': 'parse',
     },
 }
@@ -301,9 +297,11 @@ parse_list = {
         'xpath': (
             next_page(),
         ),
-        'excluded': 'javascript',
+        'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
+        'dont_filter': False,
+        # 'dont_filter': True,
     },
 }
 
