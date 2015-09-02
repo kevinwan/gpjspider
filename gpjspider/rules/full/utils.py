@@ -67,7 +67,7 @@ def fmt_urls(rule, base_url):
             fmt = v.get('format')
             if fmt == True:
                 v['format'] = full_url(base_url)
-            elif isinstance(fmt, dict) and fmt['/'] == True:
+            elif isinstance(fmt, dict) and fmt.get('/') == True:
                 fmt['/'] = full_url(base_url)
 
 
