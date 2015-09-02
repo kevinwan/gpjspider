@@ -73,8 +73,6 @@ def model_slug(value):
 
 
 def control(value):
-    import ipdb
-    ipdb.set_trace()
     if u'双离合' in value or u'无级变速' in value:
         return u'自动'
     else:
