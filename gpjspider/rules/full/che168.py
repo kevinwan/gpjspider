@@ -289,7 +289,7 @@ rule = {
         # 'http://m.che168.com/china/1-0-0-6-1-0-00/',
         # 'http://m.che168.com/china/2-0-0-6-1-0-00/',
         # 'http://m.che168.com/china/5-0-0-6-1-0-00/',
-        'http://www.che168.com/china/a0_0msdgscncgpilto8cspexe3', # 首页、全部、时间倒排序
+        'http://www.che168.com/china/a0_0msdgscncgpilto8cspex/',  # 首页、全部、时间倒排序
         # 'http://www.che168.com/china/a0_0msdgscncgpi1ltocspexp1e3/', # 首页、只看有图、时间倒排序
         #'http://www.che168.com/china/a0_0ms3dgscncgpi1lto8cspexp1e3/', # 认证车源
         #'http://www.che168.com/authentication/5028866.html', # 家认证
