@@ -80,8 +80,8 @@ def fmt_rule_urls(rule):
         fmt_urls(rule['parse_detail']['item']['fields'], base_url)
 
 
-def has_attr2(value, subfix='', prefix='*'):
-    return has(value, subfix, prefix, get_text=False)
+def has_attr2(value, attr='', prefix='*'):
+    return has(value, '/@' + attr, prefix, get_text=False)
     node = u'%s[contains(text(), "%s")]/@%s' % (prefix, value, subfix)
     return ('//' + node)
 
@@ -91,7 +91,7 @@ def before_has(value, node='*', *args, **kwargs):
 
 
 def next_page():
-    return has_attr2(u'下一页', '/@href')
+    return has_attr2(u'下一页', 'href')
 
 
 def test():

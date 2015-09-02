@@ -237,7 +237,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            u'//a[text()="下一页"]/@href',
+            next_page(),
         ),
         "excluded": ('javascript',),
         "format": True,

@@ -209,7 +209,7 @@ item_rule = {
         # },
         'condition_detail': {
             'xpath': (
-                has_attr2(u'准新车', '/@title'),
+                has_attr2(u'准新车', 'title'),
             ),
         },
     },
@@ -224,7 +224,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            has_attr2(u'下一页', '/@href'),
+            next_page(),
         ),
         'format': True,
         'format': '{url}',

@@ -257,7 +257,7 @@ list_rule = {
     },
     "next_page_url": {
         "xpath": (
-            u'//a[contains(text(), "下一页")]/@href',
+            next_page(),
         ),
         "excluded": ("javascript:void()",),
         # "format": "http://haoche.ganji.com{0}",

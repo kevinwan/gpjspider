@@ -133,7 +133,7 @@ item_rule = {
         },
         'company_url': {
             'xpath': (
-                has_attr2(u'商家店铺', '/@href'),
+                has_attr2(u'商家店铺', 'href'),
             ),
             'format': True,
         },
@@ -234,7 +234,7 @@ parse_rule = {
     },
     "next_page_url": {
         "xpath": (
-            has_attr2(u'下一页', '/@href'),
+            next_page(),
         ),
         'format': True,
         "step": 'parse',
