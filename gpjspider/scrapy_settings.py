@@ -16,7 +16,7 @@ ITEM_PIPELINES = {
     # 'gpjspider.pipelines.save_to_db.DebugPipeline': 998,
     # 保存到数据库
     'gpjspider.pipelines.save_to_db.SaveToMySQLBySqlalchemyPipeline': 899,
-    'gpjspider.pipelines.CachedCarsPipeline': 900,
+    # 'gpjspider.pipelines.CachedCarsPipeline': 900,
     # 'gpjspider.pipelines.CleanPipeline': 920,
 }
 
