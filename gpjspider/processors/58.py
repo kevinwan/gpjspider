@@ -4,7 +4,7 @@ from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
-
+import re
 # def city(value):
 #     """
 #     province=上海;city=上海;coord=121.487899,31.249162
@@ -73,7 +73,8 @@ def model_slug(value):
 
 
 def control(value):
-    if u'双离合' in value or u'无级变速' in value:
+    contr = re.search(u'双离合|无级变?速?', value)
+    if contr:
         return u'自动'
     else:
         return value
