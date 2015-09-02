@@ -70,3 +70,12 @@ def model_slug(value):
             value = ''.join([v.strip() for v in value])
             return value[value.find(u'-')+1:].strip()
     return value
+
+
+def control(value):
+    import ipdb
+    ipdb.set_trace()
+    if u'双离合' in value or u'无级变速' in value:
+        return u'自动'
+    else:
+        return value
