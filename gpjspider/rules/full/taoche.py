@@ -107,7 +107,6 @@ item_rule = {
                 attr(cls('tc14-cydh'), 'style'),
             ),
             'regex': '(http://cache.taoche.com/buycar/gettel.ashx\?u=\d+&t=\w+)[,&]',
-            'processors': ['first', 'taoche.phone'],
         },
         'contact': {
             'xpath': (
