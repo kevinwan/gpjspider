@@ -4,7 +4,8 @@ from gpjspider.utils.constants import SOURCE_TYPE_MANUFACTURER
 from gpjspider.utils.constants import SOURCE_TYPE_ODEALER
 from gpjspider.utils.constants import SOURCE_TYPE_SELLER
 from gpjspider.utils.constants import SOURCE_TYPE_GONGPINGJIA
-
+import re
+import math
 # def city(value):
 #     """
 #     province=上海;city=上海;coord=121.487899,31.249162
@@ -70,3 +71,24 @@ def model_slug(value):
             value = ''.join([v.strip() for v in value])
             return value[value.find(u'-')+1:].strip()
     return value
+
+def volume(value):
+    if len(value) < 7:
+        return value
+    else:
+        value = re.sub(ur'\d+(\.\d+)? *((万公里)|(公里)|里|万)','',value)
+        value = re.sub(ur'\d+(\.\d+)?(Li)','',value)
+        search = re.search(ur' (\d+\.\d+)[mMlLtT升]+', value) or re.search(ur'(\d+\.\d+)[mMlLtT升]+', value) or re.search(ur' (\d+\.\d+) +', value) or re.search(ur'(\d+\.\d+) +', value) or re.search(ur'(\d+\.\d+)+', value) or re.search(ur' (\d+\.?\d*)[mMlLtT升] +', value)
+        if search:
+            val = search.group(1)
+            if float(val) > 10000:
+                val = float(val)
+                val = math.ceil(val / 10000.0)
+                return str(val / 10.0)
+            elif float(val) > 100:
+                val = float(val)
+                val = math.ceil(val / 100.0)
+                return str(val / 10.0)
+            else:
+                return str(float(val) / 1.0)
+        return 'temp'

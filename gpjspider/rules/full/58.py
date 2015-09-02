@@ -70,9 +70,10 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                after_has(u'排量'),
+                after_has(u'排量', 'span[re:match(text(), "\d+\.\d+")]'),
             ),
             'default': '%(title)s',
+            'processors': ['first', '58.volume'],
         },
         'color': {
             'xpath': (
@@ -390,6 +391,7 @@ rule = {
         # 'http://su.58.com/ershouche/22124465115529x.shtml', # no month
         # 'http://cq.58.com/ershouche/22738191832356x.shtml', # no month
         # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
+        # 'http://hf.58.com/ershouche/23154792809890x.shtml',  # volume is 6.0 and volume is null
     ],
 
     'parse': parse_rule,
