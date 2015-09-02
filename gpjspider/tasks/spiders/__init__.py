@@ -61,8 +61,8 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
             jobdir2 = '%s.%s' % (jobdir, pid)
             os.makedirs(jobdir2)
             # os.system('cd {0} && ln -s %s/requests.seen %s/' % (jobdir, jobdir2))
-            os.system('cd %s && ln -s ../%s/requests.seen .' %
-                      (jobdir2, domain))
+            # os.system('cd %s && ln -s ../%s/requests.seen .' %
+            #           (jobdir2, domain))
             jobdir = jobdir2
 
     scrapy_setting.set('JOBDIR', jobdir, priority='cmdline')

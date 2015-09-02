@@ -93,7 +93,7 @@ item_rule = {
             'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
             'regex_not': None,
-            # 'processors': ['concat'],
+            'processors': ['first', '58.control'],
         },
         'price': {
             'xpath': (
@@ -392,6 +392,7 @@ rule = {
         # 'http://cq.58.com/ershouche/22738191832356x.shtml', # no month
         # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
         # 'http://hf.58.com/ershouche/23154792809890x.shtml',  # volume is 6.0 and volume is null
+        # 'http://jining.58.com/ershouche/23161636613283x.shtml' #双离合
     ],
 
     'parse': parse_rule,

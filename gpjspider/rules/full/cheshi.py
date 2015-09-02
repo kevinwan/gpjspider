@@ -217,7 +217,7 @@ parse_rule = {
     'next_page_url': {
         "xpath": (
             # href(cls('sc-menu2 l', '/li/a')),
-            has_attr2(u'下一页', '/@href'),
+            next_page(),
         ),
         #'format': True,
         'step': 'parse',

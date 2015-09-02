@@ -195,7 +195,7 @@ parse_rule = {
     },
     'next_page_url': {
         'xpath': (
-            u'//a[contains(text(), "下一页")]/@href',
+            next_page(),
             href(has_cls('tab-title', '//a')),
             href(id_('tags', '//a')),
         ),

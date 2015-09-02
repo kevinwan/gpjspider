@@ -92,3 +92,10 @@ def volume(value):
             else:
                 return str(float(val) / 1.0)
         return 'temp'
+
+def control(value):
+    contr = re.search(u'双离合|无级变?速?', value)
+    if contr:
+        return u'自动'
+    else:
+        return value
