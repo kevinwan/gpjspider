@@ -43,3 +43,11 @@ def volume(value):
         return vol.group(1) + '.0'
     else:
         return value
+
+
+def city(value):
+    if len(value) >= 6:
+        name = re.search(u'省(.*?)市', value)
+        if name:
+            value = name.group(1)
+    return value

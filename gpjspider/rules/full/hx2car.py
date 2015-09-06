@@ -109,8 +109,10 @@ item_rule = {
         'city': {
             'xpath': (
                 text(cls('glance_way', '/p/a[5]')),
+                text(cls('owner_area', '/span')),
             ),
-            'regex': u'(.*?)二手',
+            'processors': ['first', 'hx2car.city'],
+            # 'regex': u'(.*?)二手',
         },
         'region': {
             'xpath': (
@@ -262,6 +264,7 @@ rule = {
         # 'http://hx2car.com/details/143766257' # pric,conta,quali,driv,invo
         # 'http://hx2car.com/details/143687094'
         # 'http://hx2car.com/details/143837125' # volume
+        # 'http://hx2car.com/details/143878702' # city
     ],
 
     'parse': parse_rule,
