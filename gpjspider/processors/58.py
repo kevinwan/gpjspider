@@ -73,6 +73,18 @@ def model_slug(value):
     return value
 
 def volume(value):
+    u'''
+>>> volume('【温州】2010年12月 宝马 宝马5系 宝马 宝马5系 535Li 3.0T 领先型 银灰 手自一体')
+'3.0'
+>>> volume('【温州】2010年12月 宝马 宝马5系 宝马 宝马5系 5.9万公里 3.0T 领先型 银灰 手自一体')
+'3.0'
+>>> volume('【温州】2010年12月 宝马 宝马5系 宝马 宝马5系 900公里 3.0T 领先型 银灰 手自一体')
+'3.0'
+>>> volume('【温州】2010年12月 宝马 宝马5系 宝马 宝马5系 8.3万 3.0T 领先型 银灰 手自一体')
+'3.0'
+>>> volume('【温州】2010年12月 宝马 宝马5系 宝马 宝马5系 10.5万元 3.0T 领先型 银灰 手自一体')
+'3.0'
+    '''
     if len(value) < 7:
         return value
     else:
@@ -99,3 +111,7 @@ def control(value):
         return u'自动'
     else:
         return value
+
+if __name__ == '__main__':
+    import doctest
+    print(doctest.testmod())
