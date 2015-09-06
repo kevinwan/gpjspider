@@ -62,6 +62,8 @@ cls = with_cls
 
 
 def fmt_urls(rule, base_url):
+    if not base_url.startswith('http'):
+        return
     for k, v in rule.items():
         if isinstance(v, dict) and v.get('format'):
             fmt = v.get('format')
