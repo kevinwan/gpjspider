@@ -103,7 +103,7 @@ SPIDER_MIDDLEWARES = {
 }
 DOMAIN_DEPTHS = {
     '58.com': 4,
-    'ganji.com': 4,
+    'ganji.com': 6,
     'baixing.com': 4,
     'xin.com': 5,
     'ygche.com.cn': 2,
@@ -166,11 +166,14 @@ MYSQL_SQLALCHEMY_URL = {
 #==============================================================================
 LOCAL_REDIS = False
 REDIS_CONFIG = [
-    # {"host": "192.168.168.237", "port": "6379"},
-    {"host": "192.168.190.122", "port": "6379"},
-    {"host": "192.168.168.237", "port": "6380"},
-    {"host": "192.168.168.237", "port": "6381"},
+    {"host": "127.0.0.1", "port": "6379"},
+    {"host": "127.0.0.1", "port": "6380"},
+    {"host": "127.0.0.1", "port": "6381"},
+    # {"host": "192.168.190.122", "port": "6379"},
+    # {"host": "192.168.168.237", "port": "6380"},
+    # {"host": "192.168.168.237", "port": "6381"},
 ]
+
 
 try:
     from local_settings import *
