@@ -108,9 +108,10 @@ item_rule = {
         },
         'phone': {
             'xpath': (
+                '//input[@id="tels"]/@value',
                 text(id_('contact-tel1', '/p')),
             ),
-            'processors': ['first', '51auto.phone']
+            'processors': ['first']
         },
         'contact': {
             'xpath': (

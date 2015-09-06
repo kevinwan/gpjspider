@@ -73,11 +73,3 @@ def source_type(value):
             return t[1]
 
     return SOURCE_TYPE_ODEALER
-
-
-def phone(value):
-    pho = re.search(u'\d{7}\*\*\*\*', value)
-    if pho:
-        return ''
-    else:
-        return value
