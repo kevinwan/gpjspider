@@ -72,7 +72,8 @@ from gpjspider.utils.constants import (
     CLEAN_ITEM_HOUR_LIMIT,
     CLEAN_STATUS,
     CLEAN_MIN_ID,
-)
+    PHONE_OCR_BLACKLIST,
+) 
 
 class CleanException(Exception):
     pass
@@ -978,7 +979,7 @@ def save_to_car_source(self, item, is_good=True):
     #        contact=u'车易拍客服', phone='400-733-6622')
     item['is_certifield_car'] = is_good and item['is_certifield_car']
     # 业务判断通过，后续处理
-    upload_img(item, logger)
+    upload_thumbnail(item, logger)
     # upload_imgs(item, logger)
     # 保存到产品表
 
@@ -1295,17 +1296,35 @@ def model_slug(item, logger):
     return item.get('model_slug')
 
 
+def phone_ocr_enabled(url):
+    from urlparse import urlparse
+    hostname =urlparse(url).hostname
+    for _type,_str in PHONE_OCR_BLACKLIST:
+        if _type=='S':
+            if _str==hostname:
+                return False
+        elif _type=='R':
+            if re.match(_str, hostname):
+                return False
+    return True
+
 def phone(item, logger):
     tel = item['phone']
+    if tel and tel.startswith('/'):
+        from urlparse import urljoin
+        tel = urljoin(item['url'], tel)
+        log('phone url %s filled to %s' % (item['phone'], tel))
     if tel and tel.startswith('http'):
         if '#' not in tel:
-            phone_info = ConvertPhonePic2Num(tel).find_possible_num()
-            item['phone'] += '#%s#%s' % phone_info
-            # tel = item['phone']
-            tel = phone_info[0]
-    #     if tel.endswith('#0.99'):
-    #         tel = tel.split('#')[1]
-    # item['phone'] = tel
+            if phone_ocr_enabled(tel):
+                phone_info = ConvertPhonePic2Num(tel).find_possible_num()
+                item['phone'] += '#%s#%s' % phone_info
+                if str(phone_info[1])=='0.99':
+                    tel = phone_info[0]
+                else:
+                    log('%s ocr accurate less than 0.99, skip' % tel)
+            else:
+                log('%s ocr disabled, skip' % tel)
     if not re.match(u'^[ 0-9转～—－-]+$',tel):
         return False
     item['phone']=tel
@@ -1528,7 +1547,7 @@ def insert_to_carimage(item, car_source, session, logger):
 # utils 函数
 #==============================================================================
 
-def upload_img(item, logger):
+def upload_thumbnail(item, logger):
     thumbnail = item.get('thumbnail')
     if not thumbnail:
         item['thumbnail'] = thumbnail = item['imgurls'].split(' ')[0]

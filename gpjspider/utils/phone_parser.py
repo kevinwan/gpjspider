@@ -11,6 +11,7 @@ from urllib2 import urlopen, Request
 # IOError: image file is truncated (5 bytes not processed)
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+import datetime
 
 class ConvertPhonePic2Num(object):
     """
@@ -30,10 +31,22 @@ class ConvertPhonePic2Num(object):
 
     def convert_remote_pic2num(self):
         im = urlopen(Request(self.picurl)).read()
-        imob = Image.open(StringIO.StringIO(im))
-        imob = imob.convert('RGB')
-        # TODO: 在调用pytesser之前处理一下图片，如把挨得紧密的数字分开，可以提高识别的准确率,需要研究PIL库
-        text = image_to_string(imob)
+        try:
+            imob = Image.open(StringIO.StringIO(im))
+        except Exception as e:
+            with open('/tmp/gpjspider/phone_ocr_fail.log', 'a') as f:
+                f.write(str(datetime.datetime.now()))
+                f.write("\n")
+                f.write(self.picurl)
+                f.write("\n")
+                f.write(e.message)
+                f.write("\n")
+                f.write(im)
+            raise e
+        else:
+            imob = imob.convert('RGB')
+            # TODO: 在调用pytesser之前处理一下图片，如把挨得紧密的数字分开，可以提高识别的准确率,需要研究PIL库
+            text = image_to_string(imob)
         return text
 
     def replace_similar_char2num(self):
