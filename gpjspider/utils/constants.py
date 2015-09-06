@@ -30,6 +30,10 @@ SOURCE_TYPE_ODEALER = 5
 QINIU_IMG_BUCKET = 'gongpingjia'
 
 
+PHONE_OCR_BLACKLIST = (
+    ('S', 'www.ganji.com'),
+    ('R', '^[^\.]+\.ganji\.com$'),
+)
 
 REDIS_DUP_SIG_KEY='dup_car_sig_%s'
 REDIS_DUP_STAT_KEY='dup_car_stat'
@@ -56,3 +60,7 @@ if 0:
         '-model_slug2',
         '-model_slug3',
     ])
+try:
+    from .local_constants import *
+except ImportError:
+    pass
