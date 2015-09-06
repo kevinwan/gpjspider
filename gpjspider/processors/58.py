@@ -90,7 +90,7 @@ def volume(value):
                 val = math.ceil(val / 100.0)
                 return str(val / 10.0)
             else:
-                return str(float(val) / 1.0)
+                return str(float(val))
         return 'temp'
 
 def control(value):

@@ -18,7 +18,7 @@ def volume(value):
             val = math.ceil(val / 100.0)
             return str(val / 10.0)
         else:
-            return val
+            return str(float(val))
     return 'temp'
 
 def status(value):
