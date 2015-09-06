@@ -9,7 +9,7 @@ def model_slug(value):
     if isinstance(value, (list, tuple)) and len(value) == 2:
         brand = value[0].split(u'二手')[-1]
         model = value[1].split(u'二手')[-1]
-        if brand in model:
+        if brand not in [u'本田', u'丰田', u'马自达', u'凯迪拉克', u'大众'] and brand in model:
             return model.split(brand)[-1]
         return model
     return value

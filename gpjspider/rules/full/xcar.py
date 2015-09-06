@@ -263,6 +263,7 @@ rule = {
         # 'http://used.xcar.com.cn/shop/3183226.htm' # volume='2L'
         # 'http://used.xcar.com.cn/shop/3186290.htm' # volume='-''
         # 'http://used.xcar.com.cn/shop/3227189.htm' # price
+        # 'http://used.xcar.com.cn/shop/3237295.htm',  # model_slug is 'V'
     ],
 
     'parse': parse_rule,

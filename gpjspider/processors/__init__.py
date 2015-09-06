@@ -304,7 +304,7 @@ Decimal('7.0')
 >>> mile(u'3000万公里')
 Decimal('0.3')
 >>> mile(u'55')
-Decimal('0.0055')
+Decimal('0.01')
 >>> mile(u'600公里')
 Decimal('0.06')
 >>> mile(u'600')
@@ -336,7 +336,7 @@ Decimal('6.8')
         if v > 1000:
             v /= 10000
         if v < 0.01:
-            v = 0.01
+            v = Decimal('0.01')
     except Exception as e:
         print e, v
         return None
