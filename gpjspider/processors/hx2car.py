@@ -56,3 +56,11 @@ def volume(value):
             else:
                 return str(float(val))
     return 'temp'
+
+
+def city(value):
+    if len(value) >= 6:
+        name = re.search(u'省(.*?)市', value)
+        if name:
+            value = name.group(1)
+    return value
