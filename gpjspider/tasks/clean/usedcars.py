@@ -69,10 +69,10 @@ from gpjspider.utils.constants import (
     REDIS_DUP_SIG_KEY,
     REDIS_DUP_STAT_KEY,
     REDIS_DUP_CHECKED_KEY,
-    CLEAN_ITEM_HOUR_LIMIT, 
+    CLEAN_ITEM_HOUR_LIMIT,
     CLEAN_STATUS,
     CLEAN_MIN_ID,
-) 
+)
 
 class CleanException(Exception):
     pass
