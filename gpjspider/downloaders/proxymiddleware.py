@@ -8,6 +8,14 @@ import base64
 import socket
 
 
+def get_internal_ip():
+    csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    csock.connect(('8.8.8.8', 80))
+    (addr, port) = csock.getsockname()
+    csock.close()
+    return addr
+
+
 class ProxyMiddleware(object):
 
     """
@@ -18,6 +26,12 @@ class ProxyMiddleware(object):
     #     'ganji.com': ur'ganji.com/sorry/confirm.php',
     #     'baixing.com': ur'Service Unavailable',
     # }
+    server_id = '127.0.0.1'
+    try:
+
+        server_id = get_internal_ip
+    except Exception as e:
+        log(u'ExceptionInfo: {0}'.format(e))
 
     def __init__(self, settings):
         self.PROXIES = settings.getlist('PROXIES')
@@ -28,15 +42,6 @@ class ProxyMiddleware(object):
         self.redis = get_redis_cluster()
         self.need_proxy = settings.getbool('PROXIES_ENABLED', False)
         self.need_proxy_domain = None
-        self.server_id = '127.0.0.1'
-        try:
-            csock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            csock.connect(('8.8.8.8', 80))
-            (addr, port) = csock.getsockname()
-            csock.close()
-            self.server_id = addr
-        except Exception, e:
-            log(u'ExceptionInfo:{0}'.format(e))
 
     @classmethod
     def from_crawler(cls, crawler):

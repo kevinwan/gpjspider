@@ -260,7 +260,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         'che168.com',
         'cheshi.com',
 
-        'c.cheyipai.com',
+        # 'c.cheyipai.com',
     ]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)

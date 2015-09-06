@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .utils import *
 from gpjspider.utils.constants import *
+import urlparse
 
 
 def parse_meta(key, with_key=False):
@@ -27,6 +28,7 @@ def get_url_with_source_type(response, spider):
     _source_type = '//*[@class="info-item"]/text()'
     return get_urls(response, _node, _url, _source_type)
 
+
 def get_urls(response, _node, _url, _source_type):
     """
         主要是为了提取列表页的链接和对应的 source_type 信息，返回两部分的信息，
@@ -42,6 +44,7 @@ def get_urls(response, _node, _url, _source_type):
         url = get_xpath(node, _url)[0]
         if url in urls:
             continue
+        url = urlparse.urljoin(rule['base_url'], url)
         urls.add(url)
         # st = ''.join(get_xpath(node, _source_type))
         st = get_xpath(node, _source_type)
@@ -51,10 +54,11 @@ def get_urls(response, _node, _url, _source_type):
     #     spider.log(u'{0} urls\' meta_info is: {1}'.format(len(urls), meta_info))
     return urls, meta_info
 
+
 def get_url_with_source_type2(response, spider):
-    _node = '//div[@class="piclistm"]/li'
-    _url = 'a[match(@href, "buycar/carinfo")]/@href'
-    _source_type = '//*[@class="picbcon"]/@title'
+    _node = '//ul[@class="piclistm"]/li'
+    _url = './/a[contains(@href, "carinfo")]/@href'
+    _source_type = './/*[@class="picbcon"]//span/@title'
     return get_urls(response, _node, _url, _source_type)
 
 
@@ -240,6 +244,7 @@ parse_rule = {
         # 're': (
         #     r'/\w+/buycar/carinfo_\w+_\d+\.shtml',
         # ),
+        'contains': ['buycar/carinfo'],
         'format': True,
         'step': 'parse_detail',
     },
@@ -252,6 +257,7 @@ parse_rule = {
             '/dealer/': 'http://2sc.sohu.com{0}buycar/',
             # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
         },
+        'contains': ['dealer'],
         # 'format': '{0}buycar/',
         'step': 'parse_list',
         'dont_filter': False,
@@ -273,7 +279,7 @@ parse_rule = {
         # 'format': {
         #     '/': True,
         #     '/dealer/': 'http://2sc.sohu.com{0}buycar/',
-        #     # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
+        # 'http://2sc.sohu.com/dealer/': '%(url)s{0}buycar/',
         # },
         # 'max_pagenum': 150,  # 全量爬取的最大页数
         'incr_pageno': 6,
@@ -290,6 +296,7 @@ parse_list = {
         # 're': (
         #     r'/\w+/buycar/carinfo_\w+_\d+\.shtml',
         # ),
+        'contains': ['buycar/carinfo'],
         'format': True,
         'step': 'parse_detail',
     },
@@ -318,14 +325,12 @@ rule = {
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j25k0m0n0s/',
         # 'http://2sc.sohu.com/zj-hz/buycar/carinfo_sohu_1651527.shtml',
         # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1498561.shtml',
+        # 'http://2sc.sohu.com/dealer/83457/buycar/',
         'http://2sc.sohu.com/buycar/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h0j0k0m0n0/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h0j0k0m0n0/',
-        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j0k0m0n0/',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
-        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
-        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
-        # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h3j0k0m0n0/', # 商家车源
+        'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g3h3j0k0m0n0/', # 认证车源
         # 'http://2sc.sohu.com/bj/buycar/carinfo_sohu_1548176.shtml',
         # 'http://2sc.sohu.com/fj-zhangzhou/buycar/carinfo_sohu_1521957.shtml',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/pg1.shtml',
@@ -348,6 +353,7 @@ rule = {
 
     'parse': parse_rule,
     'parse_list': parse_list,
+    # 'parse': parse_list,
     'parse_detail': {
         'item': item_rule,
     },
