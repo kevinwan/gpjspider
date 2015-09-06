@@ -16,20 +16,20 @@ def phone(value):
 
 # but 4008138214
     '''
-    if 'gettel.ashx' in value:
-        search = re.search(r'.*?(http://.*?)\'\)', value)
-        if search:
-            value = search.group(1)
-            try:
-                phone_info = ConvertPhonePic2Num(value).find_possible_num()
-                value = phone_info[0]
-                return value
-            except Exception as e:
-                print e
-                return value
-    val = re.findall('\d+-\d+-\d+', value)
-    if val:
-        return val[0]
+    # if 'gettel.ashx' in value:
+    #     search = re.search(r'.*?(http://.*?)\'\)', value)
+    #     if search:
+    #         value = search.group(1)
+    #         try:
+    #             phone_info = ConvertPhonePic2Num(value).find_possible_num()
+    #             value = phone_info[0]
+    #             return value
+    #         except Exception as e:
+    #             print e
+    #             return value
+    # val = re.findall('\d+-\d+-\d+', value)
+    # if val:
+    #     return val[0]
     return value
 
 #def source_type(value):

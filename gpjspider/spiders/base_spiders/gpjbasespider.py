@@ -125,8 +125,8 @@ class GPJBaseSpider(scrapy.Spider):
             yield request
 
 
-    def parse(self, response, my_name='parse'):
-        step_rule = self.website_rule[my_name]
+    def parse(self, response, my_name=None):
+        step_rule = self.website_rule[my_name or 'parse']
         # self.test(response)
         detail_amount = 0
         delta = 0
@@ -170,16 +170,17 @@ class GPJBaseSpider(scrapy.Spider):
             msg = u'try to get new list urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
             requests = self.get_requests(step_rule['list_url'], response)
-            size = len(requests)
-            if size > 0:
-                response.meta['depth'] = response.meta.get('depth', 0) - 1
-                if size > 3:
-                    delta -= 1
+            # size = len(requests)
+            # if size > 0:
+            #     response.meta['depth'] = response.meta.get('depth', 0) - 1
+            #     if size > 3:
+            #         delta -= 1
             # print response.meta['depth'], len(requests)
             for request in requests:
-                self.log('start request {0}'.format(request.url))
+                self.log('start list request {0}'.format(request.url))
+                # ipdb.set_trace()
                 yield request
-                detail_amount += 1
+                # detail_amount += 1
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
@@ -289,6 +290,8 @@ class GPJBaseSpider(scrapy.Spider):
         #         if ex_url in url:
         #             tmp_urls.add(url)
         #             break
+        if urls:
+            self.log(u'Got {0} Urls..'.format(len(urls)), log.DEBUG)
         tmp_urls = set()
         if 'contains' in url_rule:
             contains = url_rule['contains']
@@ -302,6 +305,7 @@ class GPJBaseSpider(scrapy.Spider):
                     if ex_url in url:
                         tmp_urls.add(url)
                         break
+
         # pdb.set_trace()
         try:
             if 'regex' in url_rule:
@@ -334,7 +338,7 @@ class GPJBaseSpider(scrapy.Spider):
         finally:
             urls = set(urls)
         if tmp_urls:
-            self.log(u'Dups URL:{0}'.format(tmp_urls), log.INFO)
+            self.log(u'{0} Dups Urls..'.format(len(tmp_urls)), log.INFO)
         urls -= tmp_urls
 
         urls = self.format_urls(url_rule, urls, response.url, meta_info=meta_info)
@@ -395,7 +399,8 @@ class GPJBaseSpider(scrapy.Spider):
                     self.detail_urls.add(url)
                 # and self.domain != 'c.cheyipai.com':
                 if urls and not self.update:
-                    max_page = self.get_max_page(url_rule)
+                    # max_page = self.get_max_page(url_rule)
+                    max_page = 0
                     urls = self.clean_detail_urls(urls, _url, max_page)
                     # dont_filter = not self._incr_enabled
             for url in urls:
@@ -427,8 +432,11 @@ class GPJBaseSpider(scrapy.Spider):
         new_urls = urls - existed_urls
         new_no = len(new_urls)
         all_no = len(urls)
+        del_no = all_no - new_no
         if new_no:
             self.log(u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
+        if del_no:
+            self.log(u'Cleaned {0} Existed Urls..'.format(del_no), log.DEBUG)
         #     min_no = all_no / 3
         #     if new_no > all_no and all_no >= 5:
         #         max_page += 2.1

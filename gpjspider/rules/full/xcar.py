@@ -55,7 +55,9 @@ item_rule = {
             'xpath': (
                 has(u'排　　量', '/..'),
             ),
+            'default': '%(title)s',
             'processors': ['first', 'xcar.volume'],
+
         },
         'color': {
             'xpath': (
@@ -69,7 +71,7 @@ item_rule = {
         },
         'price': {
             'xpath': (
-                has(u'价格', '/span'),
+                has(u'价格', '/span[contains(@class,"cost")]'),
             ),
         },
         'price_bn': {
@@ -261,6 +263,7 @@ rule = {
         #'http://used.xcar.com.cn/shop/2604550.htm', # 报价太低警告
         # 'http://used.xcar.com.cn/shop/3183226.htm' # volume='2L'
         # 'http://used.xcar.com.cn/shop/3186290.htm' # volume='-''
+        # 'http://used.xcar.com.cn/shop/3227189.htm' # price
     ],
 
     'parse': parse_rule,

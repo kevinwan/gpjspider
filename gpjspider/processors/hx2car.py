@@ -35,3 +35,11 @@ def source_type(value):
     if value == SOURCE_TYPE_GONGPINGJIA:
         return SOURCE_TYPE_GONGPINGJIA
     return SOURCE_TYPE_ODEALER
+
+
+def volume(value):
+    vol = re.match(u'^(\d+)[LT]?$', value)
+    if vol:
+        return vol.group(1) + '.0'
+    else:
+        return value

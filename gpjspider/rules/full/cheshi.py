@@ -170,6 +170,7 @@ item_rule = {
             'xpath': (
                 #'//*[@class="contentdiv"]//img/@src',
                 '//*[@class="explain clearfix"]/following-sibling::p//@src',
+                '//*[@class="dl01 clearfix"]//@src',
             ),
             'processors': ['join'],
         },
@@ -252,6 +253,7 @@ rule = {
         # 'http://2sc.cheshi.com/info/1142352.html',  # mile < 0.00
         # 'http://2sc.cheshi.com/info/626799.html',  # city like *地区
         # 'http://2sc.cheshi.com/info/1757057.html',  # volume is None
+        # 'http://2sc.cheshi.com/info/1765834.html' # imgurls
     ],
 
     'parse': parse_rule,
