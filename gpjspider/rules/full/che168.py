@@ -109,12 +109,14 @@ item_rule = {
             ),
             'processors': ['first', 'che168.model_url'],
         },
-        #'status': {
-            #'xpath': (
-                #has(u'车辆类型'),
-            #),
-            #'processors': ['first', 'cn2che.status'],
-        #},
+        'status': {
+            'xpath': (
+                u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")])',
+                u'boolean(//div[@class="plaint-list"])',
+                u'boolean(//input[@id="hf_CarStatue"]/@value=15)',
+            ),
+            'processors': ['first', 'che168.status'],
+        },
         'city': {
             'xpath': (
                 '//title/text()',
