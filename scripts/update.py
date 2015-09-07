@@ -225,7 +225,7 @@ thread_num = 20    # 依次并发的线程数
 range_url_count = 10    # 同一个链接最多尝试访问的次数
 range_item_count = 5    # 同一条记录最多尝试更新的次数
 uponline = False
-log_name = 'update.log'
+log_name = '/tmp/gpjspider/update.log'
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
@@ -289,6 +289,8 @@ def get_update_time(item, time_now):    # 计算下次更新时间,待优化
     else:
         time_def = item.last_update - item.next_update
     if time_def.days + time_def.seconds > 0:
+        time_def.days = 1    # 目前默认更新间隔为1天，这里将不是1天的强制设为1天，后期有待改进
+        time_def.seconds = 0
         next_update_time = (
             time_now + datetime.timedelta(
                 days=time_def.days,
@@ -304,7 +306,7 @@ def update_sale_status(site=None, days=None, before=None):
     global rule_names
     global log_name
 
-    log_name = 'update'    # 日志文件名
+    log_name = '/tmp/gpjspider/update'    # 日志文件名
     if uponline:
         log_name = log_name + '_uponline'
     if site:
@@ -361,16 +363,12 @@ def update_sale_status(site=None, days=None, before=None):
             domain = site_dict[site]
             query = query.filter(UsedCar.domain == domain)
         query = query.filter(
-            # UsedCar.status != 'Q',
-            # UsedCar.status != 'u',
-            # UsedCar.status != 'I',
             UsedCar.status == 'C',
             UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
             UsedCar.next_update != None,
             UsedCar.last_update != None,
-            UsedCar.update_count == 0,
             UsedCar.next_update <= time_now
         )
         num_this_hour = query.count()
