@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import sys
 import ipdb
 import time
@@ -225,7 +226,7 @@ thread_num = 20    # 依次并发的线程数
 range_url_count = 10    # 同一个链接最多尝试访问的次数
 range_item_count = 5    # 同一条记录最多尝试更新的次数
 uponline = False
-log_name = '/tmp/gpjspider/update.log'
+log_name = 'log/update.log'
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
@@ -305,8 +306,9 @@ def update_sale_status(site=None, days=None, before=None):
     session = Session()
     global rule_names
     global log_name
-
-    log_name = '/tmp/gpjspider/update'    # 日志文件名
+    if not os.path.isdir('log'):
+        os.mkdir('log')
+    log_name = 'log/update'    # 日志文件名
     if uponline:
         log_name = log_name + '_uponline'
     if site:
@@ -336,7 +338,8 @@ def update_sale_status(site=None, days=None, before=None):
             second=0,
             microsecond=0
         ) + datetime.timedelta(days=1)
-    log_name = log_name + ':[' + after_time.strftime("%Y-%m-%d %H:%M:%S") + ']-'
+    log_name = log_name + '_[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']'
+    log_name = log_name + ' [' + after_time.strftime("%Y-%m-%d %H:%M:%S") + ']-'
     log_name = log_name + '[' + day_on.strftime("%Y-%m-%d %H:%M:%S") + ']'
     log_name = log_name + '.log'
     file_object = open(log_name, 'w')    # 如果文件存在就清空内容
