@@ -15,6 +15,7 @@ from gpjspider.models import UsedCar, CarSource, CarDetailInfo
 from gpjspider.utils import get_mysql_connect, get_redis_cluster
 from gpjspider.tasks.spiders import run_all_spider_update
 from gpjspider.scrapy_settings import PROXIES, PROXY_USER_PASSWD
+from gpjspider.downloaders.proxymiddleware import get_internal_ip
 
 
 # 判断是否下线的规则,后期预计简化
@@ -227,10 +228,16 @@ range_url_count = 10    # 同一个链接最多尝试访问的次数
 range_item_count = 5    # 同一条记录最多尝试更新的次数
 uponline = False
 log_name = 'log/update.log'
+server_id = '127.0.0.1'
+try:
+    server_id = get_internal_ip
+except Exception as e:
+    print u'ExceptionInfo: {0}'.format(e)
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
     global range_url_count
+    global server_id
     web_page = None
     for error_count in range(0, range_url_count):
         try:
@@ -248,9 +255,14 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                 error_string = e.message.message
             finally:
                 if web_page:
-                    if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
-                        invalid_ip_key = domain + str(datetime.date.today())
-                        redis_bad_ip.sadd(invalid_ip_key, web_page.headers['x-proxymesh-ip'])
+                    if 'Website shield and all agent failure' in error_string:
+                        key = '%s_%s_%s' % (domain, web_page.status, str(datetime.date.today()))
+                        redis_bad_ip.sadd(key, url)
+                        proxymesh_ip = web_page.headers.get('x-proxymesh-ip')
+                        if proxymesh_ip:
+                            invalid_ip_key = '%s_%s_%s' % (server_id, domain, str(datetime.date.today()))
+                            redis_bad_ip.sadd(invalid_ip_key, proxymesh_ip)
+                            redis_bad_ip.expire(invalid_ip_key, 600)
                 if error_count + 1 == range_url_count:
                     error_string = '\n' + url + ' ' + error_string
                     return ['online', error_string]
@@ -278,26 +290,29 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
 
 
 def get_update_time(item, time_now):    # 计算下次更新时间,待优化
-    time_def = None
+    # time_def = None
+    # next_update_time = (
+    #     time_now + datetime.timedelta(
+    #         days=1,
+    #         seconds=0
+    #     )
+    # )
+    # if item.next_update > item.last_update:
+    #     time_def = item.next_update - item.last_update
+    # else:
+    #     time_def = item.last_update - item.next_update
+    # if time_def.days + time_def.seconds > 0:
+    #     next_update_time = (
+    #         time_now + datetime.timedelta(
+    #             days=time_def.days,
+    #             seconds=time_def.seconds
+    #         )
+    #     )
     next_update_time = (
-        datetime.datetime.now() + datetime.timedelta(
-            days=1,
-            seconds=0
+        time_now + datetime.timedelta(
+            seconds=60
         )
     )
-    if item.next_update > item.last_update:
-        time_def = item.next_update - item.last_update
-    else:
-        time_def = item.last_update - item.next_update
-    if time_def.days + time_def.seconds > 0:
-        time_def.days = 1    # 目前默认更新间隔为1天，这里将不是1天的强制设为1天，后期有待改进
-        time_def.seconds = 0
-        next_update_time = (
-            time_now + datetime.timedelta(
-                days=time_def.days,
-                seconds=time_def.seconds
-            )
-        )
     return next_update_time
 
 

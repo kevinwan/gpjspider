@@ -250,10 +250,10 @@ class GPJBaseSpider(scrapy.Spider):
             yield self.get_item(step_rule['item'], response)
             if self.update:
                 cursor = self.get_cursor()
-                cursor.execute('update open_product_source set status="I" where id=%s;' % response.meta['id'])
+                cursor.execute('update open_product_source set status="U" where id=%s;' % response.meta['id'])
                 cursor.close()
-                clean(response.meta['id'], response.meta['id'], [self.domain], 'I')
-                print '\n******************************************'
+                # clean(response.meta['id'], response.meta['id'], [self.domain], 'U')
+                print response.meta['id'], response.url, '\n************************************************'
 
     def get_requests(self, url_rule, response, step_rule=None):
         """
