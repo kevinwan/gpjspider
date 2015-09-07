@@ -67,3 +67,10 @@ def condition_level(value):
         print e
 
     return level
+
+
+def status(value):
+    if u'更多同款' in value:
+        return 'Q'
+    else:
+        return 'Y'

@@ -102,6 +102,12 @@ item_rule = {
             ),
             'processors': ['last'],
         },
+        'status': {
+            'xpath': (
+                '//' + has_cls('sold-out', '/a/text()'),
+            ),
+            'processors': ['first', '99haoche.status'],
+        },
         'phone': {
             'xpath': (
                 hidden('uploadid'),
@@ -222,6 +228,7 @@ rule = {
         #'http://www.99haoche.com/car/4173771.html',
         #'http://www.99haoche.com/car/4483842.html',
         #'http://www.99haoche.com/car/4473155.html',
+        # 'http://www.99haoche.com/car/4487656.html' # 已售
     ],
     'base_url': 'http://www.99haoche.com',
     # 'update': True,

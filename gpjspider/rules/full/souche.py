@@ -95,6 +95,12 @@ item_rule = {
             ),
             'processors': ['join', 'souche.imgurls'],
         },
+        'status': {
+            'xpath': (
+                text(cls('detail-no')),
+            ),
+            'processors': ['first', 'souche.status'],
+        },
         # 'contact': {
         #     'xpath': (
         #         text(cls('shop-name')),
