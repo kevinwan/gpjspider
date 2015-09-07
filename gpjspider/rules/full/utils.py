@@ -93,6 +93,7 @@ def before_has(value, node='*', *args, **kwargs):
 
 
 def next_page():
+    return u'//a[contains(text(), "下一页") or text()=">"]/@href'
     return has_attr2(u'下一页', 'href')
 
 
@@ -128,7 +129,7 @@ u'//*[@class="f-type01"]//[contains(text(), "t")]/text()'
 '//*[@class="container detail-gallery"]/div//img/@src'
 >>> img(cls('container detail-gallery', '/div/'))
 '//*[@class="container detail-gallery"]/div//img[@src]/@src'
->>> has_attr2(u'下一页', '/@href')
+>>> has_attr2(u'下一页', 'href')
     '''
 
 

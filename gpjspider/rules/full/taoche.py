@@ -205,7 +205,8 @@ rule = {
     'domain': 'taoche.com',
     'base_url': 'http://www.taoche.com',
     'start_urls': [
-        'http://www.taoche.com/all/?orderid=5&direction=2&onsale=1',
+        # 'http://www.taoche.com/all/?orderid=5&direction=2&onsale=1',
+        'http://www.taoche.com/all/?orderid=5&direction=2',
         # 'http://www.taoche.com/all/?page=36',
         # 'http://www.taoche.com/all/?page=216',
         # 'http://www.taoche.com/buycar/pges5bxcdza/?page=216',

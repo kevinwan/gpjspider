@@ -221,7 +221,10 @@ list_rule = {
         'format': True,
     },
     'next_page_url': {
-        'xpath': ('//a[text()=">"]/@href',),
+        'xpath': (
+            # '//a[text()=">"]/@href',
+            next_page(),
+        ),
         'step': 'parse',
         'format': True,
         # 'incr_pageno': 3,

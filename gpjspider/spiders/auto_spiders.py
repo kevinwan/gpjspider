@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 from gpj_spider import *
 
-class IncrxinGPJSpider(IncrGPJSpider):
-    name = 'xin'
-
-class FullxinGPJSpider(FullGPJSpider):
-    name = 'xin_full'
-
 class Incr273GPJSpider(IncrGPJSpider):
     name = '273'
 
@@ -55,11 +49,11 @@ class IncrchunshuitangGPJSpider(IncrGPJSpider):
 class FullchunshuitangGPJSpider(FullGPJSpider):
     name = 'chunshuitang_full'
 
-class IncrcheshiGPJSpider(IncrGPJSpider):
-    name = 'cheshi'
+class IncrxinGPJSpider(IncrGPJSpider):
+    name = 'xin'
 
-class FullcheshiGPJSpider(FullGPJSpider):
-    name = 'cheshi_full'
+class FullxinGPJSpider(FullGPJSpider):
+    name = 'xin_full'
 
 class Incrcn2cheGPJSpider(IncrGPJSpider):
     name = 'cn2che'
@@ -79,23 +73,29 @@ class IncrrenrencheGPJSpider(IncrGPJSpider):
 class FullrenrencheGPJSpider(FullGPJSpider):
     name = 'renrenche_full'
 
+class IncrganjiGPJSpider(IncrGPJSpider):
+    name = 'ganji'
+
+class FullganjiGPJSpider(FullGPJSpider):
+    name = 'ganji_full'
+
 class Incrche168GPJSpider(IncrGPJSpider):
     name = 'che168'
 
 class Fullche168GPJSpider(FullGPJSpider):
     name = 'che168_full'
 
+class IncrcheshiGPJSpider(IncrGPJSpider):
+    name = 'cheshi'
+
+class FullcheshiGPJSpider(FullGPJSpider):
+    name = 'cheshi_full'
+
 class Incrhx2carGPJSpider(IncrGPJSpider):
     name = 'hx2car'
 
 class Fullhx2carGPJSpider(FullGPJSpider):
     name = 'hx2car_full'
-
-class IncrganjiGPJSpider(IncrGPJSpider):
-    name = 'ganji'
-
-class FullganjiGPJSpider(FullGPJSpider):
-    name = 'ganji_full'
 
 class Incr51autoGPJSpider(IncrGPJSpider):
     name = '51auto'
