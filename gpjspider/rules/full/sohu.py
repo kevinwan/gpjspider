@@ -318,6 +318,9 @@ rule = {
     'base_url': 'http://2sc.sohu.com',
     'per_page': 15,
     'pages': 200,
+    'dealer': {
+        'url': '%sbuycar/',
+    },
 
     'start_urls': [
         # 'http://2sc.sohu.com/dealer/225615/buycar/',

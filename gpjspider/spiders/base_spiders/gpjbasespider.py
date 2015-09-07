@@ -122,13 +122,13 @@ class GPJBaseSpider(scrapy.Spider):
                 dealer_url = self.dealer.pop('url')
                 dealer = dict(dealer, **self.dealer)
                 session = self.Session()
-                start_time = end_time = datetime.today()
-                end_time -= timedelta(hours=1)
+                start_time = end_time = datetime.now()
+                # end_time -= timedelta(hours=1)
                 try:
                     delta = int(self.with_dealer)
                 except:
-                    delta = 1
-                start_time -= timedelta(days=delta)
+                    delta = 0.5
+                start_time -= timedelta(hours=delta * 8)
                 query = session.query(UsedCar.company_url).filter(UsedCar.created_on >= start_time,
                     UsedCar.created_on < end_time).filter_by(domain=self.domain) \
                     .filter(UsedCar.company_url != None,
