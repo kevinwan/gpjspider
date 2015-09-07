@@ -175,6 +175,12 @@ item_rule = {
                 has(u'购车咨询', '/*[@class="tel-f00-18"]'),
             ),
         },
+        'status': {
+            'xpath': (
+                text(cls('car-has-deal')),
+            ),
+            'processors': ['first', 'haoche51.status'],
+        },
         'mandatory_insurance': {
             'xpath': (
                 has(u"交强险有效期", prefix="ul/li"),
