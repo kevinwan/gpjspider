@@ -202,10 +202,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                u'boolean(//div[@class="d-photo img-album"]/em)',
-                u'boolean(//div[@class="error-wrap"]/div[@class="con"]/span[contains(text(),"页面找不到")])',
+                u'//div[@class="d-photo img-album"]/em',
+                u'//div[@class="error-wrap"]/div[@class="con"]/span[contains(text(),"页面找不到")]',
             ),
             'processors': ['first', 'xin.status'],
+            'default': 'Y',
         }
     },
 }

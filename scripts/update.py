@@ -133,7 +133,8 @@ domain_dict = {
         [
             'boolean(//*[contains(@class,"cd-call-sold")])',
             'boolean(//*[contains(@class,"cd-call-exceed")])',
-            u'boolean(//p[@class="gy" and contains(text(), "该车已过有效期")])'
+            u'boolean(//p[@class="gy" and contains(text(), "该车已过有效期")])',
+            u'boolean(//*[contains(@class,"hint clearfix")]//*[contains(text(), "您查看的车源正在审核中或已删除")])',
         ],
         '1', 'iautos'
     ],    # 404

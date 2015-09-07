@@ -44,7 +44,7 @@ def source_type(value):
 
 
 def status(value):
-    if value == '1':
+    if 'em' in value or 'span' in value:
         return 'Q'
     else:
         return 'Y'

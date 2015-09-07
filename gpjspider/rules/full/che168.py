@@ -111,11 +111,12 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")])',
-                u'boolean(//div[@class="plaint-list"])',
-                u'boolean(//input[@id="hf_CarStatue"]/@value=15)',
+                u'//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")]',
+                u'//div[@class="plaint-list"]',
+                u'//input[@id="hf_CarStatue" and @value=15]',
             ),
             'processors': ['first', 'che168.status'],
+            'default': 'Y',
         },
         'city': {
             'xpath': (

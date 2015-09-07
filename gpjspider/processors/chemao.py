@@ -84,7 +84,7 @@ def transfer_owner(value):
 
 
 def status(value):
-    if value == '1':
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

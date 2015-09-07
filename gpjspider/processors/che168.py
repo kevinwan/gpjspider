@@ -106,7 +106,7 @@ def price_bn(value):
 
 
 def status(value):
-    if value == '1':
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

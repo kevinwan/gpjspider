@@ -218,10 +218,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                'boolean(//div[@class="events_mark04"]/img)',
-                'boolean(//div[@class="car-status"]/img)',
+                u'//div[@class="events_mark04"]/img',
+                u'//div[@class="car-status"]/img',
             ),
             'processors': ['first', 'chemao.status'],
+            'default': 'Y',
         },
     },
 }
