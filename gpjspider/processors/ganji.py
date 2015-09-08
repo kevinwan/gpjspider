@@ -4,6 +4,7 @@
 """
 from decimal import Decimal
 from gpjspider.utils.constants import *
+from datetime import datetime
 import re
 
 
@@ -77,3 +78,17 @@ def volume(val):
         return vol.group(1) + '.0'
     else:
         return val
+
+
+def time(value):
+    try:
+        now_time = datetime.now()
+        fmt_time = str(now_time.year) + '-' + value
+        fmt_time = fmt_time.split(' ')[0]
+        pub_time = datetime.strptime(fmt_time, "%Y-%m-%d")
+        if pub_time > now_time:
+            return str(now_time.year - 1) + '-' + value
+        else:
+            return value
+    except:
+        return value
