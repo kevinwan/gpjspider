@@ -35,6 +35,7 @@ item_rule = {
             'xpath': (
                 text(cls('f10 pr-5')),
             ),
+            'processors': ['first', 'ganji.time'],
         },
         'mile': {
             'xpath': (
@@ -259,6 +260,7 @@ rule = {
         # 'http://wh.ganji.com/ershouche/1582549558x.htm', # 车型有问题
         # 'http://wenzhou.ganji.com/ershouche/1679794510x.htm', # 网页改版
         # 'http://hf.ganji.com/ershouche/1714887877x.htm' # volume:2L
+        # 'http://cd.ganji.com/ershouche/1250246697x.htm' # future time
     ],
 
     'parse': parse_rule,
