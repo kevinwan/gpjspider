@@ -32,6 +32,7 @@ QINIU_IMG_BUCKET = 'gongpingjia'
 
 PHONE_OCR_BLACKLIST = (
     ('S', 'www.ganji.com'),
+    ('S', 'used.xcar.com.cn'),
     ('R', '^[^\.]+\.ganji\.com$'),
 )
 
