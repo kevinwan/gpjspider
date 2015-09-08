@@ -255,7 +255,7 @@ parse_list = {
         'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 
@@ -264,10 +264,6 @@ rule = {
     'name': u'273二手车',
     'domain': '273.cn',
     'base_url': 'http://www.273.cn',
-    'spider': {
-        'domain': '273.cn',
-        'download_delay': 2.5,
-    },
     'dealer': {
         'url': '%s/os1_otd/',
     },

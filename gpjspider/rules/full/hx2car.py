@@ -251,34 +251,37 @@ parse_rule = {
 }
 
 
-# parse_list = {
-#     'url': {
-#         're': (
-#             r'http://\w*\.?hx2car\.com/details/\d+',
-#         ),
-#         'step': 'parse_detail',
-#     },
-#     'next_page_url': {
-#         'xpath': (
-#             next_page(),
-#         ),
-#         'excluded': ['javascript'],
-#         'format': True,
-#         'step': 'parse_list',
-#         'dont_filter': False,
-#     },
-# }
+parse_list = {
+    'url': {
+        're': (
+            r'\w+/details/(\d+)',
+        ),
+        'format': 'http://hx2car.com/details/{0}',
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'regex': 'currPage=(\d+)',
+        'format': True,
+        'format': '%(url)s',
+        'replace': ['(currPage=\d+)', 'currPage={0}'],
+        'step': 'parse_list',
+        # 'dont_filter': False,
+    },
+}
 
 
 rule = {
     'name': u'华夏二手车',
     'domain': 'hx2car.com',
     'base_url': 'http://hx2car.com',
-    # 'dealer': {
-    #     'url': '%scar.html',
-    # },
+    'dealer': {
+        'url': '%scar.html?currPage=1',
+    },
     'start_urls': [
-        # 'http://hx2car.com/car/verify/f0010000ytdzsejckbmgl100000',
         'http://hx2car.com/car/verify/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/essence/f0000000ytdzsejckbmgl100000',
         'http://hx2car.com/car/personal/f0000000ytdzsejckbmgl100000',
@@ -295,14 +298,16 @@ rule = {
         # 'http://hx2car.com/details/143687094'
         # 'http://hx2car.com/details/143837125' # volume
         # 'http://hx2car.com/details/143878702' # city
+        # 'http://vip.hx2car.com/shxx/car.html?currPage=1',
     ],
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
+    'parse': parse_list,
     'parse_detail': {
         "item": item_rule,
     }
 }
 
 fmt_rule_urls(rule)
-# rule['parse'] = rule['parse_detail']
+rule['parse'] = rule['parse_detail']

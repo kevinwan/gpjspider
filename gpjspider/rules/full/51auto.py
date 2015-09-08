@@ -240,7 +240,7 @@ parse_rule = {
         'format': '%(url)s',
         # 'format': 'no',
         'regex': '(\d+)',
-        'replace': ['(curentPage=\d+)', 'curentPage={0}'],
+        'replace': ['(pageNo=\d+)', 'curentPage={0}'],
         "step": 'parse',
         # 'incr_pageno': 3,
     },
@@ -259,13 +259,11 @@ parse_list = {
             next_page(),
         ),
         'excluded': ['javascript'],
-        'format': True,
-        'format': '{url}',
         'format': '%(url)s',
-        'regex': '(\d+)',
-        'replace': ['(curentPage=\d+)', 'curentPage={0}'],
+        'regex': 'pageNo=(\d+)',
+        'replace': ['(pageNo=\d+)', 'pageNo={0}'],
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 
@@ -275,7 +273,7 @@ rule = {
     'domain': '51auto.com',
     'base_url': 'http://www.51auto.com',
     'dealer': {
-        'url': 'http://www.51auto.com/control/VehiclesList?id=%s',
+        'url': 'http://www.51auto.com/control/VehiclesList?id=%s&pageNo=1',
         'regex': r'dealers/(\d+)'
     },
     'start_urls': [
