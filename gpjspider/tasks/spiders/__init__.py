@@ -20,7 +20,7 @@ import shutil
 
 
 @app.task(name="run_spider", bind=True, base=GPJSpiderTask)
-def run_spider(self, rule_name, update):
+def run_spider(self, rule_name, update, dealer=False):
     logger = get_task_logger('run_spider')
     spider_name = 'default'
     spider_class_name = '{0}AutoSpider'.format(
@@ -29,10 +29,10 @@ def run_spider(self, rule_name, update):
     spider_class = create_spider_class(spider_class_name, spider_name)
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
     rule = import_rule(rule_name)
-    crawl(self, logger, logfile, spider_class, rule, rule_name, update)
+    crawl(self, logger, logfile, spider_class, rule, rule_name, update, dealer)
 
 
-def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
+def crawl(self, logger, logfile, spider_class, rule, rule_name, update, dealer=False):
     domain = rule['domain']
     pidfile = os.path.join(self.log_dir, domain + '.pid')
     pid = str(os.getpid())
@@ -49,7 +49,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
     # if has one process run..
     has_run = os.path.exists(pidfile)
     jobdir2 = None
-    if has_run:
+    if has_run and not dealer:
         if is_full:
             time.sleep(30)
         # ganji.com 58.com baixing.com '51auto.com', 'taoche.com'
@@ -71,7 +71,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
     name = '%s.%s' % (spider_class.name, pid)
     spider_class.name = name
     crawler.spiders._spiders[name] = spider_class
-    spargs = {'rule_name': rule_name, 'update': update}
+    spargs = {'rule_name': rule_name, 'update': update, 'dealer': dealer}
     spider = crawler.spiders.create(name, **spargs)
     with open(pidfile, "w") as f:
         f.write(pid + os.linesep)
@@ -95,7 +95,7 @@ def crawl(self, logger, logfile, spider_class, rule, rule_name, update):
 
 
 @app.task(name="run_full_spider", bind=True, base=GPJSpiderTask)
-def run_full_spider(self, rule_name, update):
+def run_full_spider(self, rule_name, update, dealer=False):
     logger = None
     spider_name = 'full'
     spider_class_name = '{0}AutoSpider'.format(
@@ -105,11 +105,11 @@ def run_full_spider(self, rule_name, update):
     logfile = self.log_dir + '/{0}.log'.format(spider_name)
     rule = import_full_rule(rule_name)
     rule_name = 'full.' + rule_name
-    crawl(self, logger, logfile, spider_class, rule, rule_name, update)
+    crawl(self, logger, logfile, spider_class, rule, rule_name, update, dealer)
 
 
 @app.task(name="run_incr_spider", bind=True, base=GPJSpiderTask)
-def run_incr_spider(self, rule_name, update):
+def run_incr_spider(self, rule_name, update, dealer=False):
     logger = None
     spider_name = 'incr'
     spider_class_name = '{0}AutoSpider'.format(
@@ -118,11 +118,11 @@ def run_incr_spider(self, rule_name, update):
     spider_class = create_incr_spider_class(spider_class_name, spider_name)
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
     rule = import_incr_rule(rule_name)
-    crawl(self, logger, logfile, spider_class, rule, rule_name, update)
+    crawl(self, logger, logfile, spider_class, rule, rule_name, update, dealer)
 
 
 @app.task(name="run_update_spider", bind=True, base=GPJSpiderTask)
-def run_update_spider(self, rule_name, update):
+def run_update_spider(self, rule_name, update, dealer=False):
     logger = None
     spider_name = 'update'
     spider_class_name = '{0}AutoSpider'.format(
@@ -131,7 +131,7 @@ def run_update_spider(self, rule_name, update):
     spider_class = create_update_spider_class(spider_class_name, spider_name)
     logfile = self.log_dir + '/{0}.log'.format(spider_class.name)
     rule = import_update_rule(rule_name)
-    crawl(self, logger, logfile, spider_class, rule, rule_name, update)
+    crawl(self, logger, logfile, spider_class, rule, rule_name, update, dealer)
 
 
 @app.task(name="run_all_spider_update", bind=True, base=GPJSpiderTask)

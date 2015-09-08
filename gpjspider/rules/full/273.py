@@ -114,6 +114,12 @@ item_rule = {
                 u'//*[contains(text(), "终点")]/following-sibling::*/@value',
             ),
         },
+        'status': {
+            'xpath': (
+                has(u'车辆已下架'),
+            ),
+            'processors': ['first', '273.status'],
+        },
         'phone': {
             'xpath': (
                 after_has(u'电话', 'strong'),
@@ -259,4 +265,4 @@ rule = {
 }
 
 fmt_rule_urls(rule)
-#rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

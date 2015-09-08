@@ -182,6 +182,13 @@ item_rule = {
             ),
             'processors': ['first', 'youche.maintenance_record'],
         },
+        # 'status': {
+        #     'xpath': (
+        #         '//body/text()',
+        #     ),
+        #     'default': 'Y',
+        #     'processors': ['first', 'youche.status']
+        # },
         'phone': {
             'xpath': (
                 text(id_("linksCallTel")),

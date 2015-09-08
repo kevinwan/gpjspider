@@ -76,7 +76,7 @@ from gpjspider.utils.constants import (
     CLEAN_STATUS,
     CLEAN_MIN_ID,
     PHONE_OCR_BLACKLIST,
-) 
+)
 
 class CleanException(Exception):
     pass

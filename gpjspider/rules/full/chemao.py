@@ -216,6 +216,14 @@ item_rule = {
             'default': u'车辆合法，绝无火烧、水淹',
             'processors': ['chemao.quality_service'],
         },
+        'status': {
+            'xpath': (
+                u'//div[@class="events_mark04"]/img',
+                u'//div[@class="car-status"]/img',
+            ),
+            'processors': ['first', 'chemao.status'],
+            'default': 'Y',
+        },
     },
 }
 
@@ -261,7 +269,9 @@ rule = {
         # 'http://www.chemao.com.cn/show-id-1194395.html',
         # 'http://www.chemao.com.cn/show-id-1201725.html',
         # 'http://www.chemao.com.cn/show-id-1205154.html',  # phone "4001666556转18853"
-        # 'http://www.chemao.com.cn/show-id-1205093.html'
+        # 'http://www.chemao.com.cn/show-id-1210154.html',  # offline
+        # 'http://www.chemao.com.cn/show-id-1210132.html',  # offline
+        # 'http://www.chemao.com.cn/show-id-1153094.html',  # offline
     ],
     'base_url': 'http://www.chemao.com.cn',
     'per_page': 21,

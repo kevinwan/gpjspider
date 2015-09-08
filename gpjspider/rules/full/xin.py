@@ -200,10 +200,14 @@ item_rule = {
             'processors': ['first', 'xin.source_type'],
             'processors': ['xin.source_type'],
         },
-        # 'status': {
-        #     're': ['(sale_bg)'],
-        #     'processors': ['first', 'xin.status'],
-        # }
+        'status': {
+            'xpath': (
+                u'//div[@class="d-photo img-album"]/em',
+                u'//div[@class="error-wrap"]/div[@class="con"]/span[contains(text(),"页面找不到")]',
+            ),
+            'processors': ['first', 'xin.status'],
+            'default': 'Y',
+        }
     },
 }
 
@@ -257,6 +261,7 @@ rule = {
         # 'http://www.xin.com/c/10358862.html',  # 3 Q
         # 'http://www.xin.com/c/10376527.html',  # 3
         # 'http://www.xin.com/c/10585041.html',  # 3
+        # 'http://www.xin.com/c/10296987.html',  # offline
     ],
     'base_url': 'http://www.xin.com',
     'per_page': 20,

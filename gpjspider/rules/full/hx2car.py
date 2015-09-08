@@ -109,13 +109,23 @@ item_rule = {
         'city': {
             'xpath': (
                 text(cls('glance_way', '/p/a[5]')),
+                text(cls('owner_area', '/span')),
             ),
-            'regex': u'(.*?)二手',
+            'processors': ['first', 'hx2car.city'],
+            # 'regex': u'(.*?)二手',
         },
         'region': {
             'xpath': (
                 after_has(u'联系地址'),
             ),
+        },
+        'status': {
+            'xpath': (
+                u'//*[contains(text(),"车辆已过期")]',
+                # '//*[@class="error_zmb"]',
+            ),
+            'default': 'Y',
+            'processors': ['first', 'hx2car.status'],
         },
         'phone': {
             'xpath': (
@@ -254,7 +264,7 @@ rule = {
         'http://hx2car.com/car/tradeallcar/f0000000ytdzsejckbmgl100000',
         #'http://hx2car.com/car/search.htm', # 列表首页、初审
         #'http://hx2car.com/details/143127330', # 个人二手车
-        #'http://hx2car.com/details/142977479', # 精品二手车
+        # 'http://hx2car.com/details/142977479', # 精品二手车
         #'http://hx2car.com/details/143030533', # 商家、精品
         #'http://hx2car.com/details/141568147', # 担保
         # 'http://beijing.hx2car.com/details/143803866'
@@ -262,6 +272,7 @@ rule = {
         # 'http://hx2car.com/details/143766257' # pric,conta,quali,driv,invo
         # 'http://hx2car.com/details/143687094'
         # 'http://hx2car.com/details/143837125' # volume
+        # 'http://hx2car.com/details/143878702' # city
     ],
 
     'parse': parse_rule,

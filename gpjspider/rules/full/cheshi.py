@@ -65,9 +65,9 @@ item_rule = {
         'control': {
             'xpath': (
                 has(u'变速箱', u'/..', u'span[not(contains(text(), "暂无"))]/*'),
-                text(cls('part_h3s')),
+                has(u'变速箱', '/a') + '|' + text(cls('part_h3s')),
             ),
-            'processors': ['first', 'cheshi.control'],
+            'processors': ['join', 'cheshi.control'],
             'regex': u'([手自]{1,2}一?[动体])',
             'regex_fail': None,
         },
@@ -254,6 +254,7 @@ rule = {
         # 'http://2sc.cheshi.com/info/626799.html',  # city like *地区
         # 'http://2sc.cheshi.com/info/1757057.html',  # volume is None
         # 'http://2sc.cheshi.com/info/1765834.html' # imgurls
+        # 'http://2sc.cheshi.com/info/1766391.html',  # control is null
     ],
 
     'parse': parse_rule,

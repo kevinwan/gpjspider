@@ -318,14 +318,16 @@ rule = {
     'base_url': 'http://2sc.sohu.com',
     'per_page': 15,
     'pages': 200,
+    'dealer': {
+        'url': '%sbuycar/',
+    },
 
     'start_urls': [
-        # 'http://2sc.sohu.com/dealer/83136/',
         # 'http://2sc.sohu.com/dealer/225615/buycar/',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g2h0j25k0m0n0s/',
         # 'http://2sc.sohu.com/zj-hz/buycar/carinfo_sohu_1651527.shtml',
         # 'http://2sc.sohu.com/sh/buycar/carinfo_sohu_1498561.shtml',
-        # 'http://2sc.sohu.com/dealer/83457/buycar/',
+        # 'http://2sc.sohu.com/dealer/225615/buycar/',
         'http://2sc.sohu.com/buycar/',
         # 'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g0h3j0k0m0n0/', # 全国二手车
         'http://2sc.sohu.com/buycar/a0b0c0d0e0f0g1h3j0k0m0n0/', # 个人车源

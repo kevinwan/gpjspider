@@ -106,11 +106,18 @@ item_rule = {
             ),
             'regex': u'看车地点：(.*)',
         },
+        'status': {
+            'xpath': (
+                text(cls('sold-out')),
+            ),
+            'processors': ['first', '51auto.status'],
+        },
         'phone': {
             'xpath': (
+                '//input[@id="tels"]/@value',
                 text(id_('contact-tel1', '/p')),
             ),
-            'processors': ['first', '51auto.phone']
+            'processors': ['first']
         },
         'contact': {
             'xpath': (

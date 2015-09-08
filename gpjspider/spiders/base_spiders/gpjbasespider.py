@@ -28,6 +28,7 @@ import math
 from gpjspider.models import UsedCar
 from gpjspider.tasks.clean.usedcars import clean
 import urlparse
+from datetime import datetime, timedelta
 
 
 def debug():
@@ -48,9 +49,10 @@ class GPJBaseSpider(scrapy.Spider):
     _incr_enabled = False
     _is_export = False
 
-    def __init__(self, rule_name, update=False, checker_name=None, *args, **kwargs):
+    def __init__(self, rule_name, update=False, dealer=False, checker_name=None, *args, **kwargs):
         super(GPJBaseSpider, self).__init__(*args, **kwargs)
         self.update = update
+        self.with_dealer = dealer
         self.__rule_path = rule_name
         self.website_rule = {}
         self.domain = None
@@ -70,8 +72,7 @@ class GPJBaseSpider(scrapy.Spider):
         self.new = None
         if not self.website_rule:
             raise ValueError('TODO')
-        # for attr in 'domain update'.split():
-        for attr in 'domain'.split():
+        for attr in 'domain dealer'.split():
             setattr(self, attr, rule.get(attr))
         self._is_export and self.export_incr_rule(rule_name)
         self.Session = get_mysql_connect()
@@ -102,14 +103,42 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                psize = 50
+                psize = 5
                 session = self.Session()
-                # update = 'update open_product_source set status="q" where id in (%s) and status="u";'
-                query = session.query(UsedCar.id, UsedCar.url).filter_by(  # status='u',
-                    domain=self.domain).filter(UsedCar.status.in_(['u']))
+                query = session.query(UsedCar.id, UsedCar.url).filter_by(domain=self.domain, status='u')
+                items = query.limit(psize).all()
+                session.close()
+                while items:
+                    for item in items:
+                        yield Request(item.url, meta=dict(id=item.id), callback=self.parse_detail, dont_filter=True)
+                    session = self.Session()
+                    query = session.query(UsedCar.id, UsedCar.url).filter_by(domain=self.domain, status='u')
+                    items = query.limit(psize).all()
+                    session.close()
+                return
+            elif self.with_dealer:
+                psize = 20
+                dealer = dict(callback=self.parse_list, dont_filter=True)
+                dealer_url = self.dealer.pop('url')
+                dealer = dict(dealer, **self.dealer)
+                session = self.Session()
+                start_time = end_time = datetime.now()
+                # end_time -= timedelta(hours=1)
+                try:
+                    delta = int(self.with_dealer)
+                except:
+                    delta = 0.5
+                start_time -= timedelta(hours=delta * 8)
+                query = session.query(UsedCar.company_url).filter(UsedCar.created_on >= start_time,
+                    UsedCar.created_on < end_time).filter_by(domain=self.domain) \
+                    .filter(UsedCar.company_url != None,
+                        # UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']))\
+                        UsedCar.city.in_(u'北京 成都 南京'.split()))\
+                    .distinct()
+                    # .filter(~UsedCar.company_url.in_([None, ''])).distinct()
                 # print query.count()
                 for item in query.yield_per(psize):
-                    yield Request(item.url, meta=dict(id=item.id), callback=self.parse_detail, dont_filter=True)
+                    yield Request(dealer_url % item.company_url, **dealer)
                 session.close()
                 return
         elif 'start_url_function' in self.website_rule:
@@ -250,10 +279,10 @@ class GPJBaseSpider(scrapy.Spider):
             yield self.get_item(step_rule['item'], response)
             if self.update:
                 cursor = self.get_cursor()
-                cursor.execute('update open_product_source set status="I" where id=%s;' % response.meta['id'])
+                cursor.execute('update open_product_source set status="B" where id=%s and status != "Q";' % response.meta['id'])
                 cursor.close()
-                clean(response.meta['id'], response.meta['id'], [self.domain], 'I')
-                print '\n******************************************'
+                # clean(response.meta['id'], response.meta['id'], [self.domain], 'B')
+                print response.meta['id'], response.url, '\n************************************************'
 
     def get_requests(self, url_rule, response, step_rule=None):
         """
@@ -432,11 +461,11 @@ class GPJBaseSpider(scrapy.Spider):
         new_urls = urls - existed_urls
         new_no = len(new_urls)
         all_no = len(urls)
-        del_no = all_no - new_no
+        # del_no = all_no - new_no
         if new_no:
             self.log(u'Found {0}/{1} items in {2}'.format(new_no, all_no, url))
-        if del_no:
-            self.log(u'Cleaned {0} Existed Urls..'.format(del_no), log.DEBUG)
+        # elif del_no:
+        #     self.log(u'Cleaned {0} Existed Urls..'.format(del_no), log.DEBUG)
         #     min_no = all_no / 3
         #     if new_no > all_no and all_no >= 5:
         #         max_page += 2.1

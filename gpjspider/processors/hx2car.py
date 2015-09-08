@@ -38,8 +38,35 @@ def source_type(value):
 
 
 def volume(value):
-    vol = re.match(u'^(\d+)[LT]?$', value)
-    if vol:
-        return vol.group(1) + '.0'
+    if len(value) < 7:
+        search = re.search(ur'\d+(\.\d+)?', value)
+        if search:
+            val = search.group(0)
+            return str(float(val))
     else:
-        return value
+        value = re.sub(ur'\d+(\.\d+)? *((万公里)|(公里)|里|万)','',value)
+        value = re.sub(ur'\d+(\.\d+)?(Li)','',value)
+        search = re.search(ur'^ *(\d+\.?\d*)[mMlLtT升]+', value) or re.search(ur' (\d+\.\d+)[mMlLtT升]+', value) or re.search(ur'(\d+\.\d+)[mMlLtT升]+', value) or re.search(ur' (\d+\.\d+) +', value) or re.search(ur'(\d+\.\d+) +', value) or re.search(ur'(\d+\.\d+)+', value) or re.search(ur' (\d+\.?\d*)[mMlLtT升] +', value)
+        if search:
+            val = search.group(1)
+            if float(val) > 100:
+                val = float(val)
+                val = math.ceil(val / 100.0)
+                return str(val / 10.0)
+            else:
+                return str(float(val))
+    return 'temp'
+
+
+def city(value):
+    if len(value) >= 6:
+        name = re.search(u'省(.*?)市', value)
+        if name:
+            value = name.group(1)
+    return value
+
+
+def status(value):
+    if value != 'Y':
+        return 'Q'
+    return 'Y'

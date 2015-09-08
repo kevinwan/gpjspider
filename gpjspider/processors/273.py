@@ -13,3 +13,10 @@ def dmodel(value):
             return year.strip() + ' ' + d1.strip()
         return d1
     return value
+
+
+def status(value):
+    if u'车辆已下架' in value:
+        return 'Q'
+    else:
+        return 'Y'

@@ -93,13 +93,16 @@ item_rule = {
                 href(cls('glb-breadcrumb', '/a[3]')),
             ),
         },
-        #'status': {
-            #'xpath': (
-                #attr(cls('details_one', '/strong/img'), 'src'),
-            #),
-            #'processors': ['first', 'xcar.status'],
-            #'default': 'Q',
-        #},
+        'status': {
+            'xpath': (
+                u'//*[contains(@class,"cd-call-sold")]',
+                u'//*[contains(@class,"cd-call-exceed")]',
+                u'//*[contains(@class,"hint clearfix")]//*[contains(text(), "您查看的车源正在审核中或已删除")]',
+                u'//p[@class="gy" and contains(text(), "该车已过有效期")]',
+            ),
+            'processors': ['first', 'iautos.status'],
+            'default': 'Y',
+        },
         'city': {
             'xpath': (
                 #'//meta[@name="location"]/@content',
@@ -262,6 +265,8 @@ rule = {
         #'http://www.iautos.cn/usedcar/4826181.html', # 认证车，但是无厂家认证
         # 'http://www.iautos.cn/usedcar/4963576.html',  # volume is 0.0
         # 'http://www.iautos.cn/usedcar/4952337.html',  # volume is 0.0
+        # 'http://www.iautos.cn/usedcar/4013459.html',  # offline
+        # 'http://www.iautos.cn/usedcar/4013465.html',
     ],
 
     'parse': parse_rule,

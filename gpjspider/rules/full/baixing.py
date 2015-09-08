@@ -175,9 +175,9 @@ item_rule = {
             'default': False
         },
         'source_type': {
-             'xpath': (
-                 text(cls("shop-topic", '/a')),
-             ),
+            'xpath': (
+                text(cls("shop-topic", '/a')),
+            ),
             'default': SOURCE_TYPE_GONGPINGJIA,
             'processors': ['first', 'baixing.source_type'],
         },
@@ -186,27 +186,59 @@ item_rule = {
 
 parse_rule = {
     'url': {
-        'xpath': (
-            '//li[@data-aid]/a/@href',
+        # 'xpath': (
+        #     '//li[@data-aid]/a/@href',
+        # ),
+        # 'contains': '/ershouqiche/',
+        # 'processors': ['clean_param'],
+        're': (
+            r'(http://\w+\.baixing\.com/ershouqiche/a\d+\.html)',
         ),
-        'contains': '/ershouqiche/',
-        'processors': ['clean_param'],
         'step': 'parse_detail',
+    },
+    'list_url': {
+        're': (
+            r'http://www.baixing.com/weishop/w\d+/',
+        ),
+        'format': '{0}ershouqiche/',
+        'step': 'parse_list',
+        'dont_filter': False,
     },
     'next_page_url': {
         'xpath': (
             next_page(),
             href(has_cls('tab-title', '//a')),
-            href(id_('tags', '//a')),
+            # href(id_('tags', '//a')),
         ),
         'format': True,
         'format': {
             '/': True,
             '/': '%(url)s',
-            'http': '{0}ershouqiche/?todayOnly=1',
             'http': '{0}ershouqiche/',
         },
         'step': 'parse',
+    },
+}
+
+parse_list = {
+    'url': {
+        're': (
+            r'http://\w+\.baixing\.com/ershouqiche/a\d+\.html',
+        ),
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'format': {
+            '/': True,
+            '?': '%(url)s./{0}',
+        },
+        'step': 'parse_list',
+        'dont_filter': False,
     },
 }
 
@@ -215,27 +247,32 @@ rule = {
     'domain': 'baixing.com',
     'base_url': 'http://china.baixing.com',
     'base_url': '%(url)s',
+    'per_page': 100,
+    'pages': 100,
+    'dealer': {
+        'url': '%sershouqiche/',
+    },
     'start_urls': [
+        # 'http://www.baixing.com/weishop/w108987333/ershouqiche/',
         'http://www.baixing.com/?changeLocation=yes',
         'http://china.baixing.com/ershouqiche/?imageFlag=1',
         'http://china.baixing.com/ershouqiche/',
-        'http://china.baixing.com/ershouqiche/?cheshang=1', # 品牌车商
-        'http://china.baixing.com/ershouqiche/koala_1/', # 考拉二手车
-        #'http://hangzhou.baixing.com/ershouqiche/a752358447.html', # 有行驶里程、上牌年份、品牌、车型
-        #'http://chenzhou.baixing.com/ershouqiche/a605492920.html', # 排量、变速箱、车辆用途、行驶证、交强险、年检
-        #'http://qiandongnan.baixing.com/ershouqiche/a770089764.html', # 里程、价格是错误的
-        #'http://shangqiu.baixing.com/ershouqiche/a781066618.html', # 有地图、地区
-        #'http://tongling.baixing.com/ershouqiche/a781067063.html', # 无地图、地区
-        #'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
-        #'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volume
-        #'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volume
-        #'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
+        'http://china.baixing.com/ershouqiche/?cheshang=1',  # 品牌车商
+        'http://china.baixing.com/ershouqiche/koala_1/',  # 考拉二手车
+        # 'http://hangzhou.baixing.com/ershouqiche/a752358447.html', # 有行驶里程、上牌年份、品牌、车型
+        # 'http://chenzhou.baixing.com/ershouqiche/a605492920.html', # 排量、变速箱、车辆用途、行驶证、交强险、年检
+        # 'http://qiandongnan.baixing.com/ershouqiche/a770089764.html', # 里程、价格是错误的
+        # 'http://shangqiu.baixing.com/ershouqiche/a781066618.html', # 有地图、地区
+        # 'http://tongling.baixing.com/ershouqiche/a781067063.html', # 无地图、地区
+        # 'http://tongling.baixing.com/ershouqiche/a704844017.html', # 有 model_url
+        # 'http://yantai.baixing.com/ershouqiche/a781067189.html', # control, volume
+        # 'http://quanzhou.baixing.com/ershouqiche/a776601726.html', # volume
+        # 'http://yiyang.baixing.com/ershouqiche/a788264768.html', # 6.2800万元
     ],
-    'per_page': 100,
-    'pages': 100,
-    # 'update': True,
 
     'parse': parse_rule,
+    'parse_list': parse_list,
+    # 'parse': parse_list,
     'parse_detail': {
         "item": item_rule,
     }

@@ -189,6 +189,19 @@ parse_rule = {
         ),
         "step": 'parse_detail',
     },
+    # 'list_url': {
+    #     "re": (
+    #         r'http://\w+\.ganji\.com/ershouche/\d+x\.htm',
+    #     ),
+    #     'format': {
+    #         '/': True,
+    #         '/dealer/': 'http://2sc.sohu.com{0}buycar/',
+    #     },
+    #     'contains': ['dealer'],
+    # 'format': '{0}buycar/',
+    #     'step': 'parse_list',
+    #     'dont_filter': False,
+    # },
     "next_page_url": {
         "xpath": (
             '//*[@class="next"]/@href',
@@ -206,6 +219,23 @@ parse_rule = {
     },
 }
 
+parse_list = {
+    'url': {
+        're': (
+            r'http://\w+\.ganji\.com/ershouche/\d+x\.htm',
+        ),
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
 
 rule = {
     'name': u'赶集二手车',
@@ -214,7 +244,10 @@ rule = {
     'base_url': '%(url)s',
     'per_page': 100,
     'pages': 40,
-    # 'update': True,
+    'dealer': {
+        'url': '%s/?mod=car_source',
+        # 'callback': 'parse_list',
+    },
     'start_urls': [
         'http://www.ganji.com/ershouche/',
         'http://www.ganji.com/index.htm',
@@ -229,7 +262,7 @@ rule = {
     ],
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }
