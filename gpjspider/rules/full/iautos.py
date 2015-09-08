@@ -239,6 +239,14 @@ parse_rule = {
         #'format': True,
         'step': 'parse_detail',
     },
+    'list_url': {
+        're': (
+            r'http://www.iautos.cn/shop/\d+',
+        ),
+        'format': '{0}/sellcar.html?sort=9',
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
     'next_page_url': {
         "xpath": (
             next_page(),

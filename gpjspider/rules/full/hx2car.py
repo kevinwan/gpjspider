@@ -251,10 +251,32 @@ parse_rule = {
 }
 
 
+# parse_list = {
+#     'url': {
+#         're': (
+#             r'http://\w*\.?hx2car\.com/details/\d+',
+#         ),
+#         'step': 'parse_detail',
+#     },
+#     'next_page_url': {
+#         'xpath': (
+#             next_page(),
+#         ),
+#         'excluded': ['javascript'],
+#         'format': True,
+#         'step': 'parse_list',
+#         'dont_filter': False,
+#     },
+# }
+
+
 rule = {
     'name': u'华夏二手车',
     'domain': 'hx2car.com',
     'base_url': 'http://hx2car.com',
+    # 'dealer': {
+    #     'url': '%scar.html',
+    # },
     'start_urls': [
         # 'http://hx2car.com/car/verify/f0010000ytdzsejckbmgl100000',
         'http://hx2car.com/car/verify/f0000000ytdzsejckbmgl100000',

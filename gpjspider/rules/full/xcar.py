@@ -119,6 +119,7 @@ item_rule = {
         },
         'phone': {
             'xpath': (
+                after_has(u'联系电话'),
                 attr(cls('details_one', '/strong/img'), 'src'),
             ),
             'format': True,
@@ -245,10 +246,33 @@ parse_rule = {
 }
 
 
+parse_list = {
+    'url': {
+        're': (
+            r'/shop/\d+.htm',
+        ),
+        'format': True,
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
+
+
 rule = {
     'name': u'爱卡汽车',
     'domain': 'used.xcar.com.cn',
     'base_url': 'http://used.xcar.com.cn',
+    'dealer': {
+        'url': '%s',
+    },
     'start_urls': [
         # 'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time&page=2',
         'http://used.xcar.com.cn/search/0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0?sort=f5time',
@@ -265,10 +289,11 @@ rule = {
         # 'http://used.xcar.com.cn/shop/3186290.htm' # volume='-''
         # 'http://used.xcar.com.cn/shop/3227189.htm' # price
         # 'http://used.xcar.com.cn/shop/3237295.htm',  # model_slug is 'V'
+        # 'http://used.xcar.com.cn/shop/3270030.htm' # 联系电话
     ],
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }

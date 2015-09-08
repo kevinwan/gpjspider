@@ -247,10 +247,37 @@ parse_rule = {
 }
 
 
+parse_list = {
+    'url': {
+        're': (
+            r'http://www.51auto.com/buycar/\d+.html',
+        ),
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'format': '{url}',
+        'format': '%(url)s',
+        'regex': '(\d+)',
+        'replace': ['(curentPage=\d+)', 'curentPage={0}'],
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
+
+
 rule = {
     'name': u'51汽车',
     'domain': '51auto.com',
     'base_url': 'http://www.51auto.com',
+    'dealer': {
+        'url': 'http://www.51auto.com/control/VehiclesList?id=%s',
+        'regex': r'dealers/(\d+)'
+    },
     'start_urls': [
         # 'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&status=3&isPicture=1&curentPage=1&isgotopage=1',
         'http://www.51auto.com/quanguo/pabmdcigf?searchtype=searcarlist&orderValue=record_time&curentPage=1&isgotopage=1',
@@ -273,7 +300,7 @@ rule = {
     'pages': 3000,
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }
