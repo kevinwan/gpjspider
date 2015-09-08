@@ -50,6 +50,9 @@ CLEAN_STATUS='Y' #
 # if it is not 0, will use as min id
 CLEAN_MIN_ID=0
 USE_CELERY_TO_SAVE_CARSOURCE=True
+#USE_CELERY_TO_SAVE_CARSOURCE=False
+SLEEP_BETWEEN_BATCH=1
+SLEEP_BETWEEN_DELAY=0.2
 # when we need to clean old needed status items, use the following criteria
 if 0:
     CLEAN_STATUS=','.join([
