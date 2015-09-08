@@ -16,3 +16,4 @@ sftp-config.json
 fabfile.py
 local_*_settings.py
 local_*.py
+local_*.sh
