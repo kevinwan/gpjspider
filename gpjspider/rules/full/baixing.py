@@ -251,6 +251,8 @@ rule = {
     'pages': 100,
     'dealer': {
         'url': '%sershouqiche/',
+        # 'url': 'http://www.baixing.com/weishop/w%s/ershouqiche/',
+        # 'regex': '(\d+)',
     },
     'start_urls': [
         # 'http://www.baixing.com/weishop/w108987333/ershouqiche/',
