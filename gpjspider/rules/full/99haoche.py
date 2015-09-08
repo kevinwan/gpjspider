@@ -209,6 +209,13 @@ parse_rule = {
         ),
         "step": 'parse_detail',
     },
+    'list_url': {
+        're': (
+            r'http://www.99haoche.com/quanguo/all/?p=\w+',
+        ),
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
     "next_page_url": {
         "xpath": (
             '//a[@id="pagenow"]/following-sibling::a[1]/@href',
@@ -219,10 +226,30 @@ parse_rule = {
     },
 }
 
+parse_list = {
+    'url': {
+        're': (
+            r'http://www\.99haoche\.com/car/\d+\.html',
+        ),
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        "xpath": (
+            '//a[@id="pagenow"]/following-sibling::a[1]/@href',
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
 
 rule = {
     'name': u'99好车',
     'domain': '99haoche.com',
+    'dealer': {
+        'url': '%s',
+    },
     'start_urls': [
         'http://www.99haoche.com/quanguo/all/?p=v1',
         # 'http://www.99haoche.com/car/4496344.html',
@@ -236,6 +263,8 @@ rule = {
     # 'update': True,
 
     'parse': parse_rule,
+
+    'parse_list': parse_list,
 
     'parse_detail': {
         "item": item_rule,

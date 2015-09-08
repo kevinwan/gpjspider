@@ -231,9 +231,31 @@ list_rule = {
     },
 }
 
+parse_list = {
+    'url': {
+        're': (
+            r'/c/\d+\.html',
+        ),
+        'format': True,
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
+
 rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
+    'dealer': {
+        'url': '%s',
+    },
     'start_urls': [
         # 'http://www.xin.com/quanguo/s/o2a10i600v1/',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
@@ -269,6 +291,8 @@ rule = {
     # 'update': True,
 
     'parse': list_rule,
+
+    'parse_list': parse_list,
 
     'parse_detail': {
         "item": item_rule,
