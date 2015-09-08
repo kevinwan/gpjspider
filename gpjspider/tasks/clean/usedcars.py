@@ -307,15 +307,16 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
                 start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
         start_time = str(start_date)[:10]
         # print start_time
-        sql = session.query(UsedCar.id).filter(
+        from sqlalchemy import func as query_func
+        sql = session.query(query_func.min(UsedCar.id).label('min_id')).filter(
             UsedCar.created_on >= start_time+' 00:00:00',
-            UsedCar.created_on <= start_time+' 23:59:59',
-            #UsedCar.domain.in_(domains),
+            #UsedCar.created_on <= start_time+' 23:59:59',
+            UsedCar.domain.in_(domains),
             UsedCar.status.in_(statuss),
-        ).filter_by(source=1).order_by('id')
+        ).filter_by(source=1)
         log('get min id by start_time:%s, statuss:%s, domains:%s' % (start_time, statuss, domains))
         try:
-            min_id = sql.first().id
+            min_id = sql.scalar()
         except Exception as e:
             session.close()
             log('Done,missing min_id', e.message)
@@ -335,14 +336,15 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         max_id = 0
         if end_date:
             end_time = str(end_date)[:10]
-            sql = session.query(UsedCar.id).filter(
-                UsedCar.created_on >= end_time+' 00:00:00',
-                UsedCar.created_on <= end_time+' 23:59:59',
+            from sqlalchemy import func as query_func
+            sql = session.query(query_func.min(UsedCar.id).label('max_id')).filter(
+                #UsedCar.created_on >= end_time+' 00:00:00',
+                UsedCar.created_on >= end_time+' 23:59:59',
                 UsedCar.domain.in_(domains),
                 UsedCar.status.in_(statuss),
-            ).filter_by(source=1).order_by('id')
+            ).filter_by(source=1)
             log('get max id by start_time:%s, statuss:%s, domains:%s' % (end_time, statuss, domains))
-            max_id = sql.first().id
+            max_id = sql.scalar()
         else:
             sql='select id from open_product_source order by id desc limit 1'
             log('get max id by %s' % sql)
