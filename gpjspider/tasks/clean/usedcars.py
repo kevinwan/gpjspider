@@ -17,7 +17,7 @@ from gpjspider.services.cars import get_gpj_detail_model
 from gpjspider.services.cars import get_average_price
 # from gpjspider.services.city import get_gongpingjia_city
 
-from gpjspider.utils.tracker import get_tracker
+#from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.misc import sorted_unique_list
 from gpjspider.utils.constants import (
@@ -75,6 +75,7 @@ from gpjspider.utils.constants import (
     CLEAN_ITEM_HOUR_LIMIT,
     CLEAN_STATUS,
     CLEAN_MIN_ID,
+    CLEAN_MAX_ID,
     PHONE_OCR_BLACKLIST,
 )
 
@@ -289,6 +290,7 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     statuss = status.split(',')
 
     min_id = CLEAN_MIN_ID
+    max_id = CLEAN_MAX_ID
     #print statuss, min_id
     #print 'test done'
     #return
@@ -321,63 +323,33 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
             session.close()
             log('Done,missing min_id', e.message)
             return
-    # created_on>curdate()
-    # created_on between subdate(curdate(), interval 1 day) and curdate() "2015-07-11" <"2015-07-12"
-    # created_on>subdate(now(), interval 2 hour)
-    # select = ('select %s(id) from open_product_source where created_on>subdate(now(), interval %d hour) and source_id=1 '
-    #     # 'and status="%s" '
-    #     'and domain in (\'%s\');'
-    #     )
-    try:
-        # max_id = cursor.execute(select % ('max', CLEAN_ITEM_HOUR_LIMIT,
-        #     #status,
-        #     "','".join(domains)
-        #     )).fetchone()[0]
-        max_id = 0
-        if end_date:
-            end_time = str(end_date)[:10]
-            from sqlalchemy import func as query_func
-            sql = session.query(query_func.min(UsedCar.id).label('max_id')).filter(
-                #UsedCar.created_on >= end_time+' 00:00:00',
-                UsedCar.created_on >= end_time+' 23:59:59',
-                UsedCar.domain.in_(domains),
-                UsedCar.status.in_(statuss),
-            ).filter_by(source=1)
-            log('get max id by start_time:%s, statuss:%s, domains:%s' % (end_time, statuss, domains))
-            max_id = sql.scalar()
-        else:
-            sql='select id from open_product_source order by id desc limit 1'
-            log('get max id by %s' % sql)
-            max_id = session.execute(sql).fetchone()[0]
-        if not max_id:
-            raise Exception('max id is not created')
-    except Exception as e:
-        print e
-        session.close()
-        get_task_logger().error('no max_id', exc_info=True)
-        log('no max id')
-        return
+    if not max_id:
+        try:
+            max_id = 0
+            if end_date:
+                end_time = str(end_date)[:10]
+                from sqlalchemy import func as query_func
+                sql = session.query(query_func.min(UsedCar.id).label('max_id')).filter(
+                    UsedCar.created_on >= end_time+' 23:59:59',
+                    UsedCar.domain.in_(domains),
+                    UsedCar.status.in_(statuss),
+                ).filter_by(source=1)
+                log('get max id by start_time:%s, statuss:%s, domains:%s' % (end_time, statuss, domains))
+                max_id = sql.scalar()
+            else:
+                sql='select id from open_product_source order by id desc limit 1'
+                log('get max id by %s' % sql)
+                max_id = session.execute(sql).fetchone()[0]
+            if not max_id:
+                raise Exception('max id is not created')
+        except Exception as e:
+            print e
+            session.close()
+            get_task_logger().error('no max_id', exc_info=True)
+            log('no max id')
+            return
     print min_id,max_id
     # return
-    # min_id = 21711200 # 17547311 20052220 21252445
-    # max_id = 22470882
-    # min_id, max_id = 21588122, 21588667
-    # min_id, max_id = 21861584, 21921761
-    # min_id, max_id = 21203289, 21693372
-    # min_id, max_id = 21403289, 21693372
-    # min_id, max_id = 21693372, 21784860
-    # min_id, max_id = 21876718, 21876719
-    # min_id, max_id = 21877089, 21877090
-    # min_id, max_id = 21877089, 22028667
-    # min_id, max_id = 21889949, 22028667
-    # min_id, max_id = 21289949, 21877089
-    # min_id, max_id = 21877164, 21877165
-    # min_id, max_id = 22857674, 22857684
-    # min_id, max_id = 23628009, 23818197
-    # min_id, max_id = 23627225, 23798031
-    # min_id = 23778888
-    # max_id = 23778889
-    # id_range = 2000
     id_range = 5000
     # id_range = 10000
     # id_range = 20000
@@ -559,9 +531,7 @@ def match_dealer(item, reraise=False):
         if not dealer_id:
             raise MatchDealerException('EmptyRawSeller')
     except MatchDealerException as e:
-        try:
-            get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
-        except:pass
+        get_task_logger().error('match dealer error', exc_info=True)
         if reraise:
             raise e
         print e.message
@@ -570,12 +540,9 @@ def match_dealer(item, reraise=False):
         for k, v in tags.items():
             print k, v
     except Exception as e:
-        try:
-            get_tracker().captureException(extra=ctx, tags=tags)
-        except:pass
+        get_task_logger().error('match dealer error', exc_info=True)
         if reraise:
             raise e
-        print e.message
     finally:
         session.close()
     if not reraise:
@@ -717,10 +684,7 @@ def clean_trade_car(items, do_not_push=False):
                 ctx['detail']=detail
             del f
             del detail
-            try:
-                get_tracker().captureMessage(e.message, extra=ctx, tags=tags)
-            except:
-                get_task_logger().error('clean error %s' % sid, exc_info=True)
+            get_task_logger().error('clean error %s' % sid, exc_info=True)
             # if do_not_push:
             #     ipdb.set_trace()
             # get_task_logger('clean_trade_car').error('clean fail for %s' % code, exc_info=True, extra=ctx)
@@ -733,10 +697,7 @@ def clean_trade_car(items, do_not_push=False):
                 session.commit()
             # print 'new clean_trade_car on'
         except Exception as e:
-            try:
-                get_tracker().captureException()
-            except:
-                get_task_logger().error('uncaught error %s' % sid, exc_info=True)
+            get_task_logger().error('uncaught error %s' % sid, exc_info=True)
         finally:
             session.close()
     log('clean_trad_car done')
@@ -1074,7 +1035,7 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
             #     get_tracker().captureMessage('IS_DUP_CAR', extra=item)
             item_is_trade_car,errors=is_trade_car(item, True)
             if item_is_trade_car:
-                    push_trade_car(item, sid, session)
+                push_trade_car(item, sid, session)
             else:
                 log('is_trade_car, false', errors,sid)
 
