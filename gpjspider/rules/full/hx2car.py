@@ -119,6 +119,14 @@ item_rule = {
                 after_has(u'联系地址'),
             ),
         },
+        'status': {
+            'xpath': (
+                u'//*[contains(text(),"车辆已过期")]',
+                # '//*[@class="error_zmb"]',
+            ),
+            'default': 'Y',
+            'processors': ['first', 'hx2car.status'],
+        },
         'phone': {
             'xpath': (
                 text(cls('context_car')),
@@ -256,7 +264,7 @@ rule = {
         'http://hx2car.com/car/tradeallcar/f0000000ytdzsejckbmgl100000',
         #'http://hx2car.com/car/search.htm', # 列表首页、初审
         #'http://hx2car.com/details/143127330', # 个人二手车
-        #'http://hx2car.com/details/142977479', # 精品二手车
+        # 'http://hx2car.com/details/142977479', # 精品二手车
         #'http://hx2car.com/details/143030533', # 商家、精品
         #'http://hx2car.com/details/141568147', # 担保
         # 'http://beijing.hx2car.com/details/143803866'

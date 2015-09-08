@@ -27,3 +27,9 @@ def examine_insurance(value):
     2016年04月
     """
     return value.replace(u'年', u'-').replace(u'月', u'')
+
+
+def status(value):
+    if value == '\r\nerror\r\n\r\n\r\n':
+        return 'Q'
+    return 'Y'

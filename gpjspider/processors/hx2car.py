@@ -64,3 +64,9 @@ def city(value):
         if name:
             value = name.group(1)
     return value
+
+
+def status(value):
+    if value != 'Y':
+        return 'Q'
+    return 'Y'
