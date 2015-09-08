@@ -120,6 +120,10 @@ class GPJBaseSpider(scrapy.Spider):
                 psize = 20
                 dealer = dict(callback=self.parse_list, dont_filter=True)
                 dealer_url = self.dealer.pop('url')
+                reg = None
+                if 'regex' in self.dealer:
+                    reg = self.dealer.pop('regex')
+
                 dealer = dict(dealer, **self.dealer)
                 session = self.Session()
                 start_time = end_time = datetime.now()
@@ -138,7 +142,12 @@ class GPJBaseSpider(scrapy.Spider):
                     # .filter(~UsedCar.company_url.in_([None, ''])).distinct()
                 # print query.count()
                 for item in query.yield_per(psize):
-                    yield Request(dealer_url % item.company_url, **dealer)
+                    url = item.company_url
+                    if reg:
+                        match = re.findall(reg, url)
+                        if match:
+                            url = match[0]
+                    yield Request(dealer_url % url, **dealer)
                 session.close()
                 return
         elif 'start_url_function' in self.website_rule:
