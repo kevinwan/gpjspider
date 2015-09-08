@@ -353,12 +353,32 @@ parse_rule = {
     },
 }
 
+
+parse_list = {
+    "url": {
+        're': (
+            r'http://\w+\.58\.com/ershouche/\d+x\.shtml',
+        ),
+        'step': 'parse_detail',
+    },
+    "next_page_url": {
+        "xpath": (
+            u'//a[@class="next"]/span[contains(text(), "下一页")]/../@href',
+        ),
+        'format': '%(url)s',
+        "step": 'parse_list',
+    },
+}
+
+
 rule = {
     'name': u'58同城',
     'domain': '58.com',
     'base_url': 'http://quanguo.58.com',
     'base_url': '%(url)s',
-
+    'dealer': {
+        'url': '%sinformation/',
+    },
     'start_urls': [
         'http://www.58.com/ershouche/changecity/',
         'http://quanguo.58.com/ershouche/',
@@ -398,6 +418,7 @@ rule = {
     ],
 
     'parse': parse_rule,
+    'parse_list': parse_list,
 
     'parse_detail': {
         "item": item_rule,
