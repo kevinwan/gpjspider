@@ -2,6 +2,7 @@
 
 from gpjspider.utils.constants import *
 from .utils import *
+# import re
 
 _has = lambda x: has(x, '/..')
 
@@ -269,6 +270,14 @@ parse_rule = {
         'update': True,
         'category': 'usedcar'
     },
+    # 'list_url': {
+    #     'xpath': (
+    #         u'//div[@class="sm-part1 recom-merchant"]//div[@class="recon-mer-dt "]//a/@href',
+    #     ),
+    #     'format': '',
+    #     'step': 'parse_list',
+    #     'dont_filter': False,
+    # },
     'next_page_url': {
         'xpath': (
             '//a[@class="page-item-next"]/@href',
@@ -281,12 +290,39 @@ parse_rule = {
 }
 
 
+# parse_list = {
+#     'url': {
+#         'xpath': (
+#             '//*[@class="piclist piclist-990"]//div[@class="pic"]/a[@href]/@href',
+#         ),
+#         'excluded': ['/autonomous/'],
+#         'format': True,
+#         'processors': ['clean_anchor'],
+#         'step': 'parse_detail',
+#         'update': True,
+#         'category': 'usedcar'
+#     },
+#     'next_page_url': {
+#         'xpath': (
+#             '//a[@class="page-item-prev"]/@href',
+#         ),
+#         'format': True,
+#         'processors': ['clean_anchor'],
+#         'step': 'parse_list',
+#     },
+# }
+
+
 rule = {
     'name': u'二手车之家',
     'domain': 'che168.com',
     'base_url': 'http://www.che168.com',
     'per_page': 20,
     'pages': 2000,
+    # 'dealer': {
+    #     'url': 'http://dealer.che168.com/shop/%s/list/',
+    #     'regex': 'dealer/(\d+)\.html',
+    # },
     'start_urls': [
         # 'http://m.che168.com/china/0-0-0-6-1-0-00/',
         # 'http://m.che168.com/china/1-0-0-6-1-0-00/',
@@ -306,7 +342,7 @@ rule = {
     ],
 
     'parse': parse_rule,
-
+    # 'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }

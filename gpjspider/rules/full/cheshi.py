@@ -13,6 +13,7 @@ item_rule = {
         'title': {
             'xpath': (
                 text(cls('part_h3s')),
+                # text(cls('f18 gray3')),
             ),
             'required': True,
         },
@@ -108,9 +109,11 @@ item_rule = {
                 #'//*[@class="sc-bread"]/a[last()-2]/text()',
                 after_has(u'上牌地区', 'a[2]'),
                 after_has(u'上牌地区', 'a'),
+                # has(u'所在地区', '/..'),
             ),
             'before': u'地区',
             #'regex': u'(.*?)二手',
+            # 'processors': ['first', 'cheshi.city'],
         },
         'region': {
             'xpath': (
@@ -227,12 +230,25 @@ parse_rule = {
 }
 
 
+# parse_list = {
+#     'url': {
+#         're': (
+#             r'http://seller.cheshi.com/\d+/ersc_\d+\.html',
+#         ),
+#         'step': 'parse_detail',
+#     },
+# }
+
+
 rule = {
     'name': u'网上车市',
     'domain': 'cheshi.com',
     'base_url': 'http://2sc.cheshi.com',
+    # 'dealer': {
+    #     'url': '%sersclist.html',
+    # },
     'start_urls': [
-        'http://2sc.cheshi.com/china/?order=5', # 时间降序
+        'http://2sc.cheshi.com/china/?order=5',  # 时间降序
         'http://2sc.cheshi.com/china/s1/?order=5',
         'http://2sc.cheshi.com/china/s2/?order=5',
         'http://2sc.cheshi.com/china/s3/?order=5',
@@ -258,6 +274,7 @@ rule = {
     ],
 
     'parse': parse_rule,
+    # 'parse_list': parse_list,
 
     'parse_detail': {
         "item": item_rule,
