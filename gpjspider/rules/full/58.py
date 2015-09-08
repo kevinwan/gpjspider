@@ -38,6 +38,7 @@ item_rule = {
             'xpath': (
                 text(cls('h1')),
                 text(id_('cardes')),
+                '(//h1)[1]/text()',
             ),
             'required': True,
         },
@@ -393,6 +394,7 @@ rule = {
         # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
         # 'http://hf.58.com/ershouche/23154792809890x.shtml',  # volume is 6.0 and volume is null
         # 'http://jining.58.com/ershouche/23161636613283x.shtml' #双离合
+        # 'http://bj.58.com/ershouche/23255330806154x.shtml' # title
     ],
 
     'parse': parse_rule,

@@ -21,25 +21,27 @@ def parse_args():
     parser.add_argument(
         "-u", "--update", default=False, help="是否更新，False/True，默认False")
     parser.add_argument(
+        "-wd", "--with_dealer", default=False, help="是否更新dealer，False/True，默认False")
+    parser.add_argument(
         "-p", "--update_price", default=False, help="是否只更新价格指数，False/True，默认False")
     args = parser.parse_args()
     return args
 
 
-def main(name='test', type_='incr', update=False):
+def main(name='test', type_='incr', update=False, with_dealer=False):
     # import ipdb;ipdb.set_trace()
     sid = None
     act = None
     try:
-        act,sid = re.search(r'^(\.|%)([a-zA-Z0-9,\.-]+)$', name).groups()
+        act, sid = re.search(r'^(\.|%)([a-zA-Z0-9,\.-]+)$', name).groups()
     except:
         pass
 
     if act and sid:
         if sid.isdigit() or ',' in sid:
-            if act=='.':
+            if act == '.':
                 method = clean_item
-            elif act=='%':
+            elif act == '%':
                 method = match_item_dealer
             return [method(int(_sid)) for _sid in sid.split(',')]
         else:
@@ -52,9 +54,9 @@ def main(name='test', type_='incr', update=False):
         test = GPJSpider('ganji')
     else:
         try:
-            eval('run_%s_spider' % type_)(name, update)
+            eval('run_%s_spider' % type_)(name, update, with_dealer)
         except:
-            run_spider('%s.%s' % (type_, name), update)
+            run_spider('%s.%s' % (type_, name), update, with_dealer)
 
 
 def setup_logging(log_filename=''):
@@ -68,11 +70,12 @@ def setup_logging(log_filename=''):
         level=logging.DEBUG,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     )
-    logging.getLogger('requests').handlers=[]
+    logging.getLogger('requests').handlers = []
     return
     logger = logging.getLogger('clean')
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
@@ -87,16 +90,12 @@ def setup_logging(log_filename=''):
 if __name__ == '__main__':
     args = parse_args()
     name = args.site
-    type_ = args.dtype
-    update = args.update
-    update_price = args.update_price
-    # ipdb.set_trace()
-    if update_price:
+    if args.update_price:
         update_eval_price_and_gpj_index(name)
     else:
         if name == '.' or name.startswith('.'):
             setup_logging(args.logger)
-        main(name, type_, update)
+        main(name, args.dtype, args.update, args.with_dealer)
     # 服务器状态不是很稳定，展示不要把所有log发过去，处理不过来
     # if args.logger=='sentry':
     #     from gpjspider.utils.tracker import hook_logger
