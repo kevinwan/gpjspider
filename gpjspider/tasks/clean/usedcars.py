@@ -23,6 +23,8 @@ from gpjspider.utils.misc import sorted_unique_list
 from gpjspider.utils.constants import (
     QINIU_IMG_BUCKET,
     USE_CELERY_TO_SAVE_CARSOURCE,
+    SLEEP_BETWEEN_BATCH,
+    SLEEP_BETWEEN_DELAY,
 )
 from gpjspider.utils.phone_parser import ConvertPhonePic2Num
 from gpjspider.utils import get_mysql_connect, get_mysql_cursor as get_cursor
@@ -33,6 +35,7 @@ from threading import Thread, Lock
 
 import threading
 import re
+import os
 try:
     import ipdb
 except ImportError:
@@ -286,29 +289,31 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
     statuss = status.split(',')
 
     min_id = CLEAN_MIN_ID
+    #print statuss, min_id
+    #print 'test done'
+    #return
+    end_date=''
     if not min_id:
-        start_date = datetime.today()
-        if CLEAN_ITEM_HOUR_LIMIT>=24:
-            start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
+        start_date = os.environ.get('CLEAN_START_DATE', '')
+        if start_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d')
+        end_date = os.environ.get('CLEAN_END_DATE', '')
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d')
+
+        if not start_date:
+            start_date = datetime.today()
+            if CLEAN_ITEM_HOUR_LIMIT>=24:
+                start_date -= timedelta(days=CLEAN_ITEM_HOUR_LIMIT/24)
         start_time = str(start_date)[:10]
         # print start_time
         sql = session.query(UsedCar.id).filter(
-            UsedCar.created_on >= start_time,
-            # UsedCar.created_on < str(datetime.now())[:10],
-            # UsedCar.created_on < '2015-07-23',
-            # UsedCar.created_on < '2015-07-27',
-            UsedCar.domain.in_(domains),
-            # UsedCar.created_on >= '2015-07-9',
-            # UsedCar.created_on >= '2015-07-6',
-            # UsedCar.status.in_(['N', 'Y']),
-            #UsedCar.status.in_([status, 'I']),
+            UsedCar.created_on >= start_time+' 00:00:00',
+            UsedCar.created_on <= start_time+' 23:59:59',
+            #UsedCar.domain.in_(domains),
             UsedCar.status.in_(statuss),
-           # UsedCar.id>26630143,
-            #UsedCar.id>26836404,
-            # UsedCar.status.in_([status, 'Y', 'I']),
-        ).filter_by(source=1)
-        #ipdb.set_trace()
-        #.order_by(UsedCar.id.asc())
+        ).filter_by(source=1).order_by('id')
+        log('get min id by start_time:%s, statuss:%s, domains:%s' % (start_time, statuss, domains))
         try:
             min_id = sql.first().id
         except Exception as e:
@@ -327,13 +332,31 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
         #     #status,
         #     "','".join(domains)
         #     )).fetchone()[0]
-        max_id = session.execute('select id from open_product_source order by id desc limit 1').fetchone()[0]
+        max_id = 0
+        if end_date:
+            end_time = str(end_date)[:10]
+            sql = session.query(UsedCar.id).filter(
+                UsedCar.created_on >= end_time+' 00:00:00',
+                UsedCar.created_on <= end_time+' 23:59:59',
+                UsedCar.domain.in_(domains),
+                UsedCar.status.in_(statuss),
+            ).filter_by(source=1).order_by('id')
+            log('get max id by start_time:%s, statuss:%s, domains:%s' % (end_time, statuss, domains))
+            max_id = sql.first().id
+        else:
+            sql='select id from open_product_source order by id desc limit 1'
+            log('get max id by %s' % sql)
+            max_id = session.execute(sql).fetchone()[0]
         if not max_id:
             raise Exception('max id is not created')
-    except:
+    except Exception as e:
+        print e
         session.close()
+        get_task_logger().error('no max_id', exc_info=True)
         log('no max id')
         return
+    print min_id,max_id
+    # return
     # min_id = 21711200 # 17547311 20052220 21252445
     # max_id = 22470882
     # min_id, max_id = 21588122, 21588667
@@ -365,6 +388,9 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
             mid = max_id
         clean(min_id, mid, domains, ','.join(statuss))
         min_id = mid
+        if SLEEP_BETWEEN_BATCH:
+            log('wating %s seconds to continue' % SLEEP_BETWEEN_BATCH)
+            sleep(SLEEP_BETWEEN_BATCH)
         # return
     log('Done')
 
@@ -1056,6 +1082,9 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 log('delay %s to celery to insert carsource' % sid)
                 from gpjspider.tasks.clean import save_to_car_source as save_to_car_source_task
                 save_to_car_source_task.delay(item, is_good)
+                if SLEEP_BETWEEN_DELAY:
+                    log('wating %s seconds to continue' % SLEEP_BETWEEN_DELAY)
+                    sleep(SLEEP_BETWEEN_DELAY)
             else:
                 save_to_car_source(item, is_good)
         except Exception as e:
@@ -1180,6 +1209,7 @@ def is_normalized(item, logger, funcs=None):
                 return error
         return True
     except Exception as e:
+        get_task_logger().error('error when is_normalized %s' % func.__name__, exc_info=True)
         print e, item.get(func.__name__)
 
 
