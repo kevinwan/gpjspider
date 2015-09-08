@@ -228,6 +228,14 @@ parse_rule = {
         #'format': True,
         'step': 'parse_detail',
     },
+    'list_url': {
+        're': (
+            r'http://\w+.web.cn2che.com/',
+        ),
+        'format': '{0}Usedcar',
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
     'next_page_url': {
         "xpath": (
             href(cls('cheyuan', '/ol/li/a')),
@@ -240,10 +248,32 @@ parse_rule = {
 }
 
 
+parse_list = {
+    'url': {
+        're': (
+            r'http://www.cn2che.com/sellcarinfo_\d+.html',
+        ),
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
+
+
 rule = {
     'name': u'中国二手车城',
     'domain': 'cn2che.com',
     'base_url': 'http://www.cn2che.com',
+    'dealer': {
+        'url': '%sUsedCar',
+    },
     'start_urls': [
         'http://www.cn2che.com/buycar/cccpcmp1bcrmplos2/',
         'http://www.cn2che.com/buycar/cccpcmp1bcrmp1lo3s2/', # 全国、最新发布倒序、只看有图
@@ -257,7 +287,7 @@ rule = {
     ],
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }

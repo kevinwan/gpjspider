@@ -240,6 +240,26 @@ parse_rule = {
 }
 
 
+parse_list = {
+    'url': {
+        're': (
+            r'http://\w+\.273\.cn/car/\d+\.html',
+        ),
+        'format': True,
+        'step': 'parse_detail',
+    },
+    'next_page_url': {
+        'xpath': (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'format': True,
+        'step': 'parse_list',
+        'dont_filter': False,
+    },
+}
+
+
 rule = {
     'name': u'273二手车',
     'domain': '273.cn',
@@ -247,6 +267,9 @@ rule = {
     'spider': {
         'domain': '273.cn',
         'download_delay': 2.5,
+    },
+    'dealer': {
+        'url': '%s/os1_otd/',
     },
     'start_urls': [
         # 'http://www.273.cn/os1_otd/?page=119',
@@ -260,7 +283,7 @@ rule = {
     'pages': 300,
 
     'parse': parse_rule,
-
+    'parse_list': parse_list,
     'parse_detail': {
         "item": item_rule,
     }
