@@ -11,7 +11,7 @@ def clean_params(url):
 def get_url_with_time(response, spider):
     _node = '//td[@class="txt" or @class="t"]'
     _url = 'a[@href]/@href'
-    _time = 'span[@class="c_999" or @class="post_time" or @class="post_time"]/text()'
+    _time = 'span[@class="c_999" or @class="post_time"]/text()'
     meta_info = {}
     urls = set()
     nodes = response.xpath(_node)

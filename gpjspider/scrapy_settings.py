@@ -102,7 +102,7 @@ SPIDER_MIDDLEWARES = {
     'gpjspider.contrib.depth.DomainDepthMiddleware': 900,
 }
 DOMAIN_DEPTHS = {
-    '58.com': 4,
+    '58.com': 6,
     'ganji.com': 6,
     'baixing.com': 4,
     'xin.com': 5,

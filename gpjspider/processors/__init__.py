@@ -648,7 +648,7 @@ u'2015\\u6b3e 2.0T \\u624b\\u81ea\\u4e00\\u4f53 \\u65d7\\u8230\\u578b (\\u56fd\\
 def imgurls(value):
     if value:
         new_img_list = set(value.split())
-        value = ' '.join(new_img_list)
+        # value = ' '.join(new_img_list)
         if len(new_img_list) == 1 and value.endswith('.gif'):
             value = None
         return value
