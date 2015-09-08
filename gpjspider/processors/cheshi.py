@@ -64,8 +64,6 @@ def phone(value):
     return value and value[0] or None
 
 def volume(value):
-    if isinstance(value, basestring):
-        value = [value]
     value.reverse()
     a = re.compile(r'(\d\.\d)').findall(' '.join(value))
     return a and a[-1] or '0'
@@ -84,12 +82,4 @@ def control(value):
 def mile(value):
     if '0.00' in value:
         value = u'0.01万公里'
-    return value
-
-def city(value):
-    for city in [u'北京',u'上海',u'重庆',u'天津']:
-        if city in value:
-            value = city
-    if '-' in value:
-        value = value.split('-')[1]
     return value

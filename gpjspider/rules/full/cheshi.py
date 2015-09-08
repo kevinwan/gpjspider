@@ -13,7 +13,6 @@ item_rule = {
         'title': {
             'xpath': (
                 text(cls('part_h3s')),
-                text(cls('f18 gray3')),
             ),
             'required': True,
         },
@@ -55,12 +54,10 @@ item_rule = {
                 has(u'排量', '/..', u'span[not(contains(text(), "暂无"))]/*'),
                 has(u'排量', '/a') + '|' + text(cls('part_h3s')),
             ),
-            'default': '%(title)s',
             'processors': ['cheshi.volume'],
         },
         'color': {
             'xpath': (
-                has(u'外观颜色', '/..'),
                 '//title/text()',
             ),
             'processors': ['first', 'cheshi.color'],
@@ -77,7 +74,6 @@ item_rule = {
         'price': {
             'xpath': (
                 before_has(u'万元'),
-                after_has(u'价格'),
             ),
         },
         # 'price_bn': {
@@ -112,10 +108,8 @@ item_rule = {
                 #'//*[@class="sc-bread"]/a[last()-2]/text()',
                 after_has(u'上牌地区', 'a[2]'),
                 after_has(u'上牌地区', 'a'),
-                has(u'所在地区', '/..'),
             ),
             'before': u'地区',
-            'processors': ['first', 'cheshi.city'],
         },
         'region': {
             'xpath': (
@@ -138,15 +132,12 @@ item_rule = {
         'company_name': {
             'xpath': (
                 text(cls('dealer-list clearfix mt', '/p[1]/strong/a')),
-                text(cls('name')),
             ),
         },
         'company_url': {
             'xpath': (
                 href(cls('dealer-list clearfix mt', '/p[1]/strong/a')),
-                href(cls('name')),
             ),
-            'format': True,
         },
         'driving_license': {
             'xpath': (
@@ -179,14 +170,12 @@ item_rule = {
                 #'//*[@class="contentdiv"]//img/@src',
                 '//*[@class="explain clearfix"]/following-sibling::p//@src',
                 '//*[@class="dl01 clearfix"]//@src',
-                '//*[@class="w470"]//@src',
             ),
             'processors': ['join'],
         },
         'mandatory_insurance': {
             'xpath': (
                 has(u'交强险', '/..'),
-                after_has(u'保险'),
             ),
         },
         # 'business_insurance': {
@@ -197,7 +186,6 @@ item_rule = {
         'examine_insurance': {
             'xpath': (
                 has(u'年审到期', '/..'),
-                after_has(u'年审'),
             ),
         },
         'transfer_owner': {
@@ -241,8 +229,9 @@ parse_rule = {
 parse_list = {
     'url': {
         're': (
-            r'http://seller.cheshi.com/\d+/ersc_\d+\.html',
+            r'http://seller.cheshi.com/\d+/ersc_(\d+\.html)',
         ),
+        'format': 'http://2sc.cheshi.com/info/{0}',
         'step': 'parse_detail',
     },
 }
