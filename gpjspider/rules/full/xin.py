@@ -211,7 +211,7 @@ item_rule = {
     },
 }
 
-list_rule = {
+parse_rule = {
     "url": {
         "xpath": (
             url(has_cls('car-box', '//p')),
@@ -246,7 +246,7 @@ parse_list = {
         'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 
@@ -290,7 +290,7 @@ rule = {
     'pages': 18489,
     # 'update': True,
 
-    'parse': list_rule,
+    'parse': parse_rule,
 
     'parse_list': parse_list,
 

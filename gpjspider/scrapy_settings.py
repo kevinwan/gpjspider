@@ -81,7 +81,7 @@ AUTOTHROTTLE_MAX_DELAY = 20
 #==============================================================================
 
 #  代理
-PROXY_USER_PASSWD = ['gaoge:gaoge911911', ]
+PROXY_USER_PASSWD = ['gaoge:Sw21qazX', ]
 PROXIES = [
     'http://us-il.proxymesh.com:31280',
     'http://us.proxymesh.com:31280',
@@ -91,7 +91,7 @@ PROXIES = [
     # 'http://open.proxymesh.com:31280',
 ]
 PROXY_DOMAINS = [
-    '58.com',
+    # '58.com',
     # 'ganji.com',
     # 'baixing.com',
 ]

@@ -214,7 +214,7 @@ parse_rule = {
             r'http://www.99haoche.com/quanguo/all/?p=\w+',
         ),
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
     "next_page_url": {
         "xpath": (
@@ -240,7 +240,7 @@ parse_list = {
         'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 

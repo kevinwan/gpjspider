@@ -202,7 +202,7 @@ parse_rule = {
         ),
         'format': '{0}ershouqiche/',
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
     'next_page_url': {
         'xpath': (
@@ -238,7 +238,7 @@ parse_list = {
             '?': '%(url)s./{0}',
         },
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 

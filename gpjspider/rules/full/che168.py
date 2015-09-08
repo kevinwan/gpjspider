@@ -267,8 +267,6 @@ parse_rule = {
         'format': True,
         'processors': ['clean_anchor'],
         'step': 'parse_detail',
-        'update': True,
-        'category': 'usedcar'
     },
     # 'list_url': {
     #     'xpath': (

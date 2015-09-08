@@ -234,7 +234,7 @@ parse_rule = {
         ),
         'format': '{0}Usedcar',
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
     'next_page_url': {
         "xpath": (
@@ -262,7 +262,7 @@ parse_list = {
         'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
 }
 

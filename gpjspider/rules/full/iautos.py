@@ -245,7 +245,7 @@ parse_rule = {
         ),
         'format': '{0}/sellcar.html?sort=9',
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
     'next_page_url': {
         "xpath": (

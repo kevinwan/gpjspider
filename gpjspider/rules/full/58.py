@@ -380,8 +380,8 @@ rule = {
         'url': '%sinformation/',
     },
     'start_urls': [
-        'http://www.58.com/ershouche/changecity/',
         'http://quanguo.58.com/ershouche/',
+        'http://www.58.com/ershouche/changecity/',
         # 'http://volvo.58.com/ershouche/?sheng=quanguo&city=qg', # 尊沃
         # 'http://faw-vw.58.com/ershouche/?sheng=quanguo&city=qg', # 一汽大众
         # 'http://audi.58.com/ershouche/?sheng=quanguo&city=qg', # 奥迪品鉴

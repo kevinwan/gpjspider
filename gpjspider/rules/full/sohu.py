@@ -261,7 +261,7 @@ parse_rule = {
         'contains': ['dealer'],
         # 'format': '{0}buycar/',
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
     },
     'next_page_url': {
         'xpath': (
@@ -308,7 +308,7 @@ parse_list = {
         'excluded': ['javascript'],
         'format': True,
         'step': 'parse_list',
-        'dont_filter': False,
+        # 'dont_filter': False,
         # 'dont_filter': True,
     },
 }
