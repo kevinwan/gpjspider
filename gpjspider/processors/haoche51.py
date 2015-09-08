@@ -152,7 +152,7 @@ def invoice(value):
 
 
 def status(value):
-    if u'已成交' in value:
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

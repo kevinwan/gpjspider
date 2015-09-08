@@ -42,3 +42,9 @@ def setup_brand(item):
 def get_model_parent(value):
     global BRANDS
     return BRANDS[value]
+
+
+def status(value):
+    if value != 'Y':
+        return 'Q'
+    return 'Y'

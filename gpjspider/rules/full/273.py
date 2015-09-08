@@ -116,9 +116,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                has(u'车辆已下架'),
+                u'//div[@class="tips_shelf"]/strong[contains(text(),"非常抱歉，该车辆已下架")]',
+                u'//div[@id="page404"]/div[@class="tishi" and contains(text(), "后页面自动跳转")]',
             ),
             'processors': ['first', '273.status'],
+            'default': 'Y',
         },
         'phone': {
             'xpath': (

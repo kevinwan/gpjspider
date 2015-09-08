@@ -100,10 +100,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                attr(cls('details_one', '/strong/img'), 'src'),
+                '//i[@class="expired"]',
+                # attr(cls('details_one', '/strong/img'), 'src'),
             ),
             'processors': ['first', 'xcar.status'],
-            'default': 'Q',
+            'default': 'Y',
         },
         'city': {
             'xpath': (

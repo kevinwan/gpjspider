@@ -16,7 +16,7 @@ def dmodel(value):
 
 
 def status(value):
-    if u'车辆已下架' in value:
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

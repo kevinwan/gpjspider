@@ -97,9 +97,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                text(cls('detail-no')),
+                u'//ins[@class="detail-no"]',
+                u'//div[@id="pageError"]',
             ),
             'processors': ['first', 'souche.status'],
+            'default': 'Y',
         },
         # 'contact': {
         #     'xpath': (

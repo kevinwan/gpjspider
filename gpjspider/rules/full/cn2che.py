@@ -102,9 +102,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
+                u'//div[@id="carselled"]/@style',
                 has(u'车辆类型'),
             ),
             'processors': ['first', 'cn2che.status'],
+            'default': 'Y',
         },
         'city': {
             'xpath': (

@@ -50,7 +50,7 @@ def strip_and_join(value):
 
 
 def status(value):
-    if u'已售' in value:
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

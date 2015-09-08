@@ -44,6 +44,7 @@ def condition_level(value):
 
 
 def status(value):
-    if u'看车' in value:
+    if value != 'Y':
+        return 'Q'
+    else:
         return 'Y'
-    return 'Q'

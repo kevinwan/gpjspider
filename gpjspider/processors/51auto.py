@@ -76,7 +76,7 @@ def source_type(value):
 
 
 def status(value):
-    if u'已售出' in value:
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

@@ -15,7 +15,7 @@ def model_slug(value):
     return value
 
 def status(value):
-    if value == 'Q':
+    if value != 'Y':
         return 'Q'
     return 'Y'
 

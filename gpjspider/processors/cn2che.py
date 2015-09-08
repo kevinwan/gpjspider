@@ -22,7 +22,7 @@ def volume(value):
     return 'temp'
 
 def status(value):
-    if u'删除' in value:
+    if 'display:;' in value or u'删除' in value:
         return 'Q'
     else:
         return 'Y'

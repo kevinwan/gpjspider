@@ -205,9 +205,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                exists(id_('sold_button')),
+                u'//button[@id="sold_button"]',
+                u'//div[@class="container error"]//*[contains(text(),"这个页面开车离开网站了")]',
             ),
-            # 'processors': ['first', 'ygche.status'],
+            'processors': ['first', 'renrenche.status'],
+            'default': 'Y',
         },
     },
 }

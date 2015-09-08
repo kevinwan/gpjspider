@@ -70,7 +70,7 @@ def condition_level(value):
 
 
 def status(value):
-    if u'更多同款' in value:
+    if value != 'Y':
         return 'Q'
     else:
         return 'Y'

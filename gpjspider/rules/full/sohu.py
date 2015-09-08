@@ -222,10 +222,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
+                u'//div[@class="sellico"]',
                 text(cls('car-contact fl bg_col')),
             ),
-            'default': 'Y',
             'processors': ['first', 'sohu.status'],
+            'default': 'Y',
         },
         'description': {
             'xpath': (

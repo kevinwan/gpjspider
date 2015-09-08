@@ -104,9 +104,11 @@ item_rule = {
         },
         'status': {
             'xpath': (
-                '//' + has_cls('sold-out', '/a/text()'),
+                u'//*[contains(@class,"sold-out")]',
+                u'//a[contains(text(),"很抱歉，您访问的车辆已下架，看看其他汽车吧")]',
             ),
             'processors': ['first', '99haoche.status'],
+            'default': 'Y',
         },
         'phone': {
             'xpath': (
