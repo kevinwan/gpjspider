@@ -14,6 +14,5 @@ sftp-config.json
 *test.py
 *schedule
 fabfile.py
-local_*_settings.py
-local_*.py
-local_*.sh
+local_*
+*auto_*

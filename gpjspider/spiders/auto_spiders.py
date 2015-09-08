@@ -7,11 +7,11 @@ class Incr273GPJSpider(IncrGPJSpider):
 class Full273GPJSpider(FullGPJSpider):
     name = '273_full'
 
-class IncriautosGPJSpider(IncrGPJSpider):
-    name = 'iautos'
+class IncrcheshiGPJSpider(IncrGPJSpider):
+    name = 'cheshi'
 
-class FulliautosGPJSpider(FullGPJSpider):
-    name = 'iautos_full'
+class FullcheshiGPJSpider(FullGPJSpider):
+    name = 'cheshi_full'
 
 class IncrygcheGPJSpider(IncrGPJSpider):
     name = 'ygche'
@@ -85,12 +85,6 @@ class Incrche168GPJSpider(IncrGPJSpider):
 class Fullche168GPJSpider(FullGPJSpider):
     name = 'che168_full'
 
-class IncrcheshiGPJSpider(IncrGPJSpider):
-    name = 'cheshi'
-
-class FullcheshiGPJSpider(FullGPJSpider):
-    name = 'cheshi_full'
-
 class Incrhx2carGPJSpider(IncrGPJSpider):
     name = 'hx2car'
 
@@ -103,12 +97,6 @@ class Incr51autoGPJSpider(IncrGPJSpider):
 class Full51autoGPJSpider(FullGPJSpider):
     name = '51auto_full'
 
-class IncrganjihaocheGPJSpider(IncrGPJSpider):
-    name = 'ganjihaoche'
-
-class FullganjihaocheGPJSpider(FullGPJSpider):
-    name = 'ganjihaoche_full'
-
 class IncrtaocheGPJSpider(IncrGPJSpider):
     name = 'taoche'
 
@@ -120,6 +108,12 @@ class Incr58GPJSpider(IncrGPJSpider):
 
 class Full58GPJSpider(FullGPJSpider):
     name = '58_full'
+
+class IncrguaziGPJSpider(IncrGPJSpider):
+    name = 'guazi'
+
+class FullguaziGPJSpider(FullGPJSpider):
+    name = 'guazi_full'
 
 class IncrsoucheGPJSpider(IncrGPJSpider):
     name = 'souche'
@@ -144,3 +138,9 @@ class IncrbaixingGPJSpider(IncrGPJSpider):
 
 class FullbaixingGPJSpider(FullGPJSpider):
     name = 'baixing_full'
+
+class IncriautosGPJSpider(IncrGPJSpider):
+    name = 'iautos'
+
+class FulliautosGPJSpider(FullGPJSpider):
+    name = 'iautos_full'
