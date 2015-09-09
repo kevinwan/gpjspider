@@ -113,7 +113,7 @@ domain_dict = {
             'boolean(//a[@class="stipul-btn stipul-btn-gray"])',
             'boolean(//p[@class="error-tips1"])'
         ],
-        '1', 'ganjihaoche'
+        '1', 'guazi'
     ],
     'haoche51.com': [
         [
@@ -222,7 +222,7 @@ auth = requests.auth.HTTPProxyAuth(account[0], account[1])
 
 rule_names = []    # 记录需要更新的网站
 num = 1    # 记录程序运行开始共更新了多少条记录
-num_per_hour = 1    # 记录当前一小时段内的记录被更新了多少条
+# num_per_hour = 1    # 记录当前一小时段内的记录被更新了多少条
 lock = Lock()
 thread_num = 20    # 依次并发的线程数
 range_url_count = 10    # 同一个链接最多尝试访问的次数
@@ -322,13 +322,14 @@ def update_sale_status(site=None, days=None, before=None):
     session = Session()
     global rule_names
     global log_name
-    if not os.path.isdir('log'):
-        os.mkdir('log')
-    log_name = 'log/update'    # 日志文件名
+    log_dir = 'log'
+    if not os.path.isdir(log_dir):
+        os.mkdir(log_dir)
+    log_name = os.path.join(log_dir, 'update')    # 日志文件名
     if uponline:
-        log_name = log_name + '_uponline'
+        log_name += '_uponline'
     if site:
-        log_name = log_name + '_' + site
+        log_name += '_' + site
     # 计算需要更新的车源对应的创建时间,按每1小时分块依次递减查询数据
     time_now = datetime.datetime.now()
     if not days:
@@ -346,7 +347,7 @@ def update_sale_status(site=None, days=None, before=None):
             minute=0,
             second=0,
             microsecond=0
-        ) + datetime.timedelta(seconds=3600)
+        ) + datetime.timedelta(hours=4)
     else:
         day_on = time_now.replace(
             hour=0,
@@ -354,41 +355,40 @@ def update_sale_status(site=None, days=None, before=None):
             second=0,
             microsecond=0
         ) + datetime.timedelta(days=1)
-    log_name = log_name + '_[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']'
-    log_name = log_name + ' [' + after_time.strftime("%Y-%m-%d %H:%M:%S") + ']-'
-    log_name = log_name + '[' + day_on.strftime("%Y-%m-%d %H:%M:%S") + ']'
-    log_name = log_name + '.log'
-    file_object = open(log_name, 'w')    # 如果文件存在就清空内容
-    file_object.write('')
-    file_object.close()
-    day_up = day_on - datetime.timedelta(seconds=3600)
+    log_name += '_' + time_now.strftime("%Y-%m-%d") + ' '
+    log_name += after_time.strftime("%Y.%m.%d") + '-'
+    log_name += day_on.strftime("%Y.%m.%d") + '.log'
+    # file_object = open(log_name, 'w')    # 如果文件存在就清空内容
+    # file_object.write('')
+    # file_object.close()
+    day_up = day_on - datetime.timedelta(hours=4)
     session.close()
 
     while day_up >= after_time:
-        # 查询1小时需要更新的车源
+        # 查询4小时需要更新的车源
         session = Session()
         query = session.query(
-            UsedCar.domain,
+            UsedCar.id,
             UsedCar.url,
+            UsedCar.domain,
             UsedCar.status,
             UsedCar.update_count,
-            UsedCar.id,
             UsedCar.created_on,
-            UsedCar.next_update,
-            UsedCar.last_update
+            # UsedCar.next_update,
+            # UsedCar.last_update
         )
         if site:
             site_dict = {value[2]: key for key, value in domain_dict.items()}
             domain = site_dict[site]
             query = query.filter(UsedCar.domain == domain)
         query = query.filter(
-            UsedCar.status == 'C',
-            UsedCar.created_on != None,
+            # UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
-            UsedCar.next_update != None,
+            UsedCar.status == 'C',
+            UsedCar.next_update <= time_now,
+            # UsedCar.next_update != None,
             UsedCar.last_update != None,
-            UsedCar.next_update <= time_now
         )
         num_this_hour = query.count()
         # if num_this_hour > 0:
@@ -400,8 +400,8 @@ def update_sale_status(site=None, days=None, before=None):
         file_object = open(log_name, 'a')
         file_object.write(log_str)
         file_object.close()
-        day_up = day_up - datetime.timedelta(seconds=3600)
-        day_on = day_on - datetime.timedelta(seconds=3600)
+        day_up -= datetime.timedelta(hours=4)
+        day_on -= datetime.timedelta(hours=4)
         items = query.all()
         session.close()
         deal_items(items)
@@ -411,8 +411,8 @@ def update_sale_status(site=None, days=None, before=None):
 
 def deal_items(items):    # 单独提出模块，方便调用
     global thread_num
-    global num_per_hour
-    num_per_hour = 1
+    # global num_per_hour
+    # num_per_hour = 1
     num_this_hour = len(items)
     thread_list = []
     for item in items:
@@ -439,7 +439,7 @@ def deal_one_item(item, num_this_hour):
     global log_name
     global uponline
     global rule_names
-    global num_per_hour
+    # global num_per_hour
     global range_item_count
 
     for error_count in range(0, range_item_count):
@@ -511,10 +511,8 @@ def deal_one_item(item, num_this_hour):
     lock.acquire()    # 加锁，防止变量值错乱
     log_str = ' '.join([
         '\n' + '[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']',
-        '[' + item.created_on.strftime("%Y-%m-%d %H:%M:%S") + ']',
-        str(item.id),
+        str(item.id) + '@' + item.created_on.strftime("%Y-%m-%d"),
         str(num),
-        str(num_per_hour) + '/' + str(num_this_hour),
         sales_status,
         item.url
     ])
@@ -525,7 +523,7 @@ def deal_one_item(item, num_this_hour):
         file_object.write(new_error_string)
     file_object.write(log_str)
     file_object.close()
-    num_per_hour = num_per_hour + 1
+    # num_per_hour = num_per_hour + 1
     num = num + 1
     lock.release()
 
