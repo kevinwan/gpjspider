@@ -118,9 +118,10 @@ item_rule = {
         },
         'phone': {
             'xpath': (
+                after_has(u'电话'),
                 text(id_('linkaddr', '/a[@class="btn_cr_car"]')),
-                href(cls('btn_cr_car')),
                 has(u'电话', '/..'),
+                href(cls('btn_cr_car')),
             ),
             'processors': ['cheshi.phone'],
         },
@@ -268,6 +269,7 @@ rule = {
         # 'http://2sc.cheshi.com/info/1757057.html',  # volume is None
         # 'http://2sc.cheshi.com/info/1765834.html' # imgurls
         # 'http://2sc.cheshi.com/info/1766391.html',  # control is null
+        # 'http://2sc.cheshi.com/info/1261408.html',  # phone error
     ],
 
     'parse': parse_rule,

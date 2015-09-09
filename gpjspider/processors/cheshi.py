@@ -53,7 +53,9 @@ def model_url(value):
         return ''
 
 def phone(value):
-    if u'/0200/goto.php?url' in ''.join(value):
+    if u'http://seller.cheshi.com' in ''.join(value):
+        return None
+    elif u'/0200/goto.php?url' in ''.join(value):
         value = 'http://2sc.cheshi.com' + value[0]
         page = Selector(text=requests.get(value).text)
         value = page.xpath('//span[@class="telephone"]/img/@src').extract()
