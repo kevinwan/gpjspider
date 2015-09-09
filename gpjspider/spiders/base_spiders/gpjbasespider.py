@@ -140,13 +140,15 @@ class GPJBaseSpider(scrapy.Spider):
                         UsedCar.city.in_(u'北京 成都 南京'.split()))\
                     .distinct()
                     # .filter(~UsedCar.company_url.in_([None, ''])).distinct()
-                # print query.count()
+                print query.count()
                 for item in query.yield_per(psize):
                     url = item.company_url
                     if reg:
                         match = re.findall(reg, url)
                         if match:
                             url = match[0]
+                        else:
+                            break
                     yield Request(dealer_url % url, **dealer)
                 session.close()
                 return
@@ -200,20 +202,15 @@ class GPJBaseSpider(scrapy.Spider):
             elif self._incr_enabled:
                 delta += 1
         depth = response.meta.get('depth', 0) - delta
-        _min = -12
-        depth = depth if depth > _min else _min
-        # print depth
+        _min = -5
+        # depth = depth if depth > _min else _min
+        depth = depth if depth > _min else 1
         response.meta['depth'] = depth
+        # print depth
         if 'list_url' in step_rule:
             msg = u'try to get new list urls from {0}'.format(response.url)
             self.log(msg, level=log.DEBUG)
             requests = self.get_requests(step_rule['list_url'], response)
-            # size = len(requests)
-            # if size > 0:
-            #     response.meta['depth'] = response.meta.get('depth', 0) - 1
-            #     if size > 3:
-            #         delta -= 1
-            # print response.meta['depth'], len(requests)
             for request in requests:
                 self.log('start list request {0}'.format(request.url))
                 # ipdb.set_trace()
@@ -224,6 +221,12 @@ class GPJBaseSpider(scrapy.Spider):
             msg = u'try to get next page url from {0}'.format(response.url)
             self.log(msg)
             requests = self.get_requests(page_rule, response, detail_amount or step_rule)
+            size = len(requests)
+            if size > 0:
+                response.meta['depth'] = response.meta.get('depth', 0) - 1
+                if size > 3:
+                    delta -= 1
+            # print response.meta['depth'], len(requests)
             # if len(requests) > 10:
             # response.meta['depth'] += 1 #depth if  else depth
             for request in requests:

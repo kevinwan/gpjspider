@@ -1,0 +1,5 @@
+#!/bin/bash
+cd `dirname $0`
+site=$1
+shift
+~/.venvs/gpj/bin/python dev.py -s$site $@
