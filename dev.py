@@ -44,6 +44,14 @@ def main(name='test', type_='incr', update=False, with_dealer=False):
             elif act == '%':
                 method = match_item_dealer
             return [method(int(_sid)) for _sid in sid.split(',')]
+        elif sid=='history':
+            from gpjspider.tasks.clean import clean_history
+            import os
+            return clean_history(
+                slug = os.environ.get('HISTORY_SLUG', 'MLSlug'),
+                domain = os.environ.get('HISTORY_DOMAIN', ''),
+                statuss = os.environ.get('HISTORY_STATUS', ''),
+            )        
         else:
             return clean_domain(sid)
     print '*' * 80

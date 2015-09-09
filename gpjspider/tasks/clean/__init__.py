@@ -36,5 +36,6 @@ def clean_usedcar(self, items, *args, **kwargs):
 """
 from .usedcars import (
     clean_usedcar,
+    clean_history,
     save_to_car_source,
 )

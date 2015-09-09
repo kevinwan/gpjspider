@@ -16,8 +16,6 @@ from gpjspider.services.cars import get_gpj_category
 from gpjspider.services.cars import get_gpj_detail_model
 from gpjspider.services.cars import get_average_price
 # from gpjspider.services.city import get_gongpingjia_city
-
-#from gpjspider.utils.tracker import get_tracker
 from gpjspider.tasks.utils import upload_to_qiniu, batch_upload_to_qiniu
 from gpjspider.utils.misc import sorted_unique_list
 from gpjspider.utils.constants import (
@@ -68,6 +66,33 @@ DUP_CAR_CHECK_FIELDS=(
     'price',
     'phone',
 )
+DEFAULT_DOMAINS = (
+        'xin.com',
+        'haoche.ganji.com',
+        '99haoche.com',
+        'ygche.com.cn',
+        'haoche51.com',
+        'renrenche.com',
+        'souche.com',
+        'youche.com',
+
+        '58.com',
+        'ganji.com',
+        'baixing.com',
+        'taoche.com',
+        '51auto.com',
+        '273.cn',
+        'cn2che.com',
+        'used.xcar.com.cn',
+        'iautos.cn',
+        '2sc.sohu.com',
+
+        'hx2car.com',
+        'che168.com',
+        'cheshi.com',
+
+        # 'c.cheyipai.com',
+)
 from gpjspider.utils.constants import (
     REDIS_DUP_SIG_KEY,
     REDIS_DUP_STAT_KEY,
@@ -78,6 +103,8 @@ from gpjspider.utils.constants import (
     CLEAN_MAX_ID,
     PHONE_OCR_BLACKLIST,
 )
+MACHINE_LEANED_VALUE_PREFIX='ml://'
+
 
 class CleanException(Exception):
     pass
@@ -235,37 +262,11 @@ def update_sell_dealers(self, step=5, limit=None, async=False):
 
 @app.task(name="clean_domain", bind=True, base=GPJSpiderTask)
 # def clean_domain(self, domain=None, sync=True, amount=50, per_item=10):
-def clean_domain(self, domain=None, sync=False, amount=50, per_item=10):
+def clean_domain(self, domain=None, sync=False, amount=50, per_item=10,):
     log('Starting..')
     session = Session()
     cursor = get_cursor(session)
-    domains = domain and [domain] or [
-        'xin.com',
-        'haoche.ganji.com',
-        '99haoche.com',
-        'ygche.com.cn',
-        'haoche51.com',
-        'renrenche.com',
-        'souche.com',
-        'youche.com',
-
-        '58.com',
-        'ganji.com',
-        'baixing.com',
-        'taoche.com',
-        '51auto.com',
-        '273.cn',
-        'cn2che.com',
-        'used.xcar.com.cn',
-        'iautos.cn',
-        '2sc.sohu.com',
-
-        'hx2car.com',
-        'che168.com',
-        'cheshi.com',
-
-        # 'c.cheyipai.com',
-    ]
+    domains = domain and [domain] or DEFAULT_DOMAINS[:]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)
     # update = "update open_product_source set status='C' where created_on > '2015-06-18' and source_id=1 \
@@ -384,6 +385,36 @@ WORKER = 0
 #     session.add(track)
 #     session.commit()
 
+@app.task(name="clean_history", bind=True, base=GPJSpiderTask)
+def clean_history(self, slug = 'MLSlug', statuss='Y', domain=None):
+    '''
+    heartbeat spideer clean task
+    '''
+    log('clean history for machine lerning matched brand and model')
+    try:
+        session = Session()
+        # import pdb;pdb.set_trace()
+        sql = 'SELECT * FROM open_procedure_mark WHERE  mark_id=0 AND name LIKE "%s:%%"' % slug;
+        log('fetch task by sql %s' % sql)
+        row=session.execute(sql).first()
+        if not row:
+            log('no task found')
+        else:
+            print row
+            _, min_id, max_id = row['name'].split(':')
+            log('task found, id range %s - %s' % (min_id, max_id))
+            session.execute('UPDATE open_procedure_mark SET mark_id=1 WHERE id=%s' % row['id'])
+            domains = domain and [domain] or DEFAULT_DOMAINS[:]
+            if not statuss:
+                statuss='Y'
+            clean(min_id, max_id,domains, statuss)
+            session.execute('DELETE FROM  open_procedure_mark WHERE  mark_id=1 AND id=%s' % row['id'])
+    except:
+            get_task_logger().error('clean_history fail', exc_info=True)
+    finally:
+        if session:
+            session.close()
+    log('clean history for machine lerning matched brand and model done')
 
 def clean(min_id, max_id, domains=None, status='Y', session=None):
     # print min_id, max_id
@@ -1121,10 +1152,23 @@ def preprocess_item(item, session, logger):
     return item
 
 
+def extract_machine_learned_values(item, *fields):
+    prefix_len = len(MACHINE_LEANED_VALUE_PREFIX)
+    matched = False
+    for field in fields:
+        if item[field].startswith(MACHINE_LEANED_VALUE_PREFIX):
+            match_status,match_value=item[field][prefix_len:].split('/')
+            if  not match_status=='t':
+                match_value=None
+            item[field]=match_value
+            matched=True
+    return matched
+
 def match_bmd(item, domain=None, session=None):
+    if extract_machine_learned_values(item, 'brand_slug', 'model_slug'):
+        return True
     domain = domain or item['domain']
-    gpj_category = get_gpj_category(
-        item['brand_slug'], item['model_slug'], domain, session, item.get('model_url'))
+    gpj_category = get_gpj_category(item['brand_slug'], item['model_slug'], domain, session, item.get('model_url'))
     if not gpj_category:
         # logger.warning(u'No match model for: {0},{1},{2}'.format(
             # item['brand_slug'], item['model_slug'], domain))
