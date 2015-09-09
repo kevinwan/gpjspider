@@ -324,9 +324,12 @@ def update_sale_status(site=None, days=None, before=None):
     global rule_names
     global log_name
     global day_up
-    log_dir = 'log'
-    if not os.path.isdir(log_dir):
-        os.mkdir(log_dir)
+    delta = dict(hours=4)
+    # delta = dict(days=1)
+    # delta = dict(hours=1)
+    log_dir = '/tmp/gpjspider/'
+    # if not os.path.isdir(log_dir):
+    #     os.mkdir(log_dir)
     log_name = os.path.join(log_dir, 'update')    # 日志文件名
     if uponline:
         log_name += '_uponline'
@@ -349,7 +352,7 @@ def update_sale_status(site=None, days=None, before=None):
             minute=0,
             second=0,
             microsecond=0
-        ) + datetime.timedelta(hours=4)
+        ) + datetime.timedelta(**delta)
     else:
         before_time = time_now.replace(
             hour=0,
@@ -365,9 +368,9 @@ def update_sale_status(site=None, days=None, before=None):
     # file_object.write('')
     # file_object.close()
     # day_on = before_time
-    # day_up = day_on - datetime.timedelta(hours=4)
+    # day_up = day_on - datetime.timedelta(**delta)
     day_up = after_time
-    day_on = day_up + datetime.timedelta(hours=4)
+    day_on = day_up + datetime.timedelta(**delta)
     session.close()
 
     # while day_up >= after_time:
@@ -391,29 +394,42 @@ def update_sale_status(site=None, days=None, before=None):
             # UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
+            UsedCar.update_count == 0,
+            # UsedCar.status.in_(['C', 'Y']),
             UsedCar.status == 'C',
             UsedCar.next_update <= time_now,
             # UsedCar.next_update != None,
-            UsedCar.last_update != None,
+            # UsedCar.last_update != None,
         )
-        num_this_hour = query.count()
-        if num_this_hour > 0:
-            log_str = ' '.join([
-                # '\n\n' + '[' + str(after_time) + ']',
-                '\n\n' + '[' + str(before_time) + ']',
-                '[' + str(day_up) + ']-[' + str(day_on) + ']',
-                str(num_this_hour)
-            ])
-            file_object = open(log_name, 'a')
-            file_object.write(log_str)
-            file_object.close()
-        items = query.all()
+        # query = query.filter_by(id=21796441)
+        # num_this_hour = query.count()
+        # if num_this_hour > 0:
+        #     log_str = ' '.join([
+        #         # '\n\n' + '[' + str(after_time) + ']',
+        #         '\n\n' + '[' + str(before_time) + ']',
+        #         '[' + str(day_up) + ']-[' + str(day_on) + ']',
+        #         str(num_this_hour)
+        #     ])
+        #     file_object = open(log_name, 'a')
+        #     file_object.write(log_str)
+        #     file_object.close()
+        # items = query.all()
+        # deal_items(items)
+        psize = 20
+        psize = 100
+        items = query.limit(psize).yield_per(10)
+        size = items.count()
+        print day_on, size
+        while size:
+            deal_items(items)
+            items = query.limit(psize).yield_per(10)
+            size = items.count()
+            # print day_on, size
         session.close()
-        deal_items(items)
-        # day_up -= datetime.timedelta(hours=4)
-        # day_on -= datetime.timedelta(hours=4)
-        day_up += datetime.timedelta(hours=4)
-        day_on += datetime.timedelta(hours=4)
+        # day_up -= datetime.timedelta(**delta)
+        # day_on -= datetime.timedelta(**delta)
+        day_up += datetime.timedelta(**delta)
+        day_on += datetime.timedelta(**delta)
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
@@ -422,12 +438,13 @@ def deal_items(items):    # 单独提出模块，方便调用
     global thread_num
     # global num_per_hour
     # num_per_hour = 1
-    num_this_hour = len(items)
+    # num_this_hour = len(items)
     thread_list = []
     for item in items:
         child_thread = Thread(
             target=deal_one_item,
-            args=(item, num_this_hour)
+            # args=(item, num_this_hour),
+            args=(item, ),
         )
         thread_list.append(child_thread)
         if len(thread_list) == thread_num:
@@ -442,7 +459,7 @@ def deal_items(items):    # 单独提出模块，方便调用
         child_thread.join()
 
 
-def deal_one_item(item, num_this_hour):
+def deal_one_item(item, num_this_hour=None):
     global num
     global lock
     global day_up
