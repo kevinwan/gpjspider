@@ -572,6 +572,7 @@ def match_dealer(item, reraise=False):
             print k, v
     except Exception as e:
         get_task_logger().error('match dealer error', exc_info=True)
+
         if reraise:
             raise e
     finally:
