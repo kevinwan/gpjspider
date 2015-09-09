@@ -33,6 +33,8 @@ class ConvertPhonePic2Num(object):
         im = urlopen(Request(self.picurl)).read()
         try:
             imob = Image.open(StringIO.StringIO(im))
+            if imob.mode == 'RGBA':
+                imob = self.replace_rgba_transparency(imob)
         except Exception as e:
             with open('/tmp/gpjspider/phone_ocr_fail.log', 'a') as f:
                 f.write(str(datetime.datetime.now()))
@@ -49,6 +51,16 @@ class ConvertPhonePic2Num(object):
             text = image_to_string(imob)
         return text
 
+    def replace_rgba_transparency(self,im):
+        #使用白色来填充背景,测试发现如果不填充，当背景为透明时，
+        #转换为RGB格式后图片中背景和数字会变成一坨
+        #refer to :
+        #http://outofmemory.cn/code-snippet/7453/python-through-pil-png-tupian-fill-background-color
+        x,y = im.size
+        p = Image.new('RGBA', im.size, (255,255,255)) 
+        p.paste(im, (0, 0, x, y), im)
+        return p 
+     
     def replace_similar_char2num(self):
         # 形状相似的数字和字母映射.
         similar = (('O', '0'), ('o', '0'), ('D', '0'), ('a', '0'), ('L', '1'), ('!', '1'),
@@ -92,15 +104,27 @@ class ConvertPhonePic2Num(object):
                 rate = 0.90
             if p_text.__len__() < 11 and not(p_text.__len__() == 10 and p_text[0:3] == '400'):
                 rate = 0.10
-        return (p_text, rate)
+        return (self.format_phone_string(p_text), rate)
+    
+    def format_phone_string(self,phone):
+        #rule 1， 400号码第十位后加-
+        if phone[0:3] == '400' and len(phone)>10:
+            phone = phone[0:10]+'-'+phone[10:]
+            
+        return phone
 
 
 def main():
-    url = 'http://nj.ganji.com/tel_img/?c=kh0LK-eWCfso9p-uEcEJPTQvVEjVA__PtQyX'
-    url = 'http://www.ganji.com/tel_img/?c=k9xL64ZYdHed2AEf1DAJojLzO.6Ug__PtQyX'
-    url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=5740591&linkType=3&phone='
-    print ConvertPhonePic2Num(url).find_possible_num()
-
+    #url = 'http://nj.ganji.com/tel_img/?c=kh0LK-eWCfso9p-uEcEJPTQvVEjVA__PtQyX'
+    #url = 'http://www.ganji.com/tel_img/?c=k9xL64ZYdHed2AEf1DAJojLzO.6Ug__PtQyX'
+    #url = 'http://nj.ganji.com/tel_img/?c=kh3LK8CCBrmcz9g90dTSiHLan.-6g__PtQyX'
+    #url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=5740591&linkType=3&phone='
+    url = 'http://used.xcar.com.cn/public/load/CarObj.3276841.imgPhone'
+    #url = 'http://used.xcar.com.cn/public/load/CarObj.3279485.imgPhone'
+    #url = 'http://cache.taoche.com/buycar/gettel.ashx?u=6950596&t=taabcgbote&p=1'
+    #url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2' 
+    print ConvertPhonePic2Num(url).find_possible_num()     
+ 
 if __name__ == '__main__':
     # main()
     import doctest
