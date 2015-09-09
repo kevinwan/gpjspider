@@ -391,24 +391,25 @@ def clean_history(self, slug = 'MLSlug', statuss='Y', domain=None):
     heartbeat spideer clean task
     '''
     log('clean history for machine lerning matched brand and model')
+    from gpjspider.models.usedcars import CleanTask
     try:
         session = Session()
         # import pdb;pdb.set_trace()
-        sql = 'SELECT * FROM open_procedure_mark WHERE  mark_id=0 AND name LIKE "%s:%%"' % slug;
+        sql = 'SELECT * FROM open_clean_task WHERE  status=0 AND name= "%s"' % slug;
         log('fetch task by sql %s' % sql)
         row=session.execute(sql).first()
         if not row:
             log('no task found')
         else:
-            print row
-            _, min_id, max_id = row['name'].split(':')
-            log('task found, id range %s - %s' % (min_id, max_id))
-            session.execute('UPDATE open_procedure_mark SET mark_id=1 WHERE id=%s' % row['id'])
+            print row['id']
+            session.query(CleanTask).filter(CleanTask.id==row['id']).update(dict(status=1), synchronize_session=False)
+            session.commit()
             domains = domain and [domain] or DEFAULT_DOMAINS[:]
             if not statuss:
                 statuss='Y'
-            clean(min_id, max_id,domains, statuss)
-            session.execute('DELETE FROM  open_procedure_mark WHERE  mark_id=1 AND id=%s' % row['id'])
+            clean_byids(row['content'].split(','),domains, statuss)
+            session.query(CleanTask).filter(CleanTask.id==row['id']).delete(synchronize_session=False)
+            session.commit()
     except:
             get_task_logger().error('clean_history fail', exc_info=True)
     finally:
@@ -417,22 +418,39 @@ def clean_history(self, slug = 'MLSlug', statuss='Y', domain=None):
     log('clean history for machine lerning matched brand and model done')
 
 def clean(min_id, max_id, domains=None, status='Y', session=None):
-    # print min_id, max_id
-    # base query
-    # session = session or Session()
-    log('cleaning %s-%s' % (min_id,max_id))
+    _clean(id_range_type='range', id_range=[min_id, max_id], domains=domains, status=status, session=session)
+
+def clean_byids(id_list, domains=None, status='Y', session=None):
+    _clean(id_range_type='list', id_range=id_list, domains=domains, status=status, session=session)
+
+def _clean(id_range_type='list', id_range=None, domains=None, status='Y', session=None):
+    def  get_base_query():
+        query = session.query(UsedCar).filter(
+                UsedCar.source_type != 1,
+            ).filter_by(
+                source=1
+            )
+        if id_range_type=='range':
+             min_id,max_id = id_range
+             return query.filter(
+                UsedCar.id >= min_id,
+                UsedCar.id <= max_id,
+             )
+        elif id_range_type=='list':
+             return query.filter(
+                UsedCar.id.in_(id_range),
+             )
+    if id_range_type=='list':
+        log('cleaning %s' % ','.join(id_range))
+    elif id_range_type=='range':
+        min_id,max_id = id_range
+        log('cleaning %s-%s' % (min_id,max_id))
     # ipdb.set_trace()
     statuss = status.split(',')
     session = Session()
     try:
         domains = domains or []
-        base_query = session.query(UsedCar).filter(
-            UsedCar.id >= min_id,
-            UsedCar.id <= max_id,
-            UsedCar.source_type != 1,
-        ).filter_by(
-            source=1
-        )
+        base_query = get_base_query()
         if domains:
             base_query = base_query.filter(UsedCar.domain.in_(domains))
         #ipdb.set_trace()
@@ -462,13 +480,7 @@ def clean(min_id, max_id, domains=None, status='Y', session=None):
         # push to car_source
         # filter good car_source
         # log('filter good car_source..')
-        bq = session.query(UsedCar.id).filter(
-            UsedCar.id >= min_id,
-            UsedCar.id <= max_id,
-            UsedCar.source_type != 1
-        ).filter_by(
-            source=1
-        )
+        bq = get_base_query()
         # iq = bq.filter_by(status=wait_status).filter(
             # UsedCar.domain.in_(domains), UsedCar.control != None)
         iq = bq.filter_by(
@@ -1118,7 +1130,7 @@ def preprocess_item(item, session, logger):
     # todo: 将 city 进行匹配
     if item.get('city'):
         # add cache for c p
-        item['city'] = item['city'].strip(u' 市')
+        item['city'] = re.sub('[\(\)]','',item['city'].strip(u' 市'))
         province = get_province_by_city(item['city'], session)
         if province:
             item['province'] = province
@@ -1786,7 +1798,7 @@ curl 'http://www.gongpingjia.com/api/cars/evaluation/spider/?brand=audi&mile=15.
             eval_price = json.loads(data)['deal_price']
             return decimal(int(eval_price) / 10000.0)
     except Exception as e:
-        print e, item['id']
+        get_task_logger().error('get_eval_price error for %s' % item['id'], exc_info=True)
 
 def decimal(value):
     return float('%.1f' % value)
