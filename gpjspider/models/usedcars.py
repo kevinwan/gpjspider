@@ -163,3 +163,20 @@ class RawSellDealer(Base):
 #     def __unicode__(self):
 #         return u'<CarFingerprint {0} {1} >'.format(self.defailt, self.cnt)
 #
+
+
+
+class CleanTask(Base):
+    """
+    
+    """
+    __tablename__ = u'open_clean_task'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=True, doc=u'名称')
+    content = Column(Text())
+    status = Column(Integer, doc=u'状态', default=0)
+    created_on = Column(DateTime, default=datetime.now, doc=u'更新时间')
+
+    def __unicode__(self):
+        return u'<CleanTask {0} {1} - {2} >'.format(self.name, self.status)

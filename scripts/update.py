@@ -222,6 +222,7 @@ auth = requests.auth.HTTPProxyAuth(account[0], account[1])
 
 rule_names = []    # 记录需要更新的网站
 num = 1    # 记录程序运行开始共更新了多少条记录
+day_up = None
 # num_per_hour = 1    # 记录当前一小时段内的记录被更新了多少条
 lock = Lock()
 thread_num = 20    # 依次并发的线程数
@@ -322,6 +323,7 @@ def update_sale_status(site=None, days=None, before=None):
     session = Session()
     global rule_names
     global log_name
+    global day_up
     log_dir = 'log'
     if not os.path.isdir(log_dir):
         os.mkdir(log_dir)
@@ -343,37 +345,41 @@ def update_sale_status(site=None, days=None, before=None):
         microsecond=0
     )
     if before:
-        day_on = datetime.datetime.strptime(before, '%Y-%m-%d %H:%M:%S').replace(
+        before_time = datetime.datetime.strptime(before, '%Y-%m-%d %H:%M:%S').replace(
             minute=0,
             second=0,
             microsecond=0
         ) + datetime.timedelta(hours=4)
     else:
-        day_on = time_now.replace(
+        before_time = time_now.replace(
             hour=0,
             minute=0,
             second=0,
             microsecond=0
         ) + datetime.timedelta(days=1)
+
     log_name += '_' + time_now.strftime("%Y-%m-%d") + ' '
     log_name += after_time.strftime("%Y.%m.%d") + '-'
-    log_name += day_on.strftime("%Y.%m.%d") + '.log'
+    log_name += before_time.strftime("%Y.%m.%d") + '.log'
     # file_object = open(log_name, 'w')    # 如果文件存在就清空内容
     # file_object.write('')
     # file_object.close()
-    day_up = day_on - datetime.timedelta(hours=4)
+    # day_on = before_time
+    # day_up = day_on - datetime.timedelta(hours=4)
+    day_up = after_time
+    day_on = day_up + datetime.timedelta(hours=4)
     session.close()
 
-    while day_up >= after_time:
+    # while day_up >= after_time:
+    while day_on <= before_time:
         # 查询4小时需要更新的车源
         session = Session()
         query = session.query(
             UsedCar.id,
             UsedCar.url,
             UsedCar.domain,
-            UsedCar.status,
             UsedCar.update_count,
-            UsedCar.created_on,
+            # UsedCar.created_on,
             # UsedCar.next_update,
             # UsedCar.last_update
         )
@@ -391,20 +397,23 @@ def update_sale_status(site=None, days=None, before=None):
             UsedCar.last_update != None,
         )
         num_this_hour = query.count()
-        # if num_this_hour > 0:
-        log_str = ' '.join([
-            '\n\n' + '[' + str(after_time) + ']',
-            '[' + str(day_up) + ']-[' + str(day_on) + ']',
-            str(num_this_hour)
-        ])
-        file_object = open(log_name, 'a')
-        file_object.write(log_str)
-        file_object.close()
-        day_up -= datetime.timedelta(hours=4)
-        day_on -= datetime.timedelta(hours=4)
+        if num_this_hour > 0:
+            log_str = ' '.join([
+                # '\n\n' + '[' + str(after_time) + ']',
+                '\n\n' + '[' + str(before_time) + ']',
+                '[' + str(day_up) + ']-[' + str(day_on) + ']',
+                str(num_this_hour)
+            ])
+            file_object = open(log_name, 'a')
+            file_object.write(log_str)
+            file_object.close()
         items = query.all()
         session.close()
         deal_items(items)
+        # day_up -= datetime.timedelta(hours=4)
+        # day_on -= datetime.timedelta(hours=4)
+        day_up += datetime.timedelta(hours=4)
+        day_on += datetime.timedelta(hours=4)
     if rule_names:
         run_all_spider_update(rule_names)    # 更新所有未下线的车源
 
@@ -436,6 +445,7 @@ def deal_items(items):    # 单独提出模块，方便调用
 def deal_one_item(item, num_this_hour):
     global num
     global lock
+    global day_up
     global log_name
     global uponline
     global rule_names
@@ -446,6 +456,7 @@ def deal_one_item(item, num_this_hour):
         error_string = None
         new_error_string = None
         session = None
+        update_dict = {}
         sales_status = 'online'    # 设置默认值
         time_now = datetime.datetime.now()    # 设置默认值
         try:
@@ -456,7 +467,7 @@ def deal_one_item(item, num_this_hour):
                 error_string = sales_status[1]
                 sales_status = sales_status[0]
             if sales_status == 'offline':
-                status = 'Q'    # 已下线的变为'Q'
+                update_dict[UsedCar.status] = 'Q'    # 已下线的变为'Q'
                 # 同步更新car_source状态
                 session.query(CarSource).filter(
                     CarSource.url == item.url
@@ -477,24 +488,20 @@ def deal_one_item(item, num_this_hour):
                 )
             else:
                 if uponline:
-                    status = 'u'  # 未下线的变为'u'
+                    update_dict[UsedCar.status] = 'u'  # 未下线的变为'u'
                     rule_name = domain_dict[item.domain][2]
                     if rule_name not in rule_names:
                         rule_names.append(rule_name)
-                else:
-                    status = item.status
             # 更新单条记录
             if not item.update_count:
                 update_count = 0
             else:
                 update_count = item.update_count
+            update_dict[UsedCar.last_update] = time_now
+            update_dict[UsedCar.next_update] = get_update_time(item, time_now)
+            update_dict[UsedCar.update_count] = update_count + 1
             session.query(UsedCar).filter(UsedCar.url == item.url).update(
-                {
-                    UsedCar.status: status,
-                    UsedCar.last_update: time_now,
-                    UsedCar.next_update: get_update_time(item, time_now),
-                    UsedCar.update_count: update_count + 1
-                },
+                update_dict,
                 synchronize_session=False
             )
         except Exception as e:
@@ -511,7 +518,7 @@ def deal_one_item(item, num_this_hour):
     lock.acquire()    # 加锁，防止变量值错乱
     log_str = ' '.join([
         '\n' + '[' + time_now.strftime("%Y-%m-%d %H:%M:%S") + ']',
-        str(item.id) + '@' + item.created_on.strftime("%Y-%m-%d"),
+        str(item.id) + '@' + day_up.strftime("%Y-%m-%d"),
         str(num),
         sales_status,
         item.url
@@ -571,7 +578,7 @@ def parse_args():
     parser.add_argument("-n", "--uponline", default=False, help="是否重新爬取未下线的车源,默认为False")
     parser.add_argument("-t", "--status", default=None, help="要更新的错误状态,如-model_slug,默认为None,默认时更新所有错误状态")
     parser.add_argument("-s", "--site", default=None, help="要更新的网站,默认为None,默认时更新所有网站")
-    parser.add_argument("-d", "--days", default=None, help="要更新几天以内的记录,默认为最早的那天")
+    parser.add_argument("-d", "--days", default=None, help="要更新包括今天在内的共几天的记录,默认为最早的那天")
     parser.add_argument("-b", "--before", default=None, help="要更新多久以前的记录,默认为当前时间")
     parser.add_argument("-e", "--seconds", default=None, help="要更新几秒以内的记录,默认为0秒")
     parser.add_argument("-u", "--model", default="offline", help="更新模式,offline为更新下线记录,error为更新错误记录,默认为更新错误记录")
