@@ -117,7 +117,6 @@ item_rule = {
                 # text(id_('btnseecar')),
                 u'//a[@class="already-buy"]',
             ),
-            'processors': ['first', 'ygche.status'],
             'default': 'Y',
         },
         # 'company_name': {  # 商家名称

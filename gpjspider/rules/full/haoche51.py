@@ -180,7 +180,6 @@ item_rule = {
                 u'//div[@class="car-has-deal"]',
                 u'//div[@class="cnt-404"]//div[contains(text(),"页面不存在")]',
             ),
-            'processors': ['first', 'haoche51.status'],
             'default': 'Y',
         },
         'mandatory_insurance': {

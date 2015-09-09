@@ -44,10 +44,3 @@ def volume(value):
     if u'万公里' in value:
         value = re.sub(ur'(\d+(\.\d+)?)万公里', '', value)
     return value
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

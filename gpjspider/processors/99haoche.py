@@ -67,10 +67,3 @@ def condition_level(value):
         print e
 
     return level
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

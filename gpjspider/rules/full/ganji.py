@@ -180,6 +180,13 @@ item_rule = {
                 _has(u'使用性质'),
             ),
         },
+        'status': {
+            'xpath': (
+                u'//div[@class="error"]/p[contains(text(),"页面没有找到或已删除")]',
+                u'//span[@class="telephone"]/img[contains(@src,"http://sta.ganjistatic1.com/src/image/v5/expire.png")]',
+            ),
+            'default': 'Y',
+        },
     },
 }
 

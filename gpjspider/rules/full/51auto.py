@@ -111,7 +111,6 @@ item_rule = {
                 text(cls('sold-out')),
                 u'//div[@class="tishimain"]/span[2]/text()',
             ),
-            'processors': ['first', '51auto.status'],
             'default': 'Y',
         },
         'phone': {

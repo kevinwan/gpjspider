@@ -30,6 +30,6 @@ def examine_insurance(value):
 
 
 def status(value):
-    if value == '\r\nerror\r\n\r\n\r\n':
+    if value == u'<body>\r\nerror\r\n\r\n\r\n</body>':
         return 'Q'
     return 'Y'

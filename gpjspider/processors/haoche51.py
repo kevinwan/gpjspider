@@ -149,10 +149,3 @@ def invoice(value):
     if u'购车发票/过户发票' in value:
         return u'是' if u'有' in value else u'否'
     return None
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

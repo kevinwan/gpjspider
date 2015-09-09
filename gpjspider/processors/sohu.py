@@ -38,11 +38,6 @@ def model_slug(value):
         return model
     return ''
 
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'
 
 def is_certifield_car(value):
     if isinstance(value, dict):

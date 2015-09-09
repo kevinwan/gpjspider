@@ -47,10 +47,3 @@ def strip_and_join(value):
             ret += val.strip().replace('\r\n', '').replace('\n', '').replace('\t', '').replace(' ', '')
         return ret
     return value.strip().replace('\r\n', '').replace('\n', '').replace('\t', '').replace(' ', '')
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

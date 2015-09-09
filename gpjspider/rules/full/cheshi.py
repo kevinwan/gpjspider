@@ -204,6 +204,13 @@ item_rule = {
             ),
             'processors': ['first', 'cheshi.source_type'],
         },
+        'status': {
+            'xpath': (
+                u'//meta[@content="0;url=http://2sc.cheshi.com/404.shtml"]',
+                u'//div[@class="sc-recommand clearfix mt sc_msg2"]/h4[contains(text(),"暂无此二手车相关信息内容")]',
+            ),
+            'default': 'Y',
+        },
     },
 }
 

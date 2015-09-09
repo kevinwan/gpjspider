@@ -145,6 +145,13 @@ item_rule = {
             # 'default': SOURCE_TYPE_SELLER,
             'default': SOURCE_TYPE_GONGPINGJIA,
         },
+        'status': {
+            'xpath': (
+                '//a[@class="stipul-btn stipul-btn-gray"]',
+                '//p[@class="error-tips1"]',
+            ),
+            'default': 'Y',
+        },
     },
 }
 

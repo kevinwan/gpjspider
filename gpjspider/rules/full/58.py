@@ -309,6 +309,13 @@ item_rule = {
             'default_fail': False,
             # 'processors': ['join', '58.is_certifield_car'],
         },
+        'status': {
+            'xpath': (
+                u'//div[@class="content clearfix"]',
+                u'//p[@class="lineheight_2"]/span[contains(text(), "信息已过期")]/text()',
+            ),
+            'default': 'Y',
+        },
     },
 }
 

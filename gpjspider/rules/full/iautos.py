@@ -100,7 +100,6 @@ item_rule = {
                 u'//p[@class="gy" and contains(text(), "该车已过有效期")]',
                 u'//*[contains(@class,"hint clearfix")]//*[contains(text(), "您查看的车源正在审核中或已删除")]',
             ),
-            'processors': ['first', 'iautos.status'],
             'default': 'Y',
         },
         'city': {

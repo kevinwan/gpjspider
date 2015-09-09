@@ -234,7 +234,11 @@ def strip_imgurls(urls_with_query):
 
 
 def status(value):
-    return 'Q' if value in ('Q', '1') else 'Y'
+    if value != 'Y':
+        return 'Q'
+    return 'Y'
+# def status(value):
+#     return 'Q' if value in ('Q', '1') else 'Y'
     # return 'Y' if value and value not in ('Q', '1') else 'Q'
 
 # def source_type(value):

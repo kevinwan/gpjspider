@@ -116,7 +116,6 @@ item_rule = {
                 u'//div[@class="plaint-list"]',
                 u'//input[@id="hf_CarStatue" and @value=15]',
             ),
-            'processors': ['first', 'che168.status'],
             'default': 'Y',
         },
         'city': {

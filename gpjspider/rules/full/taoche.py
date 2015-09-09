@@ -167,6 +167,13 @@ item_rule = {
         'is_certifield_car': {
             'default': '%(quality_service)s',
         },
+        'status': {
+            'xpath': (
+                u'//p[@class="tc14-cyyis"]',
+                u'//div[@class="box worry"]',
+            ),
+            'default': 'Y',
+        },
     },
 }
 
