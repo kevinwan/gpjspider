@@ -181,6 +181,12 @@ item_rule = {
             'default': SOURCE_TYPE_GONGPINGJIA,
             'processors': ['first', 'baixing.source_type'],
         },
+        'status': {
+            'xpath': (
+                u'//h3[@class="alert-header"]',
+            ),
+            'default': 'Y',
+        },
     },
 }
 

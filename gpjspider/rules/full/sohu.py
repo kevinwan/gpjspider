@@ -225,7 +225,6 @@ item_rule = {
                 u'//div[@class="sellico"]',
                 text(cls('car-contact fl bg_col')),
             ),
-            'processors': ['first', 'sohu.status'],
             'default': 'Y',
         },
         'description': {

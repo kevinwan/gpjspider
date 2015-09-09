@@ -81,10 +81,3 @@ def quality_service(value):
 
 def transfer_owner(value):
     return 0 if value == u'是' else None
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

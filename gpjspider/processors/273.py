@@ -13,10 +13,3 @@ def dmodel(value):
             return year.strip() + ' ' + d1.strip()
         return d1
     return value
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

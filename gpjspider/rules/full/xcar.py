@@ -103,7 +103,6 @@ item_rule = {
                 '//i[@class="expired"]',
                 # attr(cls('details_one', '/strong/img'), 'src'),
             ),
-            'processors': ['first', 'xcar.status'],
             'default': 'Y',
         },
         'city': {

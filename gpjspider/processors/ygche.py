@@ -41,10 +41,3 @@ def condition_level(value):
         return 'C'
     else:
         return None
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

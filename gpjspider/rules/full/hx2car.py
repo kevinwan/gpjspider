@@ -122,10 +122,9 @@ item_rule = {
         'status': {
             'xpath': (
                 u'//*[contains(text(),"车辆已过期")]',
-                # '//*[@class="error_zmb"]',
+                u'//*[@class="error_zmb"]',
             ),
             'default': 'Y',
-            'processors': ['first', 'hx2car.status'],
         },
         'phone': {
             'xpath': (
@@ -303,11 +302,11 @@ rule = {
 
     'parse': parse_rule,
     'parse_list': parse_list,
-    'parse': parse_list,
+    # 'parse': parse_list,
     'parse_detail': {
         "item": item_rule,
     }
 }
 
 fmt_rule_urls(rule)
-rule['parse'] = rule['parse_detail']
+# rule['parse'] = rule['parse_detail']

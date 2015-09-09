@@ -205,7 +205,6 @@ item_rule = {
                 u'//div[@class="d-photo img-album"]/em',
                 u'//div[@class="error-wrap"]/div[@class="con"]/span[contains(text(),"页面找不到")]',
             ),
-            'processors': ['first', 'xin.status'],
             'default': 'Y',
         }
     },

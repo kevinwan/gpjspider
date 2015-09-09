@@ -24,8 +24,7 @@ def volume(value):
 def status(value):
     if 'display:;' in value or u'删除' in value:
         return 'Q'
-    else:
-        return 'Y'
+    return 'Y'
 
 def source_type(value):
     if u'车商' in value:

@@ -105,13 +105,6 @@ def price_bn(value):
                 return price[0]
 
 
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'
-
-
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

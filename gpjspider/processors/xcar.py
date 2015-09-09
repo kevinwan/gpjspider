@@ -14,10 +14,6 @@ def model_slug(value):
         return model
     return value
 
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    return 'Y'
 
 def source_type(value):
     if value == SOURCE_TYPE_GONGPINGJIA:

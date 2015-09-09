@@ -179,7 +179,13 @@ rule = {
                 'is_certifield_car': {
                     'default': True
                 },
-
+                'status': {
+                    'xpath': (
+                        u'//div[@class="bcz"]',
+                        u'//div[@class="error"]',
+                    ),
+                    'default': 'Y',
+                },
             },
         },
     },

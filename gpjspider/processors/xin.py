@@ -41,10 +41,3 @@ def source_type(value):
     #     return SOURCE_TYPE_SELLER
     # elif value.find('presur_ico') != -1:
     #     return SOURCE_TYPE_MANUFACTURER
-
-
-def status(value):
-    if 'em' in value or 'span' in value:
-        return 'Q'
-    else:
-        return 'Y'

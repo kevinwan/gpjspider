@@ -73,10 +73,3 @@ def source_type(value):
             return t[1]
 
     return SOURCE_TYPE_ODEALER
-
-
-def status(value):
-    if value != 'Y':
-        return 'Q'
-    else:
-        return 'Y'

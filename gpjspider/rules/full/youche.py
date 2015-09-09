@@ -182,13 +182,6 @@ item_rule = {
             ),
             'processors': ['first', 'youche.maintenance_record'],
         },
-        # 'status': {
-        #     'xpath': (
-        #         '//body/text()',
-        #     ),
-        #     'default': 'Y',
-        #     'processors': ['first', 'youche.status']
-        # },
         'phone': {
             'xpath': (
                 text(id_("linksCallTel")),
@@ -228,6 +221,13 @@ item_rule = {
         'source_type': {
             'default': SOURCE_TYPE_SELLER,
         },
+        'status': {
+            'xpath': (
+                '//body',
+            ),
+            'default': 'Y',
+            'processors': ['first', 'youche.status'],
+        },
     },
 }
 
@@ -261,6 +261,7 @@ rule = {
         # 'http://www.youche.com/detail/9719.shtml',
         # 'http://www.youche.com/detail/9596.shtml',
         # 'http://www.youche.com/detail/10969.shtml',
+        # 'http://www.youche.com/detail/4345.shtml',  # offline
     ],
     # 'start_urls': [u'http://www.youche.com/detail/11316.shtml', u'http://www.youche.com/detail/11293.shtml', u'http://www.youche.com/detail/11336.shtml', u'http://www.youche.com/detail/11294.shtml', u'http://www.youche.com/detail/11335.shtml', u'http://www.youche.com/detail/11315.shtml', u'http://www.youche.com/detail/11285.shtml', u'http://www.youche.com/detail/11303.shtml', u'http://www.youche.com/detail/11343.shtml', u'http://www.youche.com/detail/11284.shtml', u'http://www.youche.com/detail/11341.shtml', u'http://www.youche.com/detail/11295.shtml', u'http://www.youche.com/detail/11311.shtml', u'http://www.youche.com/detail/11345.shtml', u'http://www.youche.com/detail/11314.shtml', u'http://www.youche.com/detail/11287.shtml', u'http://www.youche.com/detail/11275.shtml', u'http://www.youche.com/detail/11321.shtml', u'http://www.youche.com/detail/11273.shtml', u'http://www.youche.com/detail/11300.shtml'],
     'base_url': 'http://www.youche.com',
