@@ -397,16 +397,16 @@ def update_sale_status(site=None, days=None, before=None):
             UsedCar.last_update != None,
         )
         num_this_hour = query.count()
-        # if num_this_hour > 0:
-        log_str = ' '.join([
-            # '\n\n' + '[' + str(after_time) + ']',
-            '\n\n' + '[' + str(before_time) + ']',
-            '[' + str(day_up) + ']-[' + str(day_on) + ']',
-            str(num_this_hour)
-        ])
-        file_object = open(log_name, 'a')
-        file_object.write(log_str)
-        file_object.close()
+        if num_this_hour > 0:
+            log_str = ' '.join([
+                # '\n\n' + '[' + str(after_time) + ']',
+                '\n\n' + '[' + str(before_time) + ']',
+                '[' + str(day_up) + ']-[' + str(day_on) + ']',
+                str(num_this_hour)
+            ])
+            file_object = open(log_name, 'a')
+            file_object.write(log_str)
+            file_object.close()
         items = query.all()
         session.close()
         deal_items(items)
