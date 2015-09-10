@@ -616,7 +616,8 @@ if __name__ == '__main__':
                 days = int(days)
             else:
                 days = 60
-                days /= 2**(4 - count)
+                # days /= 2**(4 - count)
+                days /= (1 + count)
                 days += 1
         except Exception as e:
             print(e)
