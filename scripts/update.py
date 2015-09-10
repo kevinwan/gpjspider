@@ -324,7 +324,7 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
     global rule_names
     global log_name
     global day_up
-    delta = dict(hours=hours)
+    delta = dict(hours=hours/2)
     # delta = dict(days=1)
     # delta = dict(hours=1)
     log_dir = '/tmp/gpjspider/'
@@ -394,10 +394,10 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
             # UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
-            UsedCar.update_count == count,
             # UsedCar.status.in_(['C', 'Y']),
-            UsedCar.status == 'C',
             UsedCar.next_update <= time_now,
+            UsedCar.status == 'C',
+            UsedCar.update_count == count,
             # UsedCar.next_update != None,
             # UsedCar.last_update != None,
         )
