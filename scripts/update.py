@@ -338,23 +338,23 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
     # 计算需要更新的车源对应的创建时间,按每1小时分块依次递减查询数据
     time_now = datetime.datetime.now()
     if not days:
-        after_time = session.query(func.min(UsedCar.created_on)).scalar()
+        start_time = session.query(func.min(UsedCar.created_on)).scalar()
     else:
-        after_time = time_now - datetime.timedelta(days=days - 1)
-    after_time = after_time.replace(
+        start_time = time_now - datetime.timedelta(days=days - 1)
+    start_time = start_time.replace(
         hour=0,
         minute=0,
         second=0,
         microsecond=0
     )
     if before:
-        before_time = datetime.datetime.strptime(before, '%Y-%m-%d %H:%M:%S').replace(
+        end_time = datetime.datetime.strptime(before, '%Y-%m-%d %H:%M:%S').replace(
             minute=0,
             second=0,
             microsecond=0
         ) + datetime.timedelta(**delta)
     else:
-        before_time = time_now.replace(
+        end_time = time_now.replace(
             hour=0,
             minute=0,
             second=0,
@@ -362,19 +362,19 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
         ) + datetime.timedelta(days=1)
 
     log_name += '_' + time_now.strftime("%Y-%m-%d") + ' '
-    log_name += after_time.strftime("%Y.%m.%d") + '-'
-    log_name += before_time.strftime("%Y.%m.%d") + '.log'
+    log_name += start_time.strftime("%Y.%m.%d") + '-'
+    log_name += end_time.strftime("%Y.%m.%d") + '.log'
     # file_object = open(log_name, 'w')    # 如果文件存在就清空内容
     # file_object.write('')
     # file_object.close()
-    # day_on = before_time
+    # day_on = end_time
     # day_up = day_on - datetime.timedelta(**delta)
-    day_up = after_time
+    day_up = start_time
     day_on = day_up + datetime.timedelta(**delta)
     session.close()
 
-    # while day_up >= after_time:
-    while day_on <= before_time:
+    # while day_up >= start_time:
+    while day_on <= end_time:
         # 查询4小时需要更新的车源
         session = Session()
         query = session.query(
@@ -382,9 +382,6 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
             UsedCar.url,
             UsedCar.domain,
             UsedCar.update_count,
-            # UsedCar.created_on,
-            # UsedCar.next_update,
-            # UsedCar.last_update
         )
         if site:
             site_dict = {value[2]: key for key, value in domain_dict.items()}
@@ -395,34 +392,21 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
             # UsedCar.status.in_(['C', 'Y']),
-            UsedCar.next_update <= time_now,
             UsedCar.status == 'C',
-            UsedCar.update_count == count,
+            UsedCar.update_count <= count,
+            UsedCar.next_update <= time_now,
             # UsedCar.next_update != None,
             # UsedCar.last_update != None,
         )
-        # query = query.filter_by(id=21796441)
-        # num_this_hour = query.count()
-        # if num_this_hour > 0:
-        #     log_str = ' '.join([
-        #         # '\n\n' + '[' + str(after_time) + ']',
-        #         '\n\n' + '[' + str(before_time) + ']',
-        #         '[' + str(day_up) + ']-[' + str(day_on) + ']',
-        #         str(num_this_hour)
-        #     ])
-        #     file_object = open(log_name, 'a')
-        #     file_object.write(log_str)
-        #     file_object.close()
-        # items = query.all()
-        # deal_items(items)
-        psize = 20
-        psize = 100
-        items = query.limit(psize).yield_per(10)
+        lmt = 20
+        # lmt = 100
+        psize = 5
+        items = query.limit(lmt).yield_per(psize)
         size = items.count()
         print day_on, size
         while size:
             deal_items(items)
-            items = query.limit(psize).yield_per(10)
+            items = query.limit(lmt).yield_per(psize)
             size = items.count()
             # print day_on, size
         session.close()
@@ -595,7 +579,7 @@ def parse_args():
     parser.add_argument("-n", "--uponline", default=False, help="是否重新爬取未下线的车源,默认为False")
     parser.add_argument("-t", "--status", default=None, help="要更新的错误状态,如-model_slug,默认为None,默认时更新所有错误状态")
     parser.add_argument("-s", "--site", default=None, help="要更新的网站,默认为None,默认时更新所有网站")
-    parser.add_argument("-d", "--days", default=60, help="要更新包括今天在内的共几天的记录,默认为最早的那天")
+    parser.add_argument("-d", "--days", default=None, help="要更新包括今天在内的共几天的记录,默认为最早的那天")
     parser.add_argument("-hs", "--hours", default=None)
     parser.add_argument("-c", "--count", default=None)
     parser.add_argument("-b", "--before", default=None, help="要更新多久以前的记录,默认为当前时间")
@@ -625,11 +609,13 @@ if __name__ == '__main__':
             update_error_status(status, site, days)
     elif model == 'offline':
         try:
+            # magic = bool(count)
             count = int(count) if count else 0
             hours = int(hours) if hours else 12
             if days:
                 days = int(days)
-            if count:
+            else:
+                days = 60
                 days /= 2**(4 - count)
                 days += 1
         except Exception as e:
