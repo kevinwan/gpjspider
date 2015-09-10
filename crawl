@@ -2,4 +2,12 @@
 cd `dirname $0`
 site=$1
 shift
-~/.venvs/gpj/bin/python dev.py -s$site $@
+sites=(${site//,/ })
+
+for site in ${sites[@]}
+do
+    ~/.venvs/gpj/bin/python dev.py -s$site $@ &
+done
+
+
+#echo ygche,renrenche,haoche51,99haoche | cut -d ',' -f 1
