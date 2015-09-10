@@ -268,6 +268,7 @@ rule = {
         # 'http://wenzhou.ganji.com/ershouche/1679794510x.htm', # 网页改版
         # 'http://hf.ganji.com/ershouche/1714887877x.htm' # volume:2L
         # 'http://cd.ganji.com/ershouche/1250246697x.htm' # future time
+        # 'http://tj.ganji.com/ershouche/1816051838x.htm',  # brand_slug list cant strip
     ],
 
     'parse': parse_rule,

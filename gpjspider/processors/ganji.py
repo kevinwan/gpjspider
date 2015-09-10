@@ -38,37 +38,44 @@ def mile(val):
 
 
 def brand_slug(val):
-    if isinstance(val, (list, tuple)) and len(val) >= 2:
-        top = val[0]
-        title = val[1]
+    if isinstance(val, (list, tuple)):
+        if len(val) >= 2:
+            top = val[0]
+            title = val[1]
 
-        model = re.split(u'二手', top)[-1]
-        title = title.split()[0]
+            model = re.split(u'二手', top)[-1]
+            title = title.split()[0]
 
-        if model != title:
-            brand = re.split(model, title)[0]
+            if model != title:
+                brand = re.split(model, title)[0]
+            else:
+                brand = re.split('[\w\d]', title)[0]
+            return brand
         else:
-            brand = re.split('[\w\d]', title)[0]
-        return brand
+            return val[0]
     return val
 
 
 def model_slug(val):
-    if isinstance(val, (list, tuple)) and len(val) >= 2:
-        top = val[0]
-        title = val[1]
+    # import ipdb;ipdb.set_trace()
+    if isinstance(val, (list, tuple)):
+        if len(val) >= 2:
+            top = val[0]
+            title = val[1]
 
-        model = re.split(u'二手', top)[-1]
-        title = title.split()[0]
+            model = re.split(u'二手', top)[-1]
+            title = title.split()[0]
 
-        if model != title:
-            return model
-        else:
-            model = re.search(r'\w+', model)
-            if model:
-                return model.group()
+            if model != title:
+                return model
             else:
-                return ''
+                model = re.search(r'\w+', model)
+                if model:
+                    return model.group()
+                else:
+                    return ''
+        else:
+            return val[0]
     return val
 
 

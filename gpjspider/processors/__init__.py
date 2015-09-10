@@ -324,26 +324,29 @@ Decimal('6.8')
 
     # print v
     # if isinstance(v, Decimal) and v > 150 or value and not u'万' in value:
+    v = None
     if isinstance(value, basestring):
         value = re.sub(',', '', value)
-        if not u'万' in value:
+        if u'万公里' in value:
+            v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', float)
+        elif u'公里' in value:
             v = extract(value, ur'(\d+|[\d\.]{3,})公里', float)
             v /= 10000
-        else:
-            v = extract(value, ur'[^\d]*(\d+|[\d\.]{3,})\s*万公里', float)
-        v = str(v)
+        if v:
+            v = str(v)
     else:
         v = value
-    try:
-        v = decimal(v)
-        # v = extract(value, ur'(\d+)公里', decimal)
-        if v > 1000:
-            v /= 10000
-        if v < 0.01:
-            v = Decimal('0.01')
-    except Exception as e:
-        print e, v
-        return None
+    if v:
+        try:
+            v = decimal(v)
+            # v = extract(value, ur'(\d+)公里', decimal)
+            if v > 1000:
+                v /= 10000
+            if v < 0.01:
+                v = Decimal('0.01')
+        except Exception as e:
+            print e, v
+            return None
     return v
 
 

@@ -273,6 +273,7 @@ rule = {
         #'http://yx.273.cn/car/16094479.html', # 行驶证已审核
         #'http://lps.273.cn/car/16094464.html', # 普通车源
         # 'http://xm.273.cn/car/16464549.html',  # volume is 0.00
+        # 'http://km.273.cn/car/16019892.html',  # mile is None
     ],
     'per_page': 20,
     'pages': 300,
