@@ -38,7 +38,7 @@ item_rule = {
             'xpath': (
                 text(cls('h1')),
                 text(id_('cardes')),
-                '(//h1)[1]/text()',
+                '(//h1[@class="h1"])[1]/text()',
             ),
             'required': True,
         },
@@ -49,16 +49,16 @@ item_rule = {
         },
         'year': {
             'xpath': (
+                after_has(u'上牌时间'),
                 has(u'上牌时间', '/span'),
                 # has(u'首次上牌'),
-                after_has(u'上牌时间'),
             ),
         },
         'month': {
             'xpath': (
+                after_has(u'上牌时间'),
                 has(u'上牌时间', '/span'),
                 # has(u'首次上牌'),
-                after_has(u'上牌时间'),
             ),
         },
         'mile': {
@@ -119,7 +119,7 @@ item_rule = {
         'model_slug': {
             'xpath': (
                 text(id_('carseriess')),
-                text(cls('chexingpeizhi', '/a/../')),
+                text(cls('chexingpeizhi', '/a/..')),
                 has(u'车型', '/span'),
             ),
             # 'processors': ['58.model_slug'],
@@ -421,7 +421,10 @@ rule = {
         # 'http://dg.58.com/ershouche/21896829745311x.shtml', #too much phone
         # 'http://hf.58.com/ershouche/23154792809890x.shtml',  # volume is 6.0 and volume is null
         # 'http://jining.58.com/ershouche/23161636613283x.shtml' #双离合
-        # 'http://bj.58.com/ershouche/23255330806154x.shtml' # title
+        # 'http://bj.58.com/ershouche/23255330806154x.shtml', # title
+        # 'http://aks.58.com/ershouche/23279621010723x.shtml',  # title is "你要找的页面不在这个星球上"
+        # 'http://wz.58.com/ershouche/23279567210400x.shtml',  # model_slug is brand_slug'
+        # 'http://wz.58.com/ershouche/23267708960804x.shtml',  # year is 0
     ],
 
     'parse': parse_rule,
