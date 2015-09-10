@@ -359,7 +359,7 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
             minute=0,
             second=0,
             microsecond=0
-        ) + datetime.timedelta(days=1)
+        ) - datetime.timedelta(days=1)
 
     log_name += '_' + time_now.strftime("%Y-%m-%d") + ' '
     log_name += start_time.strftime("%Y.%m.%d") + '-'

@@ -103,18 +103,35 @@ class GPJBaseSpider(scrapy.Spider):
         if 'start_urls' in self.website_rule:
             start_urls = self.website_rule['start_urls']
             if self.update:
-                psize = 5
-                session = self.Session()
-                query = session.query(UsedCar.id, UsedCar.url).filter_by(domain=self.domain, status='u')
-                items = query.limit(psize).all()
-                session.close()
-                while items:
-                    for item in items:
-                        yield Request(item.url, meta=dict(id=item.id), callback=self.parse_detail, dont_filter=True)
+                psize = 10
+                psize = 1
+                end_date = start_date = datetime.now()
+                start_date -= timedelta(days=60)
+                # end_date -= timedelta(days=60)
+                def get_items():
                     session = self.Session()
-                    query = session.query(UsedCar.id, UsedCar.url).filter_by(domain=self.domain, status='u')
-                    items = query.limit(psize).all()
+                    query = session.query(UsedCar.id, UsedCar.url, UsedCar.update_count) \
+                    .filter_by(domain=self.domain, status='u') \
+                    .filter(UsedCar.created_on>=start_date, UsedCar.created_on<=end_date)
+                    items = query.limit(psize).yield_per(psize)
                     session.close()
+                    return items
+                items = get_items()
+                i = 0
+                while items.count():
+                    for item in items:
+                        cursor = self.get_cursor()
+                        cid = item.id
+                        url = item.url
+                        cursor.execute('update open_product_source set status="i" where id=%s;' % cid)
+                        cursor.close()
+                        i += 1
+                        yield Request(url, meta=dict(id=cid, update_count=item.update_count),
+                            callback=self.parse_detail, dont_filter=True)
+                        if i % 10 == 0:
+                            print i, cid, url
+                    # break
+                    items = get_items()
                 return
             elif self.with_dealer:
                 psize = 20
@@ -125,7 +142,6 @@ class GPJBaseSpider(scrapy.Spider):
                     reg = self.dealer.pop('regex')
 
                 dealer = dict(dealer, **self.dealer)
-                session = self.Session()
                 start_time = end_time = datetime.now()
                 # end_time -= timedelta(hours=1)
                 try:
@@ -133,24 +149,28 @@ class GPJBaseSpider(scrapy.Spider):
                 except:
                     delta = 0.5
                 start_time -= timedelta(hours=delta * 4)
-                query = session.query(UsedCar.company_url).filter(UsedCar.created_on >= start_time,
+                def get_items():
+                    session = self.Session()
+                    query = session.query(UsedCar.company_url).filter(UsedCar.created_on >= start_time,
                     UsedCar.created_on < end_time).filter_by(domain=self.domain) \
-                    .filter(UsedCar.company_url != None,
-                        # UsedCar.city.in_([u'\u5317\u4eac', u'\u6210\u90fd', u'\u5357\u4eac']))\
-                        UsedCar.city.in_(u'北京 成都 南京'.split()))\
-                    .distinct()
-                    # .filter(~UsedCar.company_url.in_([None, ''])).distinct()
-                print query.count()
-                for item in query.yield_per(psize):
-                    url = item.company_url
-                    if reg:
-                        match = re.findall(reg, url)
-                        if match:
-                            url = match[0]
-                        else:
-                            break
-                    yield Request(dealer_url % url, **dealer)
-                session.close()
+                        .filter(UsedCar.company_url != None,
+                        UsedCar.city.in_(u'北京 成都 南京'.split())).distinct()
+                    items = query.limit(psize).yield_per(psize)
+                    session.close()
+                    return items
+                items = get_items()
+                while items.count():
+                    for item in items:
+                        url = item.company_url
+                        if reg:
+                            match = re.findall(reg, url)
+                            if match:
+                                url = match[0]
+                            else:
+                                break
+                        yield Request(dealer_url % url, **dealer)
+                    # break
+                    items = get_items()
                 return
         elif 'start_url_function' in self.website_rule:
             start_url_function = self.website_rule['start_url_function']
@@ -180,11 +200,10 @@ class GPJBaseSpider(scrapy.Spider):
             self.log(msg, level=log.DEBUG)
             requests = self.get_requests(step_rule['url'], response)
             size = len(requests)
-            if size > 0:
-                response.meta['depth'] = response.meta.get('depth', 0) - 1
-                if size > 3:
-                    delta -= 1
-            # print response.meta['depth'], len(requests)
+            # if size > 0:
+            #     response.meta['depth'] = response.meta.get('depth', 0) - 1
+            #     if size > 3:
+            #         delta -= 1
             for request in requests:
                 self.log('start request {0}'.format(request.url))
                 yield request
@@ -206,16 +225,6 @@ class GPJBaseSpider(scrapy.Spider):
         # depth = depth if depth > _min else _min
         depth = depth if depth > _min else 1
         response.meta['depth'] = depth
-        # print depth
-        if 'list_url' in step_rule:
-            msg = u'try to get new list urls from {0}'.format(response.url)
-            self.log(msg, level=log.DEBUG)
-            requests = self.get_requests(step_rule['list_url'], response)
-            for request in requests:
-                self.log('start list request {0}'.format(request.url))
-                # ipdb.set_trace()
-                yield request
-                # detail_amount += 1
         page_rule = self.get_page_rule(step_rule)
         if page_rule:
             msg = u'try to get next page url from {0}'.format(response.url)
@@ -228,13 +237,20 @@ class GPJBaseSpider(scrapy.Spider):
                     delta -= 1
             # print response.meta['depth'], len(requests)
             # if len(requests) > 10:
-            # response.meta['depth'] += 1 #depth if  else depth
+            response.meta['depth'] += 1 #depth if  else depth
             for request in requests:
                 url = request.url
                 # request.priority = LIST_PAGE_PRIORITY
                 self.log(u'start next request: {0}'.format(url))
                 yield request
 
+        if 'list_url' in step_rule:
+            msg = u'try to get new list urls from {0}'.format(response.url)
+            self.log(msg, level=log.DEBUG)
+            requests = self.get_requests(step_rule['list_url'], response)
+            for request in requests:
+                self.log('start list request {0}'.format(request.url))
+                yield request
         if 'item' in step_rule:
             yield self.get_item(step_rule['item'], response)
         elif 'items' in step_rule:
@@ -284,17 +300,13 @@ class GPJBaseSpider(scrapy.Spider):
                 response = response.replace(**rr)
 
         if 'item' in step_rule:
-            if self.update:
-                cursor = self.get_cursor()
-                cursor.execute('update open_product_source set status="Q" where id=%s;' % response.meta['id'])
-                cursor.close()
+            cursor = self.get_cursor()
             yield self.get_item(step_rule['item'], response)
             if self.update:
-                cursor = self.get_cursor()
-                cursor.execute('update open_product_source set status="B" where id=%s and status != "Q";' % response.meta['id'])
+                cid = response.meta['id']
+                cursor.execute('update open_product_source set status="B" where id=%s and status = "Y";' % cid)
+                cursor.execute('update open_product_source set status="CQ" where id=%s and status = "i";' % cid)
                 cursor.close()
-                # clean(response.meta['id'], response.meta['id'], [self.domain], 'B')
-                print response.meta['id'], response.url, '\n************************************************'
 
     def get_requests(self, url_rule, response, step_rule=None):
         """
@@ -331,8 +343,9 @@ class GPJBaseSpider(scrapy.Spider):
         #         if ex_url in url:
         #             tmp_urls.add(url)
         #             break
-        if urls:
-            self.log(u'Got {0} Urls..'.format(len(urls)), log.DEBUG)
+        if not urls:
+            self.log(u'No url found..')
+            # self.log(u'Got {0} Urls..'.format(len(urls)), log.DEBUG)
         tmp_urls = set()
         if 'contains' in url_rule:
             contains = url_rule['contains']
@@ -567,7 +580,7 @@ class GPJBaseSpider(scrapy.Spider):
         'price', 'transfer_owner', 'car_application', 'mandatory_insurance', 'business_insurance', 'examine_insurance',
         'company_name', 'company_url', 'phone', 'contact', 'region', 'imgurls',
         'maintenance_record', 'maintenance_desc', 'quality_service', 'driving_license', 'invoice',
-        'time', 'is_certifield_car', 'source_type', 'condition_level', 'condition_detail', 'status',
+        'time', 'is_certifield_car', 'source_type', 'condition_level', 'condition_detail', 'status', 'update_count'
     ]
 
     def get_item(self, item_rule, response):
@@ -577,8 +590,9 @@ class GPJBaseSpider(scrapy.Spider):
         item_cls = import_item(item_rule['class'])
         # item = dict(response.meta)
         item = dict(url=response.url)
-        if 'id' in response.meta:
-            item['id'] = response.meta['id']
+        for key in 'id update_count'.split():
+            if key in response.meta:
+                item[key] = response.meta[key]
         fields = item_rule['fields']
         for field in fields:
             if field in response.meta:

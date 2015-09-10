@@ -83,6 +83,7 @@ class SaveToMySQLBySqlalchemyPipeline(object):
                 if 'id' in item:
                     # q = q.filter(klass.id==item['id'])
                     q = q.filter_by(id=item['id'])
+                    item['update_count'] += 1
                 else:
                     q = q.filter(
                         klass.url == url, klass.status.in_(['E', 'P', 'u']))

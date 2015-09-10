@@ -85,6 +85,7 @@ class UsedCarItem(GpjspiderItem):
     created_on = Field()
     last_update = Field()
     next_update = Field()
+    update_count = Field()
 
 
 class CarSourceItem(GpjspiderItem):
