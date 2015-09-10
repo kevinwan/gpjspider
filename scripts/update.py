@@ -319,12 +319,12 @@ def get_update_time(item, time_now):    # 计算下次更新时间,待优化
 
 
 # 更新原始表和业务表的车源的销售状态
-def update_sale_status(site=None, days=None, before=None):
+def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
     session = Session()
     global rule_names
     global log_name
     global day_up
-    delta = dict(hours=4)
+    delta = dict(hours=hours)
     # delta = dict(days=1)
     # delta = dict(hours=1)
     log_dir = '/tmp/gpjspider/'
@@ -394,7 +394,7 @@ def update_sale_status(site=None, days=None, before=None):
             # UsedCar.created_on != None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
-            UsedCar.update_count == 0,
+            UsedCar.update_count == count,
             # UsedCar.status.in_(['C', 'Y']),
             UsedCar.status == 'C',
             UsedCar.next_update <= time_now,
@@ -595,9 +595,11 @@ def parse_args():
     parser.add_argument("-n", "--uponline", default=False, help="是否重新爬取未下线的车源,默认为False")
     parser.add_argument("-t", "--status", default=None, help="要更新的错误状态,如-model_slug,默认为None,默认时更新所有错误状态")
     parser.add_argument("-s", "--site", default=None, help="要更新的网站,默认为None,默认时更新所有网站")
-    parser.add_argument("-d", "--days", default=None, help="要更新包括今天在内的共几天的记录,默认为最早的那天")
+    parser.add_argument("-d", "--days", default=60, help="要更新包括今天在内的共几天的记录,默认为最早的那天")
+    parser.add_argument("-hs", "--hours", default=None)
+    parser.add_argument("-c", "--count", default=None)
     parser.add_argument("-b", "--before", default=None, help="要更新多久以前的记录,默认为当前时间")
-    parser.add_argument("-e", "--seconds", default=None, help="要更新几秒以内的记录,默认为0秒")
+    # parser.add_argument("-e", "--seconds", default=None, help="要更新几秒以内的记录,默认为0秒")
     parser.add_argument("-u", "--model", default="offline", help="更新模式,offline为更新下线记录,error为更新错误记录,默认为更新错误记录")
     args = parser.parse_args()
     return args
@@ -611,29 +613,28 @@ if __name__ == '__main__':
     status = args.status
     site = args.site
     days = args.days
+    count = args.count
+    hours = args.hours
     before = args.before
-    seconds = args.seconds
     if model == 'error':
         try:
-            if days:
-                days = int(days)
-            else:
-                days = 7
-            if seconds:
-                seconds = int(seconds)
-            else:
-                seconds = 0
+            days = int(days) if days else 7
         except Exception as e:
             print(e)
         else:
-            update_error_status(status, site, days, seconds)
+            update_error_status(status, site, days)
     elif model == 'offline':
         try:
+            count = int(count) if count else 0
+            hours = int(hours) if hours else 12
             if days:
                 days = int(days)
+            if count:
+                days /= 2**(6 - count)
+                days += 1
         except Exception as e:
             print(e)
         else:
-            update_sale_status(site, days, before)
-    else:
-        print 'Input update model is invalid !'
+            update_sale_status(site, days, before, count, hours)
+    # else:
+    #     print 'Input update model is invalid !'
