@@ -13,6 +13,7 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import datetime
 
+
 class ConvertPhonePic2Num(object):
     """
 # >>> ConvertPhonePic2Num('http://sh.ganji.com/tel_img/?c=k92L68WOXwcdZlbkfF5p-zJhzdzyQ__PtQyX').find_possible_num()
@@ -25,6 +26,11 @@ class ConvertPhonePic2Num(object):
 # >>> ConvertPhonePic2Num('http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm').find_possible_num()
 # ('15339109099', 0.99)
     """
+    
+    MOBILE_PHONE_EX = '133/153/180/181/189/177/'\
+                      '130/131/132/155/156/185/186/145/176/'\
+                      '134/135/136/137/138/139/150/151/152/157/158/159/182/183/184/187/188/147/178'\
+                      '170'
 
     def __init__(self, picurl):
         self.picurl = picurl
@@ -88,7 +94,8 @@ class ConvertPhonePic2Num(object):
         while i < loop:
             if text in textlist:
                 p_text, j = text, i
-                if text.__len__() == 11 or (text.__len__() == 10 and p_text[0:3] == '400'):
+                if (text.__len__() == 11 and p_text[0:3] in self.MOBILE_PHONE_EX) \
+                   or (text.__len__() >= 10 and p_text[0:3] == '400'):
                     break
             if text:
                 textlist.append(text)
