@@ -15,22 +15,31 @@ import datetime
 
 
 class ConvertPhonePic2Num(object):
+
     """
-# >>> ConvertPhonePic2Num('http://sh.ganji.com/tel_img/?c=k92L68WOXwcdZlbkfF5p-zJhzdzyQ__PtQyX').find_possible_num()
-# ('13166118115', 0.99)
-# >>> ConvertPhonePic2Num('http://nj.ganji.com/tel_img/?c=kh3LK8CCBrmcz9g90dTSiHLan.-6g__PtQyX').find_possible_num()
-# ('1367555', 0.9)
+>>> ConvertPhonePic2Num('http://sh.ganji.com/tel_img/?c=k92L68WOXwcdZlbkfF5p-zJhzdzyQ__PtQyX').find_possible_num()\
+# 13166118115
+('13166118115', 0.99)
+>>> ConvertPhonePic2Num('http://nj.ganji.com/tel_img/?c=kh3LK8CCBrmcz9g90dTSiHLan.-6g__PtQyX').find_possible_num()\
+# 13675151805
+('13675151805', 0.99)
 
 # >>> ConvertPhonePic2Num('http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2').find_possible_num()
 # ('18917761263', 0.99)
 # >>> ConvertPhonePic2Num('http://cache.taoche.com/buycar/gettel.ashx?u=5730860&t=ciggmcamamm').find_possible_num()
 # ('15339109099', 0.99)
+>>> ConvertPhonePic2Num('http://cache.taoche.com/buycar/gettel.ashx?u=.&t=acegtiosbm').find_possible_num()
+('0123455789', 0.1)
+
+for taoche, failed to parse 6 compared with 5, others work
+# acegtiosbm
+# 0123456789
     """
-    
-    MOBILE_PHONE_EX = '133/153/180/181/189/177/'\
-                      '130/131/132/155/156/185/186/145/176/'\
-                      '134/135/136/137/138/139/150/151/152/157/158/159/182/183/184/187/188/147/178'\
-                      '170'
+
+    MOBILE_PHONE_EX = ('133/153/180/181/189/177/'
+                      '130/131/132/155/156/185/186/145/176/'
+                      '134/135/136/137/138/139/150/151/152/157/158/159/182/183/184/187/188/147/178/'
+                      '170')
 
     def __init__(self, picurl):
         self.picurl = picurl
@@ -55,22 +64,24 @@ class ConvertPhonePic2Num(object):
             imob = imob.convert('RGB')
             # TODO: 在调用pytesser之前处理一下图片，如把挨得紧密的数字分开，可以提高识别的准确率,需要研究PIL库
             text = image_to_string(imob)
+        # print text
         return text
 
-    def replace_rgba_transparency(self,im):
-        #使用白色来填充背景,测试发现如果不填充，当背景为透明时，
-        #转换为RGB格式后图片中背景和数字会变成一坨
-        #refer to :
-        #http://outofmemory.cn/code-snippet/7453/python-through-pil-png-tupian-fill-background-color
-        x,y = im.size
-        p = Image.new('RGBA', im.size, (255,255,255)) 
+    def replace_rgba_transparency(self, im):
+        # 使用白色来填充背景,测试发现如果不填充，当背景为透明时，
+        # 转换为RGB格式后图片中背景和数字会变成一坨
+        # refer to :
+        # http://outofmemory.cn/code-snippet/7453/python-through-pil-png-tupian-fill-background-color
+        x, y = im.size
+        p = Image.new('RGBA', im.size, (255, 255, 255))
         p.paste(im, (0, 0, x, y), im)
-        return p 
-     
+        return p
+
     def replace_similar_char2num(self):
         # 形状相似的数字和字母映射.
         similar = (('O', '0'), ('o', '0'), ('D', '0'), ('a', '0'), ('L', '1'), ('!', '1'),
-                   ('|', '1'), ('l', '1'), ('I', '1'), ('Z', '2'), ('z', '2'), ('A', '4'),
+                   ('|', '1'), ('l', '1'), ('I', '1'), ('Z',
+                                                        '2'), ('z', '2'), ('A', '4'),
                    ('S', '5'), ('s', '5'), ('b', '6'), ('T', '7'), ('B', '13'),
                    ('q', '9'),)
         reg = re.compile('[^\d]')
@@ -112,12 +123,12 @@ class ConvertPhonePic2Num(object):
             if p_text.__len__() < 11 and not(p_text.__len__() == 10 and p_text[0:3] == '400'):
                 rate = 0.10
         return (self.format_phone_string(p_text), rate)
-    
-    def format_phone_string(self,phone):
-        #rule 1， 400号码第十位后加-
-        if phone[0:3] == '400' and len(phone)>10:
-            phone = phone[0:10]+'-'+phone[10:]
-            
+
+    def format_phone_string(self, phone):
+        # rule 1， 400号码第十位后加-
+        if phone[0:3] == '400' and len(phone) > 10:
+            phone = phone[0:10] + '-' + phone[10:]
+
         return phone
 
 
@@ -129,9 +140,9 @@ def main():
     url = 'http://used.xcar.com.cn/public/load/CarObj.3276841.imgPhone'
     #url = 'http://used.xcar.com.cn/public/load/CarObj.3279485.imgPhone'
     #url = 'http://cache.taoche.com/buycar/gettel.ashx?u=6950596&t=taabcgbote&p=1'
-    #url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2' 
-    print ConvertPhonePic2Num(url).find_possible_num()     
- 
+    #url = 'http://www.che168.com/handler/CarDetail_v3/GetLinkPhone.ashx?infoId=4761577&linkType=2'
+    print ConvertPhonePic2Num(url).find_possible_num()
+
 if __name__ == '__main__':
     # main()
     import doctest
