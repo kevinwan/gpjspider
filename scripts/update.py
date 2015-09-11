@@ -243,8 +243,9 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
     web_page = None
     for error_count in range(0, range_url_count):
         try:
-            proxies = {'http': random.choice(PROXIES)}
-            web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
+            # proxies = {'http': random.choice(PROXIES)}
+            # web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
+            web_page = requests.get(url, timeout=5)
             if web_page.status_code == 407:    # 代理不可用时用本地ip访问
                 web_page = requests.get(url)
             # web_page = requests.get(url)
