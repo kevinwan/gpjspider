@@ -47,7 +47,7 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                _has(u'排 气 量'),
+                has(u'排 气 量', '/..', 'li[re:match(text(), "[1-9]")]/*'),
             ),
             'default': '%(title)s',
             'processors': ['first', 'ganji.volume']
@@ -272,6 +272,8 @@ rule = {
         # 'http://cd.ganji.com/ershouche/1250246697x.htm' # future time
         # 'http://tj.ganji.com/ershouche/1816051838x.htm',  # brand_slug list cant strip
         # 'http://sh.ganji.com/ershouche/1870875260x.htm',  # year is null
+        # 'http://ganzhou.ganji.com/ershouche/1871137334x.htm',  # volume is 0
+        # 'http://quanzhou.ganji.com/ershouche/1870690319x.htm',  # volume is 0
     ],
 
     'parse': parse_rule,

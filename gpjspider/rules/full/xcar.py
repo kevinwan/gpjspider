@@ -53,7 +53,7 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                has(u'排　　量', '/..', 'li[not(contains(text(), "-")) and re:match(text(), "\d")]/span'),
+                has(u'排　　量', '/..', 'li[not(contains(text(), "-")) and re:match(text(), "[1-9]")]/span'),
             ),
             'default': '%(title)s',
             'processors': ['first', 'xcar.volume'],

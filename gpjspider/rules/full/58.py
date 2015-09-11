@@ -71,7 +71,7 @@ item_rule = {
         },
         'volume': {
             'xpath': (
-                after_has(u'排量', 'span[re:match(text(), "\d+\.\d+")]'),
+                after_has(u'排量', 'span[re:match(text(), "[1-9]")]'),
             ),
             'default': '%(title)s',
             'processors': ['first', '58.volume'],
