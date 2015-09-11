@@ -32,7 +32,7 @@ QINIU_IMG_BUCKET = 'gongpingjia'
 
 PHONE_OCR_BLACKLIST = (
     ('S', 'www.ganji.com'),
-    ('S', 'used.xcar.com.cn'),
+    #('S', 'used.xcar.com.cn'),
     ('R', '^[^\.]+\.ganji\.com$'),
 )
 
@@ -51,6 +51,7 @@ CLEAN_STATUS='Y' #
 # if it is not 0, will use as min id
 CLEAN_MIN_ID=0
 CLEAN_MAX_ID=0
+CLEAN_DOMAIN=''
 USE_CELERY_TO_SAVE_CARSOURCE=True
 #USE_CELERY_TO_SAVE_CARSOURCE=False
 SLEEP_BETWEEN_BATCH=1
