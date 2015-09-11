@@ -24,11 +24,13 @@ item_rule = {
         'year': {
             'xpath': (
                 _has(u'上牌时间'),
+                has(u'上牌', '/i[@class="arial"]'),
             ),
         },
         'month': {
             'xpath': (
                 _has(u'上牌时间'),
+                has(u'上牌', '/i[@class="arial"]'),
             ),
         },
         'time': {
@@ -269,6 +271,7 @@ rule = {
         # 'http://hf.ganji.com/ershouche/1714887877x.htm' # volume:2L
         # 'http://cd.ganji.com/ershouche/1250246697x.htm' # future time
         # 'http://tj.ganji.com/ershouche/1816051838x.htm',  # brand_slug list cant strip
+        # 'http://sh.ganji.com/ershouche/1870875260x.htm',  # year is null
     ],
 
     'parse': parse_rule,
