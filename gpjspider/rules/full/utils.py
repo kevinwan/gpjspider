@@ -93,8 +93,16 @@ def before_has(value, node='*', *args, **kwargs):
 
 
 def next_page():
-    return u'//a[text()="下一页" or text()=">" or contains(text(), "下一页") or contains(text(), ">")]/@href'
-    return has_attr2(u'下一页', 'href')
+    return u'//a[text()="下一页" or text()=">" \
+        or contains(text(), "下一页") or contains(text(), ">")]/@href'
+
+
+def next_page1():
+    return u'//a[text()="下一页" or contains(text(), "下一页")]/@href'
+
+
+def next_page2():
+    return u'//a[text()=">" or contains(text(), ">")]/@href'
 
 
 def test():

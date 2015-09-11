@@ -223,8 +223,8 @@ list_rule = {
     },
     'next_page_url': {
         'xpath': (
-            # '//a[text()=">"]/@href',
-            next_page(),
+            '//a[text()=">"]/@href',
+            # next_page(),
         ),
         'step': 'parse',
         'format': True,

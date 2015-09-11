@@ -222,12 +222,20 @@ parse_rule = {
         'format': True,
         'step': 'parse_detail',
     },
+    'list_url': {
+        're': (
+            r'(http://seller.cheshi.com/\d+/)ersc_\d+.html',
+        ),
+        'format': '{0}ersclist.html',
+        'step': 'parse_list',
+        # 'dont_filter': False,
+    },
     'next_page_url': {
         "xpath": (
-            # href(cls('sc-menu2 l', '/li/a')),
-            next_page(),
+            next_page1(),
         ),
-        #'format': True,
+        'contains': 'p_',
+        'format': True,
         'step': 'parse',
         # 'incr_pageno': 3,
     },
@@ -237,10 +245,20 @@ parse_rule = {
 parse_list = {
     'url': {
         're': (
-            r'http://seller.cheshi.com/\d+/ersc_(\d+\.html)',
+            r'/ersc_(\d+.html)',
         ),
         'format': 'http://2sc.cheshi.com/info/{0}',
         'step': 'parse_detail',
+    },
+    'next_page_url': {
+        "xpath": (
+            next_page(),
+        ),
+        'excluded': ['javascript'],
+        'contains': 'ersclist_',
+        'format': True,
+        'step': 'parse_list',
+        # 'dont_filter': False,
     },
 }
 
@@ -277,10 +295,12 @@ rule = {
         # 'http://2sc.cheshi.com/info/1765834.html' # imgurls
         # 'http://2sc.cheshi.com/info/1766391.html',  # control is null
         # 'http://2sc.cheshi.com/info/1261408.html',  # phone error
+        # 'http://seller.cheshi.com/5624/ersclist_2.html',
     ],
 
     'parse': parse_rule,
     'parse_list': parse_list,
+    # 'parse': parse_list,
 
     'parse_detail': {
         "item": item_rule,
