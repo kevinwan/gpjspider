@@ -286,6 +286,7 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                     raise Exception('Website shield and all agent failure !')
             else:
                 web_page = requests.get(url)
+            # web_page = requests.get(url)
         except Exception as e:
             try:
                 error_string = ''.join(e.args)
@@ -297,10 +298,10 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                         key = '%s_%s_%s' % (domain, web_page.status_code, str(datetime.date.today()))
                         redis_bad_ip.sadd(key, url)
                         proxymesh_ip = web_page.headers.get('x-proxymesh-ip')
-                        if proxymesh_ip:
-                            invalid_ip_key = '%s_%s_%s' % (server_id, domain, str(datetime.date.today()))
-                            redis_bad_ip.sadd(invalid_ip_key, proxymesh_ip)
-                            redis_bad_ip.expire(invalid_ip_key, 600)
+                        invalid_ip_key = '%s_%s_%s' % (server_id, domain, str(datetime.date.today()))
+                        redis_bad_ip.sadd(invalid_ip_key, proxymesh_ip)
+                        redis_bad_ip.expire(invalid_ip_key, 600)
+                        time.sleep(30)
                         # web_page = parse_58_firewall(web_page)
                 if error_count + 1 == range_url_count:
                     error_string = '\n' + url + ' ' + error_string
@@ -317,6 +318,8 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                 response = Selector(text=web_page.content)
             else:
                 response = Selector(text=web_page.text)
+        if 'x-proxymesh-ip' not in web_page.headers:    # 本机ip访问时降低访问速度
+            time.sleep(1)
         xpaths = domain_dict[domain][0]
         for xpath in xpaths:
             sales = response.xpath(xpath).extract()
