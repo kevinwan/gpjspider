@@ -249,8 +249,12 @@ parse_list = {
         'xpath': (
             next_page1(),
         ),
-        'excluded': ['javascript'],
+        # 'excluded': ['javascript'],
+        'regex': 'page=(\d+)',
         'format': True,
+        'format': '%(url)s?page={0}',
+        'format': '%(url)s',
+        'replace': ['(page=\d+)', 'page={0}'],
         'step': 'parse_list',
         # 'dont_filter': False,
     },
@@ -260,9 +264,10 @@ rule = {
     'name': u'优信二手车',
     'domain': 'xin.com',
     'dealer': {
-        'url': '%s',
+        'url': '%s?page=1',
     },
     'start_urls': [
+        # 'http://www.xin.com/d/7679.html?page=1',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
         'http://www.xin.com/quanguo/s/o2a10i2v1/',
         'http://www.xin.com/quanguo/s/o2a10i3v1/',
@@ -283,8 +288,8 @@ rule = {
     'pages': 18489,
 
     'parse': parse_rule,
-
     'parse_list': parse_list,
+    # 'parse': parse_list,
 
     'parse_detail': {
         "item": item_rule,

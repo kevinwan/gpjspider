@@ -104,15 +104,15 @@ class GPJBaseSpider(scrapy.Spider):
             start_urls = self.website_rule['start_urls']
             if self.update:
                 psize = 10
-                psize = 1
+                # psize = 1
                 end_date = start_date = datetime.now()
                 start_date -= timedelta(days=60)
                 # end_date -= timedelta(days=60)
                 def get_items():
                     session = self.Session()
                     query = session.query(UsedCar.id, UsedCar.url, UsedCar.update_count) \
-                    .filter_by(domain=self.domain, status='u') \
-                    .filter(UsedCar.created_on>=start_date, UsedCar.created_on<=end_date)
+                    .filter(UsedCar.created_on>=start_date, UsedCar.created_on<=end_date,
+                        UsedCar.status.in_(['u', 'i'])).filter_by(domain=self.domain)
                     items = query.limit(psize).yield_per(psize)
                     session.close()
                     return items
@@ -1028,14 +1028,14 @@ class GPJBaseSpider(scrapy.Spider):
             request_model.meta = pickle.dumps(request.meta)
             request_model.encoding = request.encoding
             session.add(request_model)
-        if requests:
-            try:
-                session.commit()
-            except IntegrityError:
-                session.rollback()
-            except Exception as e:
-                self.log(u'Save request failed: {0}'.format(e), log.WARNING)
-                session.rollback()
-            else:
-                self.log(u'Save request {0}'.format(request_model.url), log.INFO)
+        # if requests:
+        #     try:
+        #         #session.commit()
+        #     except IntegrityError:
+        #         session.rollback()
+        #     except Exception as e:
+        #         self.log(u'Save request failed: {0}'.format(e), log.WARNING)
+        #         session.rollback()
+        #     else:
+        #         self.log(u'Save request {0}'.format(request_model.url), log.INFO)
         session.close()
