@@ -58,7 +58,6 @@ for taoche, failed to parse 6 compared with 5, others work
         from urlparse import urlparse,parse_qs
         url_parts = urlparse(url)
         try:
-        if 1:
             if url_parts.hostname=='cache.taoche.com':
                 qsa = parse_qs(url_parts.query)
                 t=qsa.get('t')[0]
