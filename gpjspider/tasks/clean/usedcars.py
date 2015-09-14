@@ -66,6 +66,8 @@ DUP_CAR_CHECK_FIELDS=(
     'price',
     'phone',
 )
+DUP_CAR_CHECK_EXTRA_FIELDS=tuple(list(DUP_CAR_CHECK_FIELDS[:-1])+['month'])
+
 DEFAULT_DOMAINS = (
         'xin.com',
         'haoche.ganji.com',
@@ -131,6 +133,66 @@ class async(object):
         )
         thread.start()
         return True
+
+
+class DupChecker:
+    CarSource_CHECK_FIELDS= (
+        ('csd_phone', ('brand_slug', 'model_slug', 'city', 'year', 'mile', 'price', 'phone', )), 
+        ('csd_month', ('brand_slug', 'model_slug', 'city', 'year', 'mile', 'price', 'month', )),
+    )
+    TradeCar_CHECK_FIELDS= (
+        ('csd_phone', ('brand_slug', 'model_slug', 'city', 'year', 'mile', 'price', 'phone', )),
+        ('csd_month', ('brand_slug', 'model_slug', 'city', 'year', 'mile', 'price', 'month', )),
+    )
+
+    @classmethod
+    def make_sig(cls, src, fields):
+        from gpjspider.utils.common import _md5
+        if not src.has_key('brand_slug'):
+            src['brand_slug'] = src['brand']
+        if not src.has_key('model_slug'):
+            src['model_slug'] = src['model']
+        detail = u'#'.join([unicode(src[field]) for field in fields])
+        sig = _md5(detail.encode('utf-8'))
+        return detail, sig
+
+    @classmethod
+    def check(cls, src, dest_klass):
+        if not isinstance(dest_klass, basestring):
+            dest_klass = dest_klass.__name__
+        dup_ids = []
+        cks=[]
+        check_fields = getattr(cls, '%s_CHECK_FIELDS' % dest_klass, None)
+        if check_fields:
+            for ck_prefix,sig_fields in check_fields:
+                detail, sig = cls.make_sig(src, sig_fields)
+                ck = '_'.join([dest_klass, ck_prefix, sig, ])
+                logging.debug('checking source %s with ck %s' % (src['id'], ck))
+                if ck_prefix=='csd_phone':
+                    old_key = REDIS_DUP_SIG_KEY % sig
+                    for old_item in redis.smembers(old_key):
+                        ok_klass,ok_id = old_item.split[':']
+                        if ok_klass==dest_klass:
+                            redis.sadd(ck, old_item)
+                same_item_ids = redis.smembers(ck)
+                cks.append(ck)
+                if  same_item_ids:
+                    dup_ids.extend(same_item_ids)
+        logging.debug('source %s to %s has dup items %s' % (src['id'], dest_klass, dup_ids))
+        return set(dup_ids),cks
+
+    @classmethod
+    def enqueue(cls, cache_keys, dest):
+        for cache_key in cache_keys:
+            logging.debug('add dup %s to %s' % (dest.id,  cache_key))
+            redis.sadd(cache_key, dest.id)
+
+    @classmethod
+    def test(cls, item):
+        exists_ids, cache_keys = DupChecker.check('CarSource', item)
+        new_id = save_to_car_source(item, exists_ids)
+        DupChecker.enqueue(cache_keys, new_id)
+
 
 
 
@@ -320,6 +382,8 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10,):
         log('get min id by start_time:%s, statuss:%s, domains:%s' % (start_time, statuss, domains))
         try:
             min_id = sql.scalar()
+            if min_id is None:
+                raise Exception('no min_id available')
         except Exception as e:
             session.close()
             log('Done,missing min_id', e.message)
@@ -659,7 +723,8 @@ def pool_run(query, meth, index=0, psize=10, cls=UsedCar):
 
 
 def push_trade_car(item, sid, session):
-    old_trade_car_item_ids = get_dup_car_items(item, 'TradeCar', is_new=True)
+    # old_trade_car_item_ids = get_dup_car_items(item, 'TradeCar', is_new=True)
+    old_trade_car_item_ids, dup_check_keys = DupChecker.check(item, TradeCar.__name__)
     if old_trade_car_item_ids and TradeCar.last_dup_item_is_alive(session, old_trade_car_item_ids):
         # 重复车源，旧的车源还在存活期类，则不进入
         log('duplicated and old item is alive, no push_trade_car',sid)
@@ -674,7 +739,8 @@ def push_trade_car(item, sid, session):
             checker_runtime_id=0,
                 # status='_t'
         ), synchronize_session=False)
-        update_dup_car_items(item, 'TradeCar', car.id)
+        DupChecker.enqueue(dup_check_keys, car)
+        # update_dup_car_items(item, 'TradeCar', car.id)
         return True, 'ok'
     except IntegrityError:
         session.rollback()
@@ -839,13 +905,14 @@ def is_dup_psid(psid):
         print psid, clean_count
     return clean_count > 1
 
-def make_item_sig(item):
+def make_item_sig(item, is_alt=False):
     from gpjspider.utils.common import _md5
     if not item.has_key('brand_slug'):
         item['brand_slug'] = item['brand']
     if not item.has_key('model_slug'):
         item['model_slug'] = item['model']
-    car_info = u'#'.join([unicode(item[field]) for field in DUP_CAR_CHECK_FIELDS])
+    fields = is_alt and DUP_CAR_CHECK_EXTRA_FIELDS or DUP_CAR_CHECK_FIELDS
+    car_info = u'#'.join([unicode(item[field]) for field in fields])
     sig = _md5(car_info.encode('utf-8'))
     return car_info, sig
 
@@ -860,7 +927,7 @@ def update_dup_car_items(item, klass_name, klass_id):
     except Exception as e:
         get_task_logger().error('during update dup_car_items %s:%s, item:' % (klass_name, klass_id, item['id']), exc_info=True)
 
-def get_dup_car_items(item, klass_name='UsedCar', is_new=False):
+def get_dup_car_items(item, klass_name='UsedCar', is_new=False, is_alt=False):
     try:
         detail, sig = make_item_sig(item)
         rk = REDIS_DUP_SIG_KEY % sig
@@ -1473,7 +1540,8 @@ def insert_to_carsource(item, session, logger):
         #     car_source.id = query.first().id
         #     session.merge(car_source)
         # else:
-        old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)
+        old_car_source_item_ids, dup_check_keys = DupChecker.check(item, CarSource.__name__)
+        # old_car_source_item_ids = get_dup_car_items(item, 'CarSource', is_new=True)
         session.add(car_source)
         session.commit()
     except IntegrityError:
@@ -1503,7 +1571,8 @@ def insert_to_carsource(item, session, logger):
     insert_to_carimage(item, car_source, session, logger)
     if inserted:
         try:
-            update_dup_car_items(item, 'CarSource', car_source.id)
+            DupChecker.enqueue(dup_check_keys, car_source)
+            # update_dup_car_items(item, 'CarSource', car_source.id)
             if old_car_source_item_ids:
                 # 重复的旧的车源标记为下线
                 log('duplicated,mark old items as offline before insert_to_carsource',item['id'], car_source.id, old_car_source_item_ids)
