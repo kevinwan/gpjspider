@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+import re
 import sys
 import ipdb
 import time
@@ -8,9 +9,12 @@ import datetime
 import requests
 import argparse
 sys.path.append("..")
+import StringIO
+from PIL import Image
 from sqlalchemy import func
 from threading import Thread, Lock
 from scrapy.selector import Selector
+from pytesseract import image_to_string
 from gpjspider.models import UsedCar, CarSource, CarDetailInfo
 from gpjspider.utils import get_mysql_connect, get_redis_cluster
 from gpjspider.tasks.spiders import run_all_spider_update
@@ -35,6 +39,7 @@ domain_dict = {
     ],    # 302
     '51auto.com': [
         [
+            'boolean(//div[@class="sold-out"])',
             'boolean(//div[@class="tishimain"]/span[2]/text())'
         ],
         '1', '51auto'
@@ -237,41 +242,72 @@ except Exception as e:
     print u'ExceptionInfo: {0}'.format(e)
 
 
+def parse_58_firewall(web_page):
+    response = Selector(text=web_page.text)
+    uuid_list = response.xpath('//input[@id="uuid"]/@value').extract()
+    headers = {
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': 'id58=05dzXFW3KVypm2tvK5JCAg==; __ag_cm_=1438067041103; sessionid=2a4c9cab-78f5-444c-9dca-7fa65288e83f; ag_fid=TvlD8uQkNDpJfwGF; _ga=GA1.2.382082989.1438067359; als=0; xxzl_cp=64248043b2de4dbba0bc7957f5f27165190; vip=v%3D1%26vipuserpline%3D1005%26masteruserid%3D33124437196550%26vipkey%3Da6447f5abbcb274ca0816f851a68c93b%26vipusertype%3D11; myfeet_tooltip=end; bangbigtip2=1; bangtoptipclose=1; 58home=bj; __autmz=253535702.1441729168.1.1.autmcsr=(direct)|autmccn=(direct)|autmcmd=(none); __autma=253535702.157438233.1441729168.1441729168.1441732451.2; __autmc=253535702; __utma=253535702.382082989.1438067359.1441732451.1441951771.19; __utmc=253535702; __utmz=253535702.1441951771.19.7.utmcsr=dl.58.com|utmccn=(referral)|utmcmd=referral|utmcct=/ershouche/23289743015332x.shtml; city=jixi; ipcity=cd%7C%u6210%u90FD; Nprd=26|1442631080529; _vz=viz_55ee973682873; bangbangid=1080863913022601748; new_uv=62; final_history=22668443783049%2C22668435425822%2C22668441197474%2C22668432867492%2C22668651581193; Nvis=48|1442285480528',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+    if uuid_list:
+        uuid = uuid_list[0]
+        url = 'http://support.58.com/firewall/code/2101784591/6444e593.do?rnd=1'
+        while response.xpath('//div[@class="search_tips_input"]').extract():
+            equa = None
+            while equa is None:
+                im = requests.get(url).content
+                imob = Image.open(StringIO.StringIO(im))
+                imob = imob.convert('RGB')
+                text = image_to_string(imob)
+                equa = re.search(r'(\d+[\+-]\d+)[:=‘]', text)
+            num = str(eval(equa.group(1)))
+            bb = requests.post('http://support.58.com/firewall/code/2101784591/6444e593.do', headers = headers, data={'inputcode': num, 'uuid': uuid, 'namespace': u'infodetailweb'})
+            print num, bb.text
+            web_page = requests.get(web_page.url.split('&url=')[1])
+            response = Selector(text=web_page.text)
+    return web_page
+
+
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
     global range_url_count
     global server_id
     web_page = None
     for error_count in range(0, range_url_count):
         try:
-            # proxies = {'http': random.choice(PROXIES)}
-            # web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
-            web_page = requests.get(url, timeout=5)
-            if web_page.status_code == 407:    # 代理不可用时用本地ip访问
+            if domain in ['58.com', 'baixing.com', 'ganji.com']:
+                proxies = {'http': random.choice(PROXIES)}
+                web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
+                if web_page.status_code == 407:    # 代理不可用时用本地ip访问
+                    web_page = requests.get(url)
+                if eval(firewall_rule[domain][1]):
+                    raise Exception('Website shield and all agent failure !')
+            else:
                 web_page = requests.get(url)
-            # web_page = requests.get(url)
-            if domain in ['58.com', 'baixing.com', 'ganji.com'] and eval(firewall_rule[domain][1]):
-                raise Exception(['Website shield and all agent failure !'])
         except Exception as e:
             try:
                 error_string = ''.join(e.args)
             except Exception:
                 error_string = e.message.message
             finally:
-                if web_page:
-                    if 'Website shield and all agent failure' in error_string:
-                        key = '%s_%s_%s' % (domain, web_page.status, str(datetime.date.today()))
+                if web_page is not None:
+                    if 'x-proxymesh-ip' in web_page.headers and 'Website shield and all agent failure' in error_string:
+                        key = '%s_%s_%s' % (domain, web_page.status_code, str(datetime.date.today()))
                         redis_bad_ip.sadd(key, url)
                         proxymesh_ip = web_page.headers.get('x-proxymesh-ip')
                         if proxymesh_ip:
                             invalid_ip_key = '%s_%s_%s' % (server_id, domain, str(datetime.date.today()))
                             redis_bad_ip.sadd(invalid_ip_key, proxymesh_ip)
                             redis_bad_ip.expire(invalid_ip_key, 600)
+                        # web_page = parse_58_firewall(web_page)
                 if error_count + 1 == range_url_count:
                     error_string = '\n' + url + ' ' + error_string
                     return ['online', error_string]
         else:
             break
-    if web_page:
+    if web_page is not None:
         if domain == 'zg2sc.cn' and not web_page.content:
             return 'offline'
         if domain in ['jcjp.com.cn', 'zg2sc.cn']:
@@ -281,8 +317,6 @@ def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解
                 response = Selector(text=web_page.content)
             else:
                 response = Selector(text=web_page.text)
-        if 'x-proxymesh-ip' not in web_page.headers:    # 本机ip访问时降低访问速度
-            time.sleep(1)
         xpaths = domain_dict[domain][0]
         for xpath in xpaths:
             sales = response.xpath(xpath).extract()
@@ -313,7 +347,7 @@ def get_update_time(item, time_now):    # 计算下次更新时间,待优化
     #     )
     next_update_time = (
         time_now + datetime.timedelta(
-            seconds=60
+            days=1
         )
     )
     return next_update_time
@@ -325,7 +359,7 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
     global rule_names
     global log_name
     global day_up
-    delta = dict(hours=hours/2)
+    delta = dict(hours=hours / 2)
     # delta = dict(days=1)
     # delta = dict(hours=1)
     log_dir = '/tmp/gpjspider/'
@@ -389,27 +423,28 @@ def update_sale_status(site=None, days=None, before=None, count=0, hours=12):
             domain = site_dict[site]
             query = query.filter(UsedCar.domain == domain)
         query = query.filter(
-            # UsedCar.created_on != None,
+            # UsedCar.created_on is not None,
             UsedCar.created_on >= day_up,
             UsedCar.created_on < day_on,
             # UsedCar.status.in_(['C', 'Y']),
             UsedCar.status == 'C',
             UsedCar.update_count <= count,
             UsedCar.next_update <= time_now,
-            # UsedCar.next_update != None,
-            # UsedCar.last_update != None,
+            # UsedCar.next_update is not None,
+            # UsedCar.last_update is not None,
         )
-        lmt = 20
+        lmt = 60
         # lmt = 100
         psize = 5
         items = query.limit(lmt).yield_per(psize)
         size = items.count()
-        print day_on, size
+        if not size:
+            print day_on, size
         while size:
+            print day_on, size
             deal_items(items)
             items = query.limit(lmt).yield_per(psize)
             size = items.count()
-            # print day_on, size
         session.close()
         # day_up -= datetime.timedelta(**delta)
         # day_on -= datetime.timedelta(**delta)
@@ -464,6 +499,9 @@ def deal_one_item(item, num_this_hour=None):
         try:
             session = Session()
             sales_status = get_sales_status(item.domain, item.url)
+            if item.domain == '58.com' and sales_status == 'offline':
+                # time.sleep(1)
+                sales_status = get_sales_status(item.domain, item.url)
             time_now = datetime.datetime.now()
             if isinstance(sales_status, list):
                 error_string = sales_status[1]
