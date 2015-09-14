@@ -235,7 +235,7 @@ parse_list = {
     },
     'next_page_url': {
         'xpath': (
-            next_page(),
+            next_page1(),
         ),
         'excluded': ['javascript'],
         'format': True,

@@ -83,7 +83,7 @@ item_rule = {
         'brand_slug': {
             # 'xpath': (
             #     text(cls('car-tit', '/p/a[3]')),
-            #     # text(cls("tit", '/h1')),
+            # text(cls("tit", '/h1')),
             # ),
             'default': '%(title)s',
         },
@@ -91,11 +91,11 @@ item_rule = {
             # 'xpath': [
             #     text(cls('car-tit', '/p/a[3]')),
             #     text(cls('car-tit', '/p/a[4]')),
-            #     # text(cls("tit", '/h1')),
+            # text(cls("tit", '/h1')),
             # ],
             # 'xpath': (
             #     text(cls('car-tit', '/p/a[4]')),
-            #     # text(cls("tit", '/h1')),
+            # text(cls("tit", '/h1')),
             # ),
             'default': '%(title)s',
             # 'processors': ['xin.model_slug'],
@@ -165,7 +165,7 @@ item_rule = {
                 text(cls('test-txt', '/p/')),
                 # u"//div[@class='day']//span[contains(text(), '退') or contains(text(), '修')  or contains(text(), '换' or contains(text(), '保'))]/text()",
                 # u"//div[@class='msg']//li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
-                # # u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
+                # u"//div[@id='msgMore']/div[@class='msg']/ul/li[contains(text(), '退') or contains(text(), '修') or contains(text(), '换') or contains(text(), '保')]/text()",
                 # img(cls("test-txt", '/')),
                 # img(cls('day-pic', '/')),
             ),
@@ -183,7 +183,7 @@ item_rule = {
         'is_certifield_car': {
             # 'xpath': (
             #     exists(cls('test-txt', '//img')),
-            #     # img(cls('day-pic', '/')),
+            # img(cls('day-pic', '/')),
             # ),
             'default': "%(quality_service)s",
             'default_fail': False,
@@ -221,6 +221,13 @@ parse_rule = {
         # 'max_pagenum': 50,
         # 'incr_pageno': 10,
     },
+    'list_url': {
+        'xpath': (
+            url(cls('hot-city')),
+        ),
+        'format': True,
+        'step': 'parse',
+    },
     "next_page_url": {
         "xpath": (
             u'//a[contains(text(), "下一页")]/@data-page',
@@ -240,7 +247,7 @@ parse_list = {
     },
     'next_page_url': {
         'xpath': (
-            next_page(),
+            next_page1(),
         ),
         'excluded': ['javascript'],
         'format': True,
@@ -256,24 +263,11 @@ rule = {
         'url': '%s',
     },
     'start_urls': [
-        # 'http://www.xin.com/quanguo/s/o2a10i600v1/',
         'http://www.xin.com/quanguo/s/o2a10i1v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i28v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i10v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i40v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i80v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i160v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i240v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i2694v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i2566v1/',
-        #'http://www.xin.com/quanguo/s/o2a10i1862v1/',
-        #'http://www.xin.com/quanguo/s/o2a10i1650v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i851v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i899v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i1163v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i1263v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i1298v1/',
-        # 'http://www.xin.com/quanguo/s/o2a10i1370v1/',
+        'http://www.xin.com/quanguo/s/o2a10i2v1/',
+        'http://www.xin.com/quanguo/s/o2a10i3v1/',
+        'http://www.xin.com/quanguo/s/o2a10i4v1/',
+        'http://www.xin.com/quanguo/s/o2a10i6v1/',
         # 'http://www.xin.com/c/10424705.html',  # 5
         # 'http://www.xin.com/c/10353602.html',  # 5
         # 'http://www.xin.com/c/10254412.html',  # 2
@@ -287,7 +281,6 @@ rule = {
     'base_url': 'http://www.xin.com',
     'per_page': 20,
     'pages': 18489,
-    # 'update': True,
 
     'parse': parse_rule,
 
