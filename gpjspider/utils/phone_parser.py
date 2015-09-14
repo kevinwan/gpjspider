@@ -4,6 +4,8 @@ import StringIO
 from PIL import Image
 from pytesseract import image_to_string
 from urllib2 import urlopen, Request
+import logging
+logger = logging.getLogger(__name__)
 
 # @added by y10n
 # hack for error:
@@ -12,7 +14,6 @@ from urllib2 import urlopen, Request
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import datetime
-
 
 class ConvertPhonePic2Num(object):
 
@@ -40,9 +41,50 @@ for taoche, failed to parse 6 compared with 5, others work
                       '130/131/132/155/156/185/186/145/176/'
                       '134/135/136/137/138/139/150/151/152/157/158/159/182/183/184/187/188/147/178/'
                       '170')
+    '''
+    -1 will be ocred as 4, or other error,using guess is better now
+    '''
+    TAOCHE_DIGIT_MAP=(
+        'acegtiosbmj',
+        '0123456789-',
+    )
+    OCR_TRY_TIMES = 10
 
     def __init__(self, picurl):
         self.picurl = picurl
+
+    @classmethod
+    def guess(cls, url):
+        from urlparse import urlparse,parse_qs
+        url_parts = urlparse(url)
+        try:
+        if 1:
+            if url_parts.hostname=='cache.taoche.com':
+                qsa = parse_qs(url_parts.query)
+                t=qsa.get('t')[0]
+                m=dict(zip(*cls.TAOCHE_DIGIT_MAP))
+                return ''.join([m[x] for x in t])
+        except:
+            logger.error('guess phone error for:%s' % url, exc_info=True)
+            return ''
+
+    @classmethod
+    def valid_taoche(cls,urls):
+        if not urls:
+            return 0
+        success_cnt = 0
+        for url in urls:
+            logger.debug('checking url %s' % url)
+            ocred_phone = re.sub('[^0-9]', '', cls(url).find_possible_num(guess=False)[0])
+            guessed_phone = cls.guess(url).strip()
+            logger.debug('guessed %s'% guessed_phone)
+            logger.debug('ocred %s' % ocred_phone)
+            if guessed_phone.replace('6', '5')==ocred_phone:
+                success_cnt += 1
+                logger.debug('match')
+            else:
+                logger.debug('not match')
+        return round(success_cnt*100/len(urls))
 
     def convert_remote_pic2num(self):
         im = urlopen(Request(self.picurl)).read()
@@ -92,14 +134,21 @@ for taoche, failed to parse 6 compared with 5, others work
         text = reg.sub(lambda x: '', text)
         return text
 
-    def find_possible_num(self):
+    def find_possible_num(self, guess=True):
+        p_text = ''
+        rate = 0.5
+
+        if guess:
+            p_text=self.guess(self.picurl)
+            if p_text:
+                rate=0.99
+                return self.format_phone_string(p_text, rate)
+
         textlist = []
         i = 0
-        loop = 10
+        loop=self.OCR_TRY_TIMES
         j = loop
-        rate = 0.5
         text = ''
-        p_text = ''
 
         # while内为优先级匹配：重复的11位的数字序列>重复出的数字序列>最后的数字序列，
         while i < loop:
