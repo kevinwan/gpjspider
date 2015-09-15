@@ -141,7 +141,7 @@ for taoche, failed to parse 6 compared with 5, others work
             p_text=self.guess(self.picurl)
             if p_text:
                 rate=0.99
-                return self.format_phone_string(p_text, rate)
+                return self.format_phone_string(p_text), rate
 
         textlist = []
         i = 0

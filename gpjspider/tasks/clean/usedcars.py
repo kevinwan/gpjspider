@@ -103,6 +103,7 @@ from gpjspider.utils.constants import (
     CLEAN_STATUS,
     CLEAN_MIN_ID,
     CLEAN_MAX_ID,
+    CLEAN_DOMAIN,
     PHONE_OCR_BLACKLIST,
 )
 MACHINE_LEANED_VALUE_PREFIX='ml://'
@@ -171,10 +172,12 @@ class DupChecker:
                 if ck_prefix=='csd_phone':
                     old_key = REDIS_DUP_SIG_KEY % sig
                     for old_item in redis.smembers(old_key):
-                        ok_klass,ok_id = old_item.split[':']
+                        #ipdb.set_trace()
+                        ok_klass,ok_id = old_item.split(':')
                         if ok_klass==dest_klass:
-                            redis.sadd(ck, old_item)
+                            redis.sadd(ck, ok_id)
                 same_item_ids = redis.smembers(ck)
+                same_item_ids = [int(x) for x in same_item_ids if str(x).isdigit()]
                 cks.append(ck)
                 if  same_item_ids:
                     dup_ids.extend(same_item_ids)
@@ -328,6 +331,9 @@ def clean_domain(self, domain=None, sync=False, amount=50, per_item=10,):
     log('Starting..')
     session = Session()
     cursor = get_cursor(session)
+    if not domain and CLEAN_DOMAIN:
+        domain=CLEAN_DOMAIN
+    #ipdb.set_trace()
     domains = domain and [domain] or DEFAULT_DOMAINS[:]
     # created_on>=curdate()  between '2015-05-1' and '2015-05-10' '2015-05-10' and '2015-05-20'  and id>17549018
     # subdate(curdate(), interval 8 day)
@@ -1127,6 +1133,8 @@ def clean_usedcar(self, items, is_good=True, funcs=None, *args, **kwargs):
                 logger.warning(u'source.id: {0} 不符合规则要求'.format(sid))
                 log('flag not match',sid)
                 if sid:
+                    if isinstance(flag, basestring):
+                        log('flag will be p:%s %s' % (flag, sid))
                     key = flag if isinstance(flag, basestring) else 'P'
                     if key not in status:
                         status[key] = []
@@ -1562,7 +1570,7 @@ def insert_to_carsource(item, session, logger):
         session.rollback()
         print e,item['id']
         # raise
-        logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)))
+        logger.error(u'Unknown {0}:\n{1}'.format(car_source.url, unicode(e)), exc_info=True)
         return
     else:
         inserted=True

@@ -10,7 +10,7 @@ export GPJ_CELERY_PREFIX=ALI_CRAWLER2
 export MAX_DEFAULT_CLEANER=4
 export MAX_OLD_CLEANER=2
 source ./local_celery_worker_setting.sh
-cd ~/projects/gpjspider
+cd ~/projects/gpjspider.clean
 for((i=1;i<=MAX_DEFAULT_CLEANER;i++));
 do
     ~/.virtualenvs/gpj/bin/celery worker -E -A gpjspider.celery_app -n celery_default_${GPJ_CELERY_PREFIX}_${i} -Q default -O fair -l debug -f /tmp/gpjspider/celery-default-${DATE_SUFFIX}.${i}.log 2>&1 1>>/tmp/gpjspider/celery.error.log &
