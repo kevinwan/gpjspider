@@ -274,6 +274,7 @@ rule = {
         #'http://lps.273.cn/car/16094464.html', # 普通车源
         # 'http://xm.273.cn/car/16464549.html',  # volume is 0.00
         # 'http://km.273.cn/car/16019892.html',  # mile is None
+        # 'http://km.273.cn/car/16586850.html',  # dmodel list cant replace
     ],
     'per_page': 20,
     'pages': 300,
