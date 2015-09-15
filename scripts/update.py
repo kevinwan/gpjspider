@@ -82,7 +82,8 @@ domain_dict = {
     ],
     'che168.com': [
         [
-            u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息已失效")])',
+            u'boolean(//div[@class="wrong_page"]/p[contains(text(),"访问的车辆信息")])',
+            u'boolean(//div[@class="errorTxt" and contains(text(),"浏览的页面暂时")])',
             'boolean(//div[@class="plaint-list"])',
             'boolean(//input[@id="hf_CarStatue"]/@value=15)'
         ],
