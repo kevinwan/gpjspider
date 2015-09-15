@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-import re
+# import re
 import sys
 import ipdb
 import time
@@ -9,12 +9,12 @@ import datetime
 import requests
 import argparse
 sys.path.append("..")
-import StringIO
-from PIL import Image
+# import StringIO
+# from PIL import Image
 from sqlalchemy import func
 from threading import Thread, Lock
 from scrapy.selector import Selector
-from pytesseract import image_to_string
+# from pytesseract import image_to_string
 from gpjspider.models import UsedCar, CarSource, CarDetailInfo
 from gpjspider.utils import get_mysql_connect, get_redis_cluster
 from gpjspider.tasks.spiders import run_all_spider_update
@@ -240,42 +240,112 @@ try:
     server_id = get_internal_ip
 except Exception as e:
     print u'ExceptionInfo: {0}'.format(e)
+# parse_58_firewall = False
 
 
-def parse_58_firewall(web_page):
-    response = Selector(text=web_page.text)
-    uuid_list = response.xpath('//input[@id="uuid"]/@value').extract()
+def parse_58_firewall(url):
+    global parse_58_firewall
+    parse_58_firewall = True
     headers = {
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6',
         'Connection': 'keep-alive',
+        'Content-Length': '50',
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Cookie': 'id58=05dzXFW3KVypm2tvK5JCAg==; __ag_cm_=1438067041103; sessionid=2a4c9cab-78f5-444c-9dca-7fa65288e83f; ag_fid=TvlD8uQkNDpJfwGF; _ga=GA1.2.382082989.1438067359; als=0; xxzl_cp=64248043b2de4dbba0bc7957f5f27165190; vip=v%3D1%26vipuserpline%3D1005%26masteruserid%3D33124437196550%26vipkey%3Da6447f5abbcb274ca0816f851a68c93b%26vipusertype%3D11; myfeet_tooltip=end; bangbigtip2=1; bangtoptipclose=1; 58home=bj; __autmz=253535702.1441729168.1.1.autmcsr=(direct)|autmccn=(direct)|autmcmd=(none); __autma=253535702.157438233.1441729168.1441729168.1441732451.2; __autmc=253535702; __utma=253535702.382082989.1438067359.1441732451.1441951771.19; __utmc=253535702; __utmz=253535702.1441951771.19.7.utmcsr=dl.58.com|utmccn=(referral)|utmcmd=referral|utmcct=/ershouche/23289743015332x.shtml; city=jixi; ipcity=cd%7C%u6210%u90FD; Nprd=26|1442631080529; _vz=viz_55ee973682873; bangbangid=1080863913022601748; new_uv=62; final_history=22668443783049%2C22668435425822%2C22668441197474%2C22668432867492%2C22668651581193; Nvis=48|1442285480528',
+        'Cookie': 'id58=05dzXFW3KVypm2tvK5JCAg==; __ag_cm_=1438067041103; sessionid=2a4c9cab-78f5-444c-9dca-7fa65288e83f; ag_fid=TvlD8uQkNDpJfwGF; _ga=GA1.2.382082989.1438067359; als=0; xxzl_cp=64248043b2de4dbba0bc7957f5f27165190; vip=v%3D1%26vipuserpline%3D1005%26masteruserid%3D33124437196550%26vipkey%3Da6447f5abbcb274ca0816f851a68c93b%26vipusertype%3D11; myfeet_tooltip=end; bangbigtip2=1; bangtoptipclose=1; __autmz=253535702.1441729168.1.1.autmcsr=(direct)|autmccn=(direct)|autmcmd=(none); __autma=253535702.157438233.1441729168.1441729168.1441732451.2; __autmc=253535702; __utma=253535702.382082989.1438067359.1441732451.1441951771.19; __utmc=253535702; __utmz=253535702.1441951771.19.7.utmcsr=dl.58.com|utmccn=(referral)|utmcmd=referral|utmcct=/ershouche/23289743015332x.shtml; city=bj; 58home=bj; final_history=22668683228067%2C22668616159369%2C22668683432201%2C22668209679651%2C22668571134241; Nprd=33|1442631080529; _vz=viz_55ee973682873; bangbangid=1080863913022601748; new_uv=66',
+        'Host': 'support.58.com',
+        'Origin': 'http://support.58.com',
+        'Referer': url,
         'User-Agent': 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36',
         'X-Requested-With': 'XMLHttpRequest'
     }
-    if uuid_list:
-        uuid = uuid_list[0]
-        url = 'http://support.58.com/firewall/code/2101784591/6444e593.do?rnd=1'
-        while response.xpath('//div[@class="search_tips_input"]').extract():
-            equa = None
-            while equa is None:
-                im = requests.get(url).content
+    data = 0
+    while data == 0:
+        equa = None
+        while equa is None:
+            web_page = requests.get(url)
+            response = Selector(text=web_page.text)
+            script = ''.join(response.xpath('//script').extract())
+            imgurl = re.search(r'.*(/firewall/code.*?rnd=).*?Math', script)
+            if imgurl:
+                imgurl = imgurl.group(1)
+                imgurl = 'http://support.58.com' + imgurl + '1'
+                uuid = re.search(r'.*/(.*)\.do', imgurl).group(1)
+                im = requests.get(imgurl).content
                 imob = Image.open(StringIO.StringIO(im))
                 imob = imob.convert('RGB')
                 text = image_to_string(imob)
-                equa = re.search(r'(\d+[\+-]\d+)[:=‘]', text)
-            num = str(eval(equa.group(1)))
-            bb = requests.post('http://support.58.com/firewall/code/2101784591/6444e593.do', headers = headers, data={'inputcode': num, 'uuid': uuid, 'namespace': u'infodetailweb'})
-            print num, bb.text
-            web_page = requests.get(web_page.url.split('&url=')[1])
-            response = Selector(text=web_page.text)
+                if '+' in text or '-' in text or '=' in text or '—' in text:
+                    text = text.replace('—', '-')
+                    text = text.replace('Z', '7')
+                    text = text.replace('f', '+')
+                    text = text.replace('4.', '+')
+                    text = text.replace('l', '1')
+                    text = text.replace('\'', '')
+                    text = text.replace(' ', '')
+                    text = text.replace(',', '')
+                    text = text.replace('’', '')
+                    equa = re.search(r'\d+[\+-]\d+', text)
+                else:
+                    equa = re.search(r'^\w{5}$', text.replace(' ', ''))
+        text = equa.group(0)
+        if '+' in text or '-' in text:
+            text = str(eval(text))
+        response = requests.post(
+            'http://support.58.com/firewall/code/2101784591/' + uuid + '.do',
+            headers=headers,
+            data={'inputcode': text, 'uuid': uuid, 'namespace': 'infodetailweb'}
+        )
+        data = response.text
+    web_page = requests.get(url.split('&url=')[1])
+    parse_58_firewall = False
     return web_page
 
 
 def get_sales_status(domain, url):    # 判断是否下线,代理问题有待解决
     global range_url_count
     global server_id
+    # global parse_58_firewall
     web_page = None
     for error_count in range(0, range_url_count):
+        # try:
+        #     if domain in ['baixing.com', 'ganji.com']:
+        #         proxies = {'http': random.choice(PROXIES)}
+        #         web_page = requests.get(url, proxies=proxies, auth=auth, timeout=3)
+        #         if web_page.status_code == 407:    # 代理不可用时用本地ip访问
+        #             web_page = requests.get(url)
+        #     else:
+        #         web_page = requests.get(url)
+        #     if domain in ['58.com', 'baixing.com', 'ganji.com'] and eval(firewall_rule[domain][1]):
+        #         raise Exception('Website shield and all agent failure !')
+        # except Exception as e:
+        #     try:
+        #         error_string = ''.join(e.args)
+        #     except Exception:
+        #         error_string = e.message.message
+        #     finally:
+        #         if web_page is not None:
+        #             if 'Website shield and all agent failure' in error_string:
+        #                 if domain == '58.com':
+        #                     if not parse_58_firewall:
+        #                         web_page = parse_58_firewall(web_page.url)
+        #                         break
+        #                     else:
+        #                         time.sleep(30)
+        #                 elif 'x-proxymesh-ip' in web_page.headers:
+        #                     key = '%s_%s_%s' % (domain, web_page.status_code, str(datetime.date.today()))
+        #                     redis_bad_ip.sadd(key, url)
+        #                     proxymesh_ip = web_page.headers.get('x-proxymesh-ip')
+        #                     invalid_ip_key = '%s_%s_%s' % (server_id, domain, str(datetime.date.today()))
+        #                     redis_bad_ip.sadd(invalid_ip_key, proxymesh_ip)
+        #                     redis_bad_ip.expire(invalid_ip_key, 600)
+        #                     time.sleep(60)
+        #         if error_count + 1 == range_url_count:
+        #             error_string = '\n' + url + ' ' + error_string
+        #             return ['online', error_string]
+        # else:
+        #     break
         try:
             if domain in ['58.com', 'baixing.com', 'ganji.com']:
                 proxies = {'http': random.choice(PROXIES)}
