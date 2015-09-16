@@ -250,8 +250,8 @@ rule = {
     'start_urls': [
         # 'http://www.chemao.com.cn/market-condition-QLJIXTnPB9lZ6cCEX9C4WtZZlgytXtsdRywDW96LPeC8i9PShxdo0qNdI0GodJdKzeK-cZlXn4tCesaXbhGiYg...html',
         # 'http://www.chemao.com.cn/market-condition-UWVvSj7RiYGjvVwyjPLw8cnAMWlKmLNcHabhqnZUgKSkwAvgp9TvjzQE-5xIVlHmugSstOdlIfsjWeDh0IclLTB6cEAJ0bcBbT9ofI6UKwZ3b1nrl5ZmkRG6XmrKkpar.html',
-        'http://www.chemao.com.cn/s/00so10',
-        'http://www.chemao.com.cn/s/00so10cf1',
+        'http://www.chemao.com.cn/qg/s/00so10', # 全国,全部车源,时间倒序
+        'http://www.chemao.com.cn/qg/s/00so10cf1', # 全国,认证车源,时间倒序
         # 'http://www.chemao.com.cn/market-condition-QLJIXTnPB9lZ6cCEX9C4WtZZlgytXtsdRywDW96LPeC8i9PShxdo0qNdI0GodJdKzeK-cZlXn4tCesaXbhGiYg..-page-46.html',
         # 'http://www.chemao.com.cn/market-condition-UWVvSj7RiYGjvVwyjPLw8cnAMWlKmLNcHabhqnZUgKSkwAvgp9TvjzQE-5xIVlHmugSstOdlIfsjWeDh0IclLTB6cEAJ0bcBbT9ofI6UKwZ3b1nrl5ZmkRG6XmrKkpar-page-46.html',
         # 'http://www.chemao.com.cn/market-condition-_XN6-BeggGcgdmcHLRh4_7j_IpkRh9RwR6I61UZlyIE..html',
